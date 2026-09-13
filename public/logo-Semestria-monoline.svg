@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 220">
+  <g fill="none" stroke="#1a1a1a" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <!-- S -->
+    <g transform="translate(-50,0)">
+      <path d="M150,50 C110,20 60,30 60,65 C60,100 140,100 140,135 C140,170 90,180 50,150"/>
+    </g>
+    <!-- e -->
+    <g transform="translate(130,0)">
+      <path d="M15,130 L95,130 C95,95 70,70 50,70 C20,70 5,95 5,130 C5,165 25,182 55,182 C75,182 88,175 93,163"/>
+    </g>
+    <!-- m -->
+    <g transform="translate(235,0)">
+      <path d="M10,182 L10,90 C10,75 25,70 40,70 C55,70 65,78 65,95 L65,182 M65,95 C65,78 80,70 95,70 C110,70 125,75 125,90 L125,182"/>
+    </g>
+    <!-- e -->
+    <g transform="translate(375,0)">
+      <path d="M15,130 L95,130 C95,95 70,70 50,70 C20,70 5,95 5,130 C5,165 25,182 55,182 C75,182 88,175 93,163"/>
+    </g>
+    <!-- s -->
+    <g transform="translate(478,0)">
+      <path d="M95,90 C85,72 60,68 40,75 C20,82 15,100 30,112 C50,128 90,120 100,145 C108,165 85,182 60,182 C40,182 20,175 12,160"/>
+    </g>
+    <!-- t -->
+    <g transform="translate(588,0)">
+      <path d="M35,40 L35,155 C35,175 50,182 65,175 M10,80 L80,80"/>
+    </g>
+    <!-- r -->
+    <g transform="translate(673,0)">
+      <path d="M15,182 L15,70 M15,95 C40,65 80,65 85,90"/>
+    </g>
+    <!-- i -->
+    <g transform="translate(758,0)">
+      <path d="M30,70 L30,182 M30,35 L30,36" stroke-width="15" stroke-linecap="round"/>
+    </g>
+    <!-- a -->
+    <g transform="translate(803,0)">
+      <path d="M95,75 L95,182 M95,80 C70,72 25,85 20,125 C15,165 65,178 95,172"/>
+    </g>
+  </g>
+</svg>
