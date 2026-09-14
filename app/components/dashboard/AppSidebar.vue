@@ -110,9 +110,9 @@
                     {{ item.name }}
                   </span>
                 </div>
-
-                <div v-if="item.name === 'Assignments'" :class="['ml-auto', collapseWrap]">
-                  <SidebarMenuBadge class="overflow-hidden rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-normal text-neutral-600 whitespace-nowrap">
+                
+                <div v-if="item.name === 'Assignments'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
+                  <SidebarMenuBadge class="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-normal text-neutral-600">
                     {{ props.assignmentsCount }}
                   </SidebarMenuBadge>
                 </div>
