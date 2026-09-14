@@ -28,14 +28,18 @@
 </script>
 
 <template>
-  <component :is="Modal.Root" v-model:open="openState">
+  <component
+    :is="Modal.Root"
+    v-model:open="openState"
+    :reposition-inputs="true"
+  >
     <component
       :is="Modal.Content"
       class="[&>button]:hidden"
       :class="[
         isDesktop
           ? 'max-w-lg overflow-hidden rounded-xl border-none p-0 shadow-lg'
-          : 'px-4 pb-6 pt-2 sm:px-0',
+          : 'max-h-[85dvh] px-4 pb-6 pt-2 sm:px-0',
       ]"
     >
       <component :is="Modal.Header" class="sr-only">
