@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useMediaQuery } from '@vueuse/core'
-  import { computed } from 'vue'
+  import { computed, onMounted, onUnmounted, ref } from 'vue'
   import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
   import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
@@ -25,13 +25,31 @@
     get: () => props.open,
     set: val => emit('update:open', val),
   })
+
+  const insetRef = ref<HTMLElement>()
+
+  function handleViewportChange() {
+    if (isDesktop.value || !window.visualViewport || !insetRef.value) return
+    const vv = window.visualViewport
+    const offset = window.innerHeight - vv.height - vv.offsetTop
+    insetRef.value.style.transform = offset > 0 ? `translateY(-${offset}px)` : ''
+  }
+
+  onMounted(() => {
+    window.visualViewport?.addEventListener('resize', handleViewportChange)
+    window.visualViewport?.addEventListener('scroll', handleViewportChange)
+  })
+
+  onUnmounted(() => {
+    window.visualViewport?.removeEventListener('resize', handleViewportChange)
+    window.visualViewport?.removeEventListener('scroll', handleViewportChange)
+  })
 </script>
 
 <template>
   <component
     :is="Modal.Root"
     v-model:open="openState"
-    :reposition-inputs="true"
   >
     <component
       :is="Modal.Content"
@@ -51,7 +69,9 @@
         </component>
       </component>
 
-      <slot />
+      <div ref="insetRef" class="transition-transform duration-150 ease-out">
+        <slot />
+      </div>
     </component>
   </component>
 </template>
