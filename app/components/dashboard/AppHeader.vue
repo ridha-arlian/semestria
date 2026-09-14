@@ -36,7 +36,8 @@
     { locales: 'en-US' }
   )
 
-  const heading = computed(() => (props.view === 'Overview' ? 'Good morning, Ari.' : props.view))
+  const headingDesktop = computed(() => (props.view === 'Overview' ? 'Good morning, Ari.' : props.view))
+  const headingMobile = computed(() => props.view)
 
   function handleSelectAction(action: () => void) {
     open.value = false
@@ -58,11 +59,16 @@
       </Button>
 
       <div>
-        <p class="text-[11px] font-medium uppercase tracking-[0.15em] text-neutral-400">
+        <p class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-neutral-400 md:block">
           {{ formattedDate || '...' }}
         </p>
-        <h1 class="mt-1 text-xl font-semibold tracking-[-0.03em]">
-          {{ heading }}
+
+        <h1 class="text-base font-semibold tracking-[-0.03em] md:hidden">
+          {{ headingMobile }}
+        </h1>
+
+        <h1 class="hidden text-xl font-semibold tracking-[-0.03em] md:mt-1 md:block">
+          {{ headingDesktop }}
         </h1>
       </div>
     </div>
