@@ -1,11 +1,12 @@
 <script setup lang="ts">
-  import { BookOpen, Check, CircleHelp, LayoutDashboard, Settings2 } from '@lucide/vue'
+  import { BookOpen, Check, LayoutDashboard, Settings } from '@lucide/vue'
   import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
   import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
   import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
   import { Progress } from '@/components/ui/progress'
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
   import { Button } from '@/components/ui/button'
+  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
   import AppIcon from '~/components/icons/AppIcon.vue'
   import AppLogo from '~/components/icons/AppLogo.vue'
   import type { View } from '~/types/dashboard'
@@ -27,11 +28,6 @@
     { name: 'Materials' as const, icon: BookOpen },
   ]
 
-  const bottomNavItems = [
-    { name: 'Settings' as const, icon: Settings2 },
-    { name: 'Help & feedback' as const, icon: CircleHelp },
-  ]
-  
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
   const menuButtonClass = 'w-full justify-start gap-3 rounded-md px-3 py-2.5 text-[14px] transition-[padding,gap,color,background-color] duration-200 ease-linear text-neutral-500 hover:bg-white/70 hover:text-neutral-900 group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto'
   const menuButtonActiveClass = 'data-[active=true]:bg-white data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-neutral-200'
@@ -52,7 +48,9 @@
                 <SidebarTrigger class="text-neutral-500 hover:text-neutral-900" />
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Close sidebar</p>
+                <p>
+                  Close sidebar
+                </p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -110,7 +108,7 @@
                     {{ item.name }}
                   </span>
                 </div>
-                
+
                 <div v-if="item.name === 'Assignments'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
                   <SidebarMenuBadge class="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-normal text-neutral-600">
                     {{ props.assignmentsCount }}
@@ -157,51 +155,47 @@
           </Accordion>
         </SidebarGroupContent>
       </SidebarGroup>
-
-      <SidebarGroup class="mt-auto p-0">
-        <SidebarMenu class="space-y-1">
-          <SidebarMenuItem
-            v-for="item in bottomNavItems"
-            :key="item.name"
-            class="flex justify-center overflow-hidden"
-          >
-            <SidebarMenuButton
-              :is-active="props.view === item.name"
-              :tooltip="item.name"
-              :class="[menuButtonClass, menuButtonActiveClass]"
-              @click="emit('update:view', item.name)"
-            >
-              <component :is="item.icon" class="size-4 shrink-0" :stroke-width="1.8" />
-
-              <div :class="collapseWrap">
-                <span class="overflow-hidden truncate whitespace-nowrap">
-                  {{ item.name }}
-                </span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroup>
     </SidebarContent>
 
-    <SidebarFooter class="border-t border-neutral-200 p-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-3 overflow-x-hidden">
-      <div class="flex items-center gap-3 w-full justify-start transition-[gap] duration-200 ease-linear group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 whitespace-nowrap">
-        <div class="grid size-8 shrink-0 place-items-center rounded-full bg-neutral-900 text-[11px] font-semibold text-white">
-          AR
-        </div>
+    <SidebarFooter class="h-16 justify-center border-t border-neutral-200 px-3 group-data-[collapsible=icon]:p-0 overflow-x-hidden">
+      <div class="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center whitespace-nowrap">
+        
+        <div class="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+          <Avatar class="size-8 shrink-0">
+            <AvatarImage src="" alt="Ari Rahman" />
+            <AvatarFallback class="bg-neutral-900 text-[11px] font-semibold text-white">
+              AR
+            </AvatarFallback>
+          </Avatar>
 
-        <div :class="collapseWrap">
-          <div class="overflow-hidden min-w-0">
-            <p class="text-xs font-semibold text-neutral-900 truncate">
+          <div :class="collapseWrap">
+            <span class="text-xs font-medium text-neutral-700 truncate">
               Ari Rahman
-            </p>
-            <p class="text-[10px] text-neutral-400 truncate">
-              Personal workspace
-            </p>
+            </span>
           </div>
         </div>
 
-        <!-- <MoreHorizontal class="ml-auto size-4 shrink-0 cursor-pointer text-neutral-400 group-data-[collapsible=icon]:hidden" /> -->
+        <TooltipProvider :delay-duration="0">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                class="size-9 rounded-md text-neutral-500 hover:bg-white/70! hover:text-neutral-900! shrink-0 group-data-[collapsible=icon]:hidden transition-colors duration-200 ease-linear"
+                @click="emit('update:view', 'Settings' as View)"
+              >
+                <Settings class="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>
+                Settings
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
       </div>
     </SidebarFooter>
   </Sidebar>
