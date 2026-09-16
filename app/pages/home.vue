@@ -36,7 +36,7 @@
           Semesters
         </p>
         <nav class="mt-3 space-y-1">
-          <NuxtLink v-for="workspace in workspaces" :key="workspace.name" to="/dashboard" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] text-neutral-500 transition hover:bg-white hover:text-neutral-900">
+          <NuxtLink v-for="workspace in workspaces" :key="workspace.name" to="/workspaces" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] text-neutral-500 transition hover:bg-white hover:text-neutral-900">
             <span class="size-1.5 rounded-full" :class="workspace.active ? 'bg-neutral-900' : 'bg-neutral-300'" />
             {{ workspace.name }}
           </NuxtLink>
