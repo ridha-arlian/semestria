@@ -1,57 +1,71 @@
 <script setup lang="ts">
-import { ArrowUpRight } from '@lucide/vue'
-import { computed } from 'vue'
-import type { Assignment } from '~/types/dashboard'
+  import { ArrowUpRight } from '@lucide/vue'
+  import { computed } from 'vue'
+  import type { Assignment } from '~/types/dashboard'
+  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 
-const props = defineProps<{
-  assignments: Assignment[]
-  completed: number
-}>()
+  const props = defineProps<{ assignments: Assignment[], completed: number }>()
 
-const stats = computed(() => [
-  {
-    label: 'Active assignments',
-    value: String(props.assignments.filter(a => a.status !== 'Done').length),
-    note: '2 due this week',
-  },
-  {
-    label: 'Completed',
-    value: String(props.completed),
-    note: `of ${props.assignments.length} assignments`,
-  },
-  {
-    label: 'Study progress',
-    value: '42%',
-    note: 'Keep the rhythm going',
-  },
-  {
-    label: 'Next deadline',
-    value: '2 days',
-    note: 'Research proposal',
-  },
-])
+  const stats = computed(() => [
+    {
+      label: 'Active assignments',
+      value: String(props.assignments.filter(a => a.status !== 'Done').length),
+      note: '2 due this week',
+      to: '/assignments?status=active',
+    },
+    {
+      label: 'Completed',
+      value: String(props.completed),
+      note: `of ${props.assignments.length} assignments`,
+      to: '/assignments?status=completed',
+    },
+    {
+      label: 'Study progress',
+      value: '42%',
+      note: 'Keep the rhythm going',
+      to: null,
+    },
+    {
+      label: 'Next deadline',
+      value: '2 days',
+      note: 'Research proposal',
+      to: null,
+    },
+  ])
 </script>
 
 <template>
   <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-    <div
+    <Card
       v-for="(stat, i) in stats"
       :key="stat.label"
-      class="rounded-lg border border-neutral-200 bg-white p-5"
-      :class="'delay-' + (i + 1)"
+      class="animate-rise gap-0 py-0 border-border bg-card transition-colors hover:border-line-strong"
+      :class="`delay-${i + 1}`"
     >
-      <div class="flex items-start justify-between">
-        <span class="text-xs text-neutral-500">
+      <CardHeader class="flex h-10 flex-row items-center justify-between space-y-0 p-4 pb-0">
+        <CardTitle class="text-xs font-normal text-muted-foreground leading-none">
           {{ stat.label }}
-        </span>
-        <ArrowUpRight v-if="i < 2" class="size-3.5 text-neutral-300" />
-      </div>
-      <p class="mt-4 text-3xl font-semibold tracking-tighter">
-        {{ stat.value }}
-      </p>
-      <p class="mt-1 text-[11px] text-neutral-400">
-        {{ stat.note }}
-      </p>
-    </div>
+        </CardTitle>
+
+        <NuxtLink
+          v-if="stat.to"
+          :to="stat.to"
+          class="-mr-1 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+          :aria-label="`Navigate to ${stat.label}`"
+        >
+          <ArrowUpRight class="size-4.5" />
+        </NuxtLink>
+        <span v-else class="size-6" />
+      </CardHeader>
+
+      <CardContent class="p-4 pt-3">
+        <div class="text-3xl font-semibold tracking-tighter text-foreground">
+          {{ stat.value }}
+        </div>
+        <CardDescription class="mt-1 text-[11px] text-muted-foreground">
+          {{ stat.note }}
+        </CardDescription>
+      </CardContent>
+    </Card>
   </div>
 </template>

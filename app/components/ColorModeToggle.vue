@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { Sun, Moon } from '@lucide/vue'
   import { Button } from '@/components/ui/button'
 
   const colorMode = useColorMode()
@@ -26,20 +27,21 @@
   <ClientOnly>
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       @click="toggleDarkMode"
-      class="h-auto p-0 font-mono text-xs sm:text-sm tracking-wider text-ink uppercase transition-opacity hover:opacity-50 bg-transparent! !hover:bg-transparent !hover:text-ink focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer select-none"
+      class="h-8 w-8 text-ink bg-transparent! hover:opacity-70 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer select-none"
+      title="Toggle theme"
     >
-      {{ colorMode.value === 'dark' ? 'LIGHT MODE?' : 'DARK MODE?' }}
+      <Sun v-if="colorMode.value === 'dark'" class="h-4 w-4" />
+      <Moon v-else class="h-4 w-4" />
+      <span class="sr-only">Toggle theme</span>
     </Button>
 
     <template #fallback>
-      <span class="font-mono text-xs sm:text-sm tracking-wider text-muted-foreground uppercase cursor-pointer dark:hidden">
-        DARK MODE?
-      </span>
-      <span class="font-mono text-xs sm:text-sm tracking-wider text-muted-foreground uppercase cursor-pointer hidden dark:inline">
-        LIGHT MODE?
-      </span>
+      <div class="h-8 w-8 flex items-center justify-center text-ink opacity-50">
+        <Moon class="h-4 w-4 dark:hidden" />
+        <Sun class="h-4 w-4 hidden dark:block" />
+      </div>
     </template>
   </ClientOnly>
 </template>
