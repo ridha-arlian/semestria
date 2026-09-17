@@ -20,5 +20,5 @@ export interface Material {
   reviewed: string
 }
 
-export type View = 'Overview' | 'Assignments' | 'Materials' | 'Settings' | 'Help & feedback'
+export type View = 'Overview' | 'Assignments' | 'Materials' | 'All Workspaces'
 export type ModalType = 'assignment' | 'material'
