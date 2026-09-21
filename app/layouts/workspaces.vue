@@ -65,7 +65,6 @@
     assignments.value = assignments.value.filter(a => a.id !== id)
   }
 
-  // Bagikan state & aksi ke page lewat provide/inject
   provide('workspace', {
     view,
     assignments,
@@ -81,17 +80,17 @@
     { name: 'Materials' as const, icon: BookOpen },
   ]
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
-  const menuButtonClass = 'w-full justify-start gap-3 rounded-md px-3 py-2.5 text-[14px] transition-[padding,gap,color,background-color] duration-200 ease-linear text-neutral-500 hover:bg-white/70 hover:text-neutral-900 group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto'
-  const menuButtonActiveClass = 'data-[active=true]:bg-white data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-neutral-200'
+  const menuButtonClass = 'w-full justify-start gap-3 rounded-md px-3 py-2.5 text-[14px] transition-[padding,gap,color,background-color] duration-200 ease-linear text-subline hover:bg-card/70 hover:text-ink group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto'
+  const menuButtonActiveClass = 'data-[active=true]:bg-card data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-line'
 </script>
 
 <template>
   <SidebarProvider>
-    <div class="min-h-screen w-full bg-paper text-neutral-900 flex">
+    <div class="min-h-screen w-full bg-paper text-ink flex">
       <AppSidebar>
         <SidebarGroup class="p-0">
           <div :class="collapseWrap">
-            <SidebarGroupLabel class="overflow-hidden px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400 whitespace-nowrap">
+            <SidebarGroupLabel class="overflow-hidden px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-subline whitespace-nowrap">
               Workspace
             </SidebarGroupLabel>
           </div>
@@ -113,7 +112,7 @@
                   </div>
 
                   <div v-if="item.name === 'Assignments'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                    <SidebarMenuBadge class="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-normal text-neutral-600">
+                    <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
                       {{ assignments.length }}
                     </SidebarMenuBadge>
                   </div>
@@ -128,27 +127,27 @@
             <Accordion type="single" collapsible default-value="semester" class="w-full">
               <AccordionItem value="semester" class="border-none">
                 <AccordionTrigger class="h-auto py-0 flex items-center justify-start gap-1.5 hover:no-underline [&>svg]:transition-all [&>svg]:duration-200 [&>svg]:-rotate-90 [&[data-state=open]>svg]:rotate-0 opacity-100 md:[&>svg]:opacity-0 md:hover:[&>svg]:opacity-100">
-                  <SidebarGroupLabel class="p-0 h-auto cursor-pointer text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400 hover:text-neutral-600 transition-colors">
+                  <SidebarGroupLabel class="p-0 h-auto cursor-pointer text-[10px] font-bold uppercase tracking-[0.18em] text-subline hover:text-ink transition-colors">
                     This semester
                   </SidebarGroupLabel>
                 </AccordionTrigger>
 
                 <AccordionContent class="mt-4 pb-0 overflow-hidden">
-                  <Card class="bg-white border-neutral-200 shadow-none p-3 gap-0 overflow-hidden">
+                  <Card class="bg-card border-line shadow-none p-3 gap-0 overflow-hidden">
                     <CardHeader class="p-0 flex flex-row items-center justify-between space-y-0">
-                      <CardTitle class="text-xs font-semibold text-neutral-900">
+                      <CardTitle class="text-xs font-semibold text-headline">
                         Fall 2026
                       </CardTitle>
                     </CardHeader>
 
                     <CardContent class="p-0 mt-1">
-                      <p class="text-[11px] text-neutral-400 whitespace-nowrap">
+                      <p class="text-[11px] text-subline whitespace-nowrap">
                         Aug 24 — Dec 18, 2026
                       </p>
 
-                      <Progress :model-value="42" class="mt-3 h-1 bg-neutral-100" />
+                      <Progress :model-value="42" class="mt-3 h-1 bg-soft" />
 
-                      <p class="mt-1.5 text-[10px] text-neutral-400 whitespace-nowrap">
+                      <p class="mt-1.5 text-[10px] text-subline whitespace-nowrap">
                         Week 3 of 16
                       </p>
                     </CardContent>
@@ -176,11 +175,11 @@
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" class="w-48">
                 <DropdownMenuItem @click="openAdd('assignment')">
-                  <SquareCheck class="mr-2 size-4 text-neutral-500" />
+                  <SquareCheck class="mr-2 size-4 text-subline" />
                   <span>New Assignment</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="openAdd('material')">
-                  <FileText class="mr-2 size-4 text-neutral-500" />
+                  <FileText class="mr-2 size-4 text-subline" />
                   <span>New Material</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

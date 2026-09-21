@@ -3,7 +3,7 @@
     <path
       d="M150,50 C110,20 60,30 60,65 C60,100 140,100 140,135 C140,170 90,180 50,150"
       fill="none"
-      stroke="#1a1a1a"
+      stroke="currentColor"
       stroke-width="16"
       stroke-linecap="round"
       stroke-linejoin="round"

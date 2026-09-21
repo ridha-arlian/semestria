@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { X } from '@lucide/vue'
-import { ref, watch } from 'vue'
-import type { ModalType } from '~/types/dashboard'
+  import { X } from '@lucide/vue'
+  import { ref, watch } from 'vue'
+  import type { ModalType } from '~/types/dashboard'
 
-const props = defineProps<{
-  open: boolean
-  modalType: ModalType
-}>()
+  const props = defineProps<{
+    open: boolean
+    modalType: ModalType
+  }>()
 
-const emit = defineEmits<{
-  close: []
-  submit: [payload: { task: string, course: string, due: string }]
-}>()
+  const emit = defineEmits<{
+    close: []
+    submit: [payload: { task: string, course: string, due: string }]
+  }>()
 
-const task = ref('')
-const course = ref('')
-const due = ref('')
+  const task = ref('')
+  const course = ref('')
+  const due = ref('')
 
-watch(() => props.open, (isOpen) => {
-  if (isOpen) {
-    task.value = ''
-    course.value = ''
-    due.value = ''
+  watch(() => props.open, (isOpen) => {
+    if (isOpen) {
+      task.value = ''
+      course.value = ''
+      due.value = ''
+    }
+  })
+
+  function handleSubmit() {
+    if (!task.value.trim() || !course.value.trim())
+      return
+    emit('submit', { task: task.value, course: course.value, due: due.value })
   }
-})
-
-function handleSubmit() {
-  if (!task.value.trim() || !course.value.trim())
-    return
-  emit('submit', { task: task.value, course: course.value, due: due.value })
-}
 </script>
 
 <template>

@@ -45,7 +45,7 @@
 </script>
 
 <template>
-  <header class="sticky top-0 z-10 flex h-19 items-center justify-between border-b border-neutral-200 bg-paper/95 px-5 backdrop-blur md:px-9">
+  <header class="sticky top-0 z-10 flex h-19 items-center justify-between border-b border-line bg-paper/95 px-5 backdrop-blur md:px-9">
     <div class="flex items-center gap-3">
       <Button
         variant="ghost"
@@ -58,15 +58,15 @@
       </Button>
 
       <div>
-        <p class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-neutral-400 md:block">
+        <p class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-subline md:block">
           {{ formattedDate || '...' }}
         </p>
 
-        <h1 class="text-base font-semibold tracking-[-0.03em] md:hidden">
+        <h1 class="text-base font-semibold tracking-[-0.03em] text-headline md:hidden">
           {{ headingMobile }}
         </h1>
 
-        <h1 class="hidden text-xl font-semibold tracking-[-0.03em] md:mt-1 md:block">
+        <h1 class="hidden text-xl font-semibold tracking-[-0.03em] text-headline md:mt-1 md:block">
           {{ headingDesktop }}
         </h1>
       </div>
@@ -80,13 +80,13 @@
         aria-label="Search"
         @click="open = true"
       >
-        <SearchIcon class="size-4 text-neutral-500" />
+        <SearchIcon class="size-4 text-subline" />
       </Button>
 
       <Button
         variant="outline"
         size="sm"
-        class="hidden h-9 items-center gap-2 text-xs text-neutral-500 sm:flex"
+        class="hidden h-9 items-center gap-2 text-xs text-subline sm:flex"
         @click="open = true"
       >
         <SearchIcon class="size-3.5" />
@@ -98,6 +98,8 @@
       </Button>
 
       <slot name="actions" />
+
+      <ColorModeToggle />
     </div>
 
     <ResponsiveCommandPalette v-model:open="open">

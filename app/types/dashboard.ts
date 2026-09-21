@@ -20,5 +20,12 @@ export interface Material {
   reviewed: string
 }
 
+export interface StatItem {
+  label: string
+  value: string
+  note: string
+  to?: string | null
+}
+
 export type View = 'Overview' | 'Assignments' | 'Materials' | 'All Workspaces'
 export type ModalType = 'assignment' | 'material'

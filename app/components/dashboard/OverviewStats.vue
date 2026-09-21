@@ -1,41 +1,13 @@
 <script setup lang="ts">
   import { ArrowUpRight } from '@lucide/vue'
-  import { computed } from 'vue'
-  import type { Assignment } from '~/types/dashboard'
   import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+  import type { StatItem } from '~/types/dashboard'
 
-  const props = defineProps<{ assignments: Assignment[], completed: number }>()
-
-  const stats = computed(() => [
-    {
-      label: 'Active assignments',
-      value: String(props.assignments.filter(a => a.status !== 'Done').length),
-      note: '2 due this week',
-      to: '/assignments?status=active',
-    },
-    {
-      label: 'Completed',
-      value: String(props.completed),
-      note: `of ${props.assignments.length} assignments`,
-      to: '/assignments?status=completed',
-    },
-    {
-      label: 'Study progress',
-      value: '42%',
-      note: 'Keep the rhythm going',
-      to: null,
-    },
-    {
-      label: 'Next deadline',
-      value: '2 days',
-      note: 'Research proposal',
-      to: null,
-    },
-  ])
+  defineProps<{ stats: StatItem[] }>()
 </script>
 
 <template>
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
     <Card
       v-for="(stat, i) in stats"
       :key="stat.label"
