@@ -34,5 +34,8 @@ export default defineNuxtConfig({
     preference: 'system',
     fallback: 'light',
     classSuffix: ''
+  },
+  experimental: {
+    viewTransition: true
   }
 })

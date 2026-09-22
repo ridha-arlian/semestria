@@ -67,7 +67,7 @@ const totalAssignments = workspaces.reduce((sum, w) => sum + w.assignments, 0)
 const completedAssignments = workspaces.reduce((sum, w) => sum + w.completed, 0)
 
 const homeStats = computed<StatItem[]>(() => [
-  { label: 'Workspaces', value: String(workspaces.length), note: 'semesters in your space' },
+  { label: 'Workspaces', value: String(workspaces.length), note: '  semesters in your space' },
   { label: 'Assignments', value: String(totalAssignments), note: `${completedAssignments} completed overall` },
   { label: 'Active semester', value: 'Fall 2026', note: 'Week 3 of 16' },
 ])

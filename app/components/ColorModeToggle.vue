@@ -4,8 +4,21 @@
 
   const colorMode = useColorMode()
 
-  function toggleDarkMode() {
-    colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+  function toggleDarkMode(e: MouseEvent) {
+    const isDark = colorMode.value === 'dark'
+    const next = isDark ? 'light' : 'dark'
+
+    if (!document.startViewTransition) {
+      colorMode.preference = next
+      return
+    }
+
+    document.documentElement.style.setProperty('--x', `${e.clientX}px`)
+    document.documentElement.style.setProperty('--y', `${e.clientY}px`)
+
+    document.startViewTransition(() => {
+      colorMode.preference = next
+    })
   }
 
   onMounted(() => {
