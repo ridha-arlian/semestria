@@ -36,7 +36,6 @@
     end: undefined,
   })
 
-  // Isi form jika mode edit, reset jika mode create
   watch([isOpen, () => props.workspaceToEdit], ([open, workspace]) => {
     if (open) {
       if (workspace) {
@@ -90,29 +89,29 @@
     <DialogContent class="sm:max-w-106.25">
       <DialogHeader>
         <DialogTitle>
-          {{ isEdit ? 'Edit semester' : 'Create new semester' }}
+          {{ isEdit ? 'Edit workspace' : 'Create new workspace' }}
         </DialogTitle>
         <DialogDescription>
-          {{ isEdit ? 'Update your semester details and timeline.' : 'Set up a new workspace to track your courses, assignments, and progress.' }}
+          {{ isEdit ? 'Update your workspace details and timeline.' : 'Set up a new workspace to track your courses, assignments, and progress.' }}
         </DialogDescription>
       </DialogHeader>
 
       <form @submit.prevent="handleSubmit" class="space-y-4 py-2">
         <div class="space-y-2">
           <Label for="name">
-            Semester name
+            Workspace name
           </Label>
           <Input
             id="name"
             v-model="form.name"
-            placeholder="e.g. Fall 2026"
+            placeholder="e.g. Fall 2026 or Frontend Bootcamp"
             required
           />
         </div>
 
         <div class="space-y-2">
           <Label>
-            Semester duration
+            Workspace duration
           </Label>
           <Popover>
             <PopoverTrigger as-child>
@@ -134,7 +133,7 @@
         <div class="flex items-center justify-between rounded-lg border border-line p-3">
           <div class="space-y-0.5">
             <Label class="text-sm">
-              Set as active semester
+              Set as active workspace
             </Label>
             <p class="text-[12px] text-subline">
               Make this your current active workspace.
@@ -148,7 +147,7 @@
             Cancel
           </Button>
           <Button type="submit">
-            {{ isEdit ? 'Save changes' : 'Create semester' }}
+            {{ isEdit ? 'Save changes' : 'Create workspace' }}
           </Button>
         </DialogFooter>
       </form>

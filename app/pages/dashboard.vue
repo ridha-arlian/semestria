@@ -12,7 +12,7 @@
   import { Plus } from '@lucide/vue'
 
   definePageMeta({
-    layout: 'home'
+    layout: 'dashboard'
   })
 
   const router = useRouter()
@@ -64,7 +64,7 @@
   const completedAssignments = workspaces.reduce((sum, w) => sum + w.completed, 0)
 
   const homeStats = computed<StatItem[]>(() => [
-    { label: 'Workspaces', value: String(workspaces.length), note: '  semesters in your space' },
+    { label: 'Workspaces', value: String(workspaces.length), note: 'workspaces in your space' },
     { label: 'Assignments', value: String(totalAssignments), note: `${completedAssignments} completed overall` },
     { label: 'Active semester', value: 'Fall 2026', note: 'Week 3 of 16' },
   ])
@@ -82,7 +82,7 @@
 
       <Button class="w-full sm:w-auto" @click="handleCreateNew">
         <Plus class="mr-2 h-4 w-4" />
-        New semester
+        New workspace
       </Button>
       
       <NewSemesterDialog
@@ -106,7 +106,7 @@
       <CardHeader class="border-b border-line">
         <div>
           <CardTitle class="text-sm font-semibold text-headline">
-            Your semesters
+            Your workspaces
           </CardTitle>
           <CardDescription class="mt-0.5 text-xs text-subline">
             Open a workspace to continue where you left off.

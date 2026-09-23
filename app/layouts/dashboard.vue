@@ -7,12 +7,11 @@
   const view = ref<View>('Overview')
 
   const mainNavItems = [
-    { name: 'All Workspaces' as const, icon: LayoutDashboard },
+    { name: 'Dashboard' as const, icon: LayoutDashboard },
   ]
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
-  const menuButtonClass = 'w-full justify-start gap-3 rounded-md px-3 py-2.5 text-[14px] transition-[padding,gap,color,background-color] duration-200 ease-linear text-subline hover:bg-card/70 hover:text-ink group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto'
-  const menuButtonActiveClass = 'data-[active=true]:bg-card data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-line'
+  const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
 </script>
 
 <template>
@@ -35,7 +34,7 @@
                 <SidebarMenuButton
                   is-active
                   :tooltip="item.name"
-                  :class="[menuButtonClass, menuButtonActiveClass]"
+                  :class="menuButtonClass"
                 >
                   <component :is="item.icon" class="size-4 shrink-0" :stroke-width="1.8" />
 
@@ -56,7 +55,7 @@
               <AccordionItem value="semester" class="border-none">
                 <AccordionTrigger class="h-auto py-0 flex items-center justify-start gap-1.5 hover:no-underline [&>svg]:transition-all [&>svg]:duration-200 [&>svg]:-rotate-90 [&[data-state=open]>svg]:rotate-0 opacity-100 md:[&>svg]:opacity-0 md:hover:[&>svg]:opacity-100">
                   <SidebarGroupLabel class="p-0 h-auto cursor-pointer text-[10px] font-bold uppercase tracking-[0.18em] text-subline hover:text-ink transition-colors">
-                    Semesters
+                    Workspaces
                   </SidebarGroupLabel>
                 </AccordionTrigger>
 
@@ -66,7 +65,7 @@
                       v-for="semester in ['Fall 2026', 'Spring 2026', 'Fall 2025']"
                       :key="semester"
                       variant="default"
-                      class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-subline transition-colors hover:bg-card/70 hover:text-ink [&:hover_svg]:fill-ink [&:hover_svg]:text-ink"
+                      class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-subline transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&:hover_svg]:fill-ink [&:hover_svg]:text-ink"
                     >
                       <ItemMedia variant="icon" class="size-5 shrink-0 justify-center bg-transparent border-none p-0">
                         <CircleSmall class="size-5 transition-colors fill-transparent text-subline" />

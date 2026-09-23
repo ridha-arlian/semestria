@@ -3,15 +3,17 @@
   import { useDateFormat, useMagicKeys, useMounted, whenever } from '@vueuse/core'
   import { computed, ref } from 'vue'
   import ResponsiveCommandPalette from '@/components/ResponsiveCommandPalette.vue'
+  import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
   import { Button } from '@/components/ui/button'
   import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
   import { Kbd, KbdGroup } from '@/components/ui/kbd'
   import { useSidebar } from '@/components/ui/sidebar'
   import AppIcon from '~/components/icons/AppIcon.vue'
-  import type { View } from '~/types/dashboard'
+  import type { BreadcrumbEntry, View } from '~/types/dashboard'
 
-  const props = defineProps<{
+  const { view, breadcrumbs } = defineProps<{
     view: View
+    breadcrumbs?: BreadcrumbEntry[]
   }>()
 
   const emit = defineEmits<{
@@ -29,14 +31,11 @@
   })
 
   const isMounted = useMounted()
-  const formattedDate = useDateFormat(
-    computed(() => (isMounted.value ? new Date() : undefined)),
-    'dddd, MMMM D, YYYY',
-    { locales: 'en-US' }
-  )
-
-  const headingDesktop = computed(() => (props.view === 'Overview' ? 'Good morning, Ari.' : props.view))
-  const headingMobile = computed(() => props.view)
+  const formattedDate = useDateFormat(computed(() => (isMounted.value ? new Date() : undefined)), 'dddd, MMMM D, YYYY', { locales: 'en-US' })
+  
+  const headingDesktop = computed(() => 'Good morning, Ari.')
+  const headingMobile = computed(() => view)
+  const isOverview = computed(() => !breadcrumbs || breadcrumbs.length === 0)
 
   function handleSelectAction(action: () => void) {
     open.value = false
@@ -58,9 +57,30 @@
       </Button>
 
       <div>
-        <p class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-subline md:block">
+        <p v-if="isOverview" class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-subline md:block">
           {{ formattedDate || '...' }}
         </p>
+
+        <Breadcrumb v-else class="hidden md:block">
+          <BreadcrumbList>
+            <template v-for="(crumb, i) in breadcrumbs" :key="crumb.label">
+              <BreadcrumbItem>
+                <BreadcrumbLink v-if="i < breadcrumbs!.length - 1" as-child class="text-subline transition-colors hover:text-ink">
+                  <NuxtLink v-if="crumb.to" :to="crumb.to">
+                    {{ crumb.label }}
+                  </NuxtLink>
+                  <NuxtLink v-else-if="crumb.view" class="cursor-pointer" @click="emit('navigate', crumb.view)">
+                    {{ crumb.label }}
+                  </NuxtLink>
+                </BreadcrumbLink>
+                <BreadcrumbPage v-else class="text-headline font-medium">
+                  {{ crumb.label }}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator v-if="i < breadcrumbs!.length - 1" class="text-subline" />
+            </template>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <h1 class="text-base font-semibold tracking-[-0.03em] text-headline md:hidden">
           {{ headingMobile }}

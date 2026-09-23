@@ -63,7 +63,7 @@
               <ContextMenuItem class="cursor-pointer text-xs" @select="emit('edit', row.original)">
                 <Pencil class="mr-2 size-3.5 text-subline" />
                 <span>
-                  Edit semester
+                  Edit workspace
                 </span>
               </ContextMenuItem>
 
@@ -72,7 +72,7 @@
               <ContextMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @select="emit('delete', row.original)">
                 <Trash2 class="mr-2 size-3.5" />
                 <span>
-                  Delete semester
+                  Delete workspace
                 </span>
               </ContextMenuItem>
             </ContextMenuContent>

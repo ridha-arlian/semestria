@@ -27,5 +27,11 @@ export interface StatItem {
   to?: string | null
 }
 
+export interface BreadcrumbEntry {
+  label: string
+  view?: View
+  to?: string
+}
+
 export type View = 'Overview' | 'Assignments' | 'Materials' | 'All Workspaces'
 export type ModalType = 'assignment' | 'material'

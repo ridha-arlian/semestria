@@ -12,7 +12,7 @@
       </NuxtLink>
 
       <div class="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.04em] md:gap-5">
-        <NuxtLink to="/home" class="inline-flex items-center gap-1.25 border-b border-ink pb-1 text-[11px] font-bold uppercase text-ink hover:border-b-ink/20 hover:text-ink/60 md:gap-1.75 md:text-xs">
+        <NuxtLink to="/dashboard" class="inline-flex items-center gap-1.25 border-b border-ink pb-1 text-[11px] font-bold uppercase text-ink hover:border-b-ink/20 hover:text-ink/60 md:gap-1.75 md:text-xs">
           <span class="hidden sm:inline">
             Open workspace
           </span>

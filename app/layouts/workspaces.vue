@@ -5,11 +5,30 @@
   import AddItemModal from '~/components/dashboard/AddItemModal.vue'
   import AppSidebar from '~/components/dashboard/AppSidebar.vue'
   import AppHeader from '~/components/dashboard/AppHeader.vue'
-  import type { Assignment, ModalType, Material, View } from '~/types/dashboard'
+  import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from '@/components/ui/breadcrumb'
+  import type { Assignment, BreadcrumbEntry, ModalType, Material, View } from '~/types/dashboard'
 
   const view = ref<View>('Overview')
   const showModal = ref(false)
   const modalType = ref<ModalType>('assignment')
+
+  const breadcrumbExtra = ref<BreadcrumbEntry[]>([])
+  provide('breadcrumbExtra', breadcrumbExtra)
+
+  const workspaceName = ref('Fall 2026')
+
+  const breadcrumbs = computed<BreadcrumbEntry[]>(() => {
+    const base: BreadcrumbEntry[] = [
+      { label: 'Dashboard', to: 'dashboard' },
+      { label: workspaceName.value, view: 'Overview' },
+    ]
+    if (view.value !== 'Overview') {
+      base.push({ label: view.value, view: view.value })
+    }
+    return [...base, ...breadcrumbExtra.value]
+  })
+
+  watch(view, () => { breadcrumbExtra.value = [] })
 
   const assignments = ref<Assignment[]>([
     { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 12, 2026', status: 'In progress', priority: 'High', progress: 65 },
@@ -79,9 +98,9 @@
     { name: 'Assignments' as const, icon: Check },
     { name: 'Materials' as const, icon: BookOpen },
   ]
+  
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
-  const menuButtonClass = 'w-full justify-start gap-3 rounded-md px-3 py-2.5 text-[14px] transition-[padding,gap,color,background-color] duration-200 ease-linear text-subline hover:bg-card/70 hover:text-ink group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto'
-  const menuButtonActiveClass = 'data-[active=true]:bg-card data-[active=true]:font-semibold data-[active=true]:shadow-sm data-[active=true]:ring-1 data-[active=true]:ring-line'
+  const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
 </script>
 
 <template>
@@ -100,7 +119,7 @@
                 <SidebarMenuButton
                   :is-active="view === item.name"
                   :tooltip="item.name"
-                  :class="[menuButtonClass, menuButtonActiveClass]"
+                  :class="menuButtonClass"
                   @click="view = item.name"
                 >
                   <component :is="item.icon" class="size-4 shrink-0" :stroke-width="1.8" />
@@ -128,7 +147,7 @@
               <AccordionItem value="semester" class="border-none">
                 <AccordionTrigger class="h-auto py-0 flex items-center justify-start gap-1.5 hover:no-underline [&>svg]:transition-all [&>svg]:duration-200 [&>svg]:-rotate-90 [&[data-state=open]>svg]:rotate-0 opacity-100 md:[&>svg]:opacity-0 md:hover:[&>svg]:opacity-100">
                   <SidebarGroupLabel class="p-0 h-auto cursor-pointer text-[10px] font-bold uppercase tracking-[0.18em] text-subline hover:text-ink transition-colors">
-                    This semester
+                    Timeline
                   </SidebarGroupLabel>
                 </AccordionTrigger>
 
@@ -162,6 +181,7 @@
       <SidebarInset class="flex flex-1 flex-col">
         <AppHeader
           :view="view"
+          :breadcrumbs="breadcrumbs"
           @add-assignment="openAdd('assignment')"
           @add-material="openAdd('material')"
           @navigate="view = $event"
@@ -186,6 +206,29 @@
             </DropdownMenu>
           </template>
         </AppHeader>
+
+        <div class="border-b border-line bg-paper px-5 py-2.5 md:hidden">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <template v-for="(crumb, i) in breadcrumbs" :key="crumb.label">
+                <BreadcrumbItem>
+                  <BreadcrumbLink v-if="i < breadcrumbs.length - 1" as-child class="text-subline transition-colors hover:text-ink">
+                    <NuxtLink v-if="crumb.to" :to="crumb.to" class="flex items-center gap-1 text-xs">
+                      {{ crumb.label }}
+                    </NuxtLink>
+                    <NuxtLink v-else-if="crumb.view" class="cursor-pointer text-xs" @click="view = crumb.view">
+                      {{ crumb.label }}
+                    </NuxtLink>
+                  </BreadcrumbLink>
+                  <BreadcrumbPage v-else class="text-xs font-medium text-headline">
+                    {{ crumb.label }}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator v-if="i < breadcrumbs.length - 1" class="text-subline" />
+              </template>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
 
         <slot />
       </SidebarInset>

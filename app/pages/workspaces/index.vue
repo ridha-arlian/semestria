@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { Plus } from '@lucide/vue'
   import { computed, inject } from 'vue'
+  import { Button } from '@/components/ui/button'
   import AssignmentsView from '~/components/dashboard/AssignmentsView.vue'
   import MaterialsView from '~/components/dashboard/MaterialsView.vue'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
@@ -57,17 +58,18 @@
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
     <div v-if="view === 'Overview'" class="space-y-8">
-      <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <p class="text-sm text-neutral-500">
-          Here's what's happening across your semester.
-        </p>
-        <button
-          class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-neutral-700"
-          @click="openAdd('assignment')"
-        >
-          <Plus class="size-3.5" />
-          Add assignment
-        </button>
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 class="text-lg font-bold tracking-tight text-headline sm:hidden">
+          Fall 2026
+        </h1>
+        <h1 class="hidden text-2xl font-bold tracking-tight text-headline sm:block">
+          Fall 2026
+        </h1>
+  
+        <Button class="w-full sm:w-auto">
+          <Plus class="mr-2 h-4 w-4" />
+          New assignment
+        </Button>
       </div>
 
       <OverviewStats :stats="overviewStats" />
