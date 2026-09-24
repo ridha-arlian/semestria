@@ -1,15 +1,7 @@
 <script setup lang="ts">
-  import { ref, computed, watch } from 'vue'
   import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
   import { CalendarIcon } from '@lucide/vue'
-  import { Button } from '~/components/ui/button'
-  import { Input } from '~/components/ui/input'
-  import { Label } from '~/components/ui/label'
-  import { Switch } from '~/components/ui/switch'
-  import { RangeCalendar } from '~/components/ui/range-calendar'
-  import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
-  import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-  import type { Workspace } from '@/components/ui/data-table/columns'
+  import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
 
   const props = defineProps<{
     workspaceToEdit?: Workspace | null

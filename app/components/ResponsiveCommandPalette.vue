@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { useMediaQuery } from '@vueuse/core'
-  import { computed, onMounted, onUnmounted } from 'vue'
   import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
   import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 

@@ -1,11 +1,5 @@
 <script setup lang="ts">
-  import { ref, provide } from 'vue'
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-  import AddItemModal from '~/components/dashboard/AddItemModal.vue'
-  import AppSidebar from '~/components/dashboard/AppSidebar.vue'
-  import AppHeader from '~/components/dashboard/AppHeader.vue'
-  import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList } from '@/components/ui/breadcrumb'
   import type { Assignment, BreadcrumbEntry, ModalType, Material, View } from '~/types/dashboard'
 
   const view = ref<View>('Overview')
@@ -31,11 +25,12 @@
   watch(view, () => { breadcrumbExtra.value = [] })
 
   const assignments = ref<Assignment[]>([
-    { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 12, 2026', status: 'In progress', priority: 'High', progress: 65 },
-    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 15, 2026', status: 'Not started', priority: 'Medium', progress: 0 },
-    { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 18, 2026', status: 'In progress', priority: 'High', progress: 40 },
-    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 20, 2026', status: 'Not started', priority: 'Low', progress: 0 },
-    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 22, 2026', status: 'Done', priority: 'Medium', progress: 100 },
+    { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 20, 2026', status: 'In progress', priority: 'High', progress: 65 },
+    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'Not started', priority: 'Medium', progress: 0 },
+    { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 25, 2026', status: 'In progress', priority: 'High', progress: 40 },
+    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'Not started', priority: 'Low', progress: 0 },
+    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'Not started', priority: 'Medium', progress: 0 },
+    { id: 6, task: 'Final case study', course: 'Cultural Studies', due: 'Sep 22, 2026', status: 'Done', priority: 'Low', progress: 100 },
   ])
 
   const materials = ref<Material[]>([
@@ -106,7 +101,7 @@
 <template>
   <SidebarProvider>
     <div class="min-h-screen w-full bg-paper text-ink flex">
-      <AppSidebar>
+      <LayoutsAppSidebar>
         <SidebarGroup class="p-0">
           <div :class="collapseWrap">
             <SidebarGroupLabel class="overflow-hidden px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-subline whitespace-nowrap">
@@ -176,10 +171,10 @@
             </Accordion>
           </SidebarGroupContent>
         </SidebarGroup>
-      </AppSidebar>
+      </LayoutsAppSidebar>
 
       <SidebarInset class="flex flex-1 flex-col">
-        <AppHeader
+        <LayoutsAppHeader
           :view="view"
           :breadcrumbs="breadcrumbs"
           @add-assignment="openAdd('assignment')"
@@ -205,7 +200,7 @@
               </DropdownMenuContent>
             </DropdownMenu>
           </template>
-        </AppHeader>
+        </LayoutsAppHeader>
 
         <div class="border-b border-line bg-paper px-5 py-2.5 md:hidden">
           <Breadcrumb>
@@ -233,7 +228,7 @@
         <slot />
       </SidebarInset>
 
-      <AddItemModal
+      <DashboardAddItemModal
         :open="showModal"
         :modal-type="modalType"
         @close="showModal = false"

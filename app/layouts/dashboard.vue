@@ -1,8 +1,6 @@
 <script setup lang="ts">
   import { LayoutDashboard, CircleSmall } from '@lucide/vue'
-  import AppSidebar from '~/components/dashboard/AppSidebar.vue'
-  import AppHeader from '~/components/dashboard/AppHeader.vue'
-  import type { View } from '~/types/dashboard'
+  import type { View } from '@/types/dashboard'
 
   const view = ref<View>('Overview')
 
@@ -17,7 +15,7 @@
 <template>
   <SidebarProvider>
     <div class="min-h-screen w-full bg-paper text-ink flex">
-      <AppSidebar>
+      <LayoutsAppSidebar>
         <SidebarGroup class="p-0">
           <div :class="collapseWrap">
             <SidebarGroupLabel class="overflow-hidden px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-subline whitespace-nowrap">
@@ -83,10 +81,10 @@
             </Accordion>
           </SidebarGroupContent>
         </SidebarGroup>
-      </AppSidebar>
+      </LayoutsAppSidebar>
 
       <div class="flex-1 overflow-y-auto">
-        <AppHeader :view="view" />
+        <LayoutsAppHeader :view="view" />
 
         <slot />
       </div>

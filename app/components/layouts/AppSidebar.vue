@@ -1,11 +1,6 @@
 <script setup lang="ts">
   import { Settings } from '@lucide/vue'
-  import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
-  import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-  import { Button } from '@/components/ui/button'
-  import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-  import AppIcon from '~/components/icons/AppIcon.vue'
-  import AppLogo from '~/components/icons/AppLogo.vue'
+  import { useSidebar } from '~/components/ui/sidebar'
   
   const { state, toggleSidebar, isMobile } = useSidebar()
 
@@ -19,7 +14,7 @@
         <template v-if="state === 'expanded'">
           <div class="flex items-center justify-between w-full px-1.5 whitespace-nowrap">
             <div class="flex items-center pl-1">
-              <AppLogo class="size-9 w-auto text-ink" />
+              <IconsAppLogo class="size-9 w-auto text-ink" />
             </div>
 
             <Tooltip>
@@ -45,7 +40,7 @@
                 class="size-9 rounded-md transition hover:bg-soft p-0"
                 @click="toggleSidebar"
               >
-                <AppIcon class="size-9" />
+                <IconsAppIcon class="size-9" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -57,7 +52,7 @@
     </SidebarHeader>
 
     <div v-else class="flex h-19 items-center px-4 border-b border-line">
-      <AppLogo class="size-8 w-auto text-ink" />
+      <IconsAppLogo class="size-8 w-auto text-ink" />
     </div>
 
     <SidebarContent class="px-3 py-6 group-data-[collapsible=icon]:px-0 overflow-x-hidden">

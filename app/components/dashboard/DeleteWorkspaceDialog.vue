@@ -1,8 +1,6 @@
 <script setup lang="ts">
   import { TriangleAlert } from '@lucide/vue'
-  import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-  import { Button } from '~/components/ui/button'
-  import type { Workspace } from '@/components/ui/data-table/columns'
+  import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
 
   const props = defineProps<{
     workspace?: Workspace | null

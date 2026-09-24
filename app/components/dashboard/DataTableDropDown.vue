@@ -1,8 +1,6 @@
 <script setup lang="ts">
   import { MoreHorizontal, Pencil, Trash2 } from '@lucide/vue'
-  import { Button } from '@/components/ui/button'
-  import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-  import type { Workspace } from './columns'
+  import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
 
   defineProps<{ workspace: Workspace }>()
   const emit = defineEmits<{

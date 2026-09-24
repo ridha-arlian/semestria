@@ -1,14 +1,7 @@
 <script setup lang="ts">
   import { Plus, SearchIcon } from '@lucide/vue'
   import { useDateFormat, useMagicKeys, useMounted, whenever } from '@vueuse/core'
-  import { computed, ref } from 'vue'
-  import ResponsiveCommandPalette from '@/components/ResponsiveCommandPalette.vue'
-  import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-  import { Button } from '@/components/ui/button'
-  import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
-  import { Kbd, KbdGroup } from '@/components/ui/kbd'
-  import { useSidebar } from '@/components/ui/sidebar'
-  import AppIcon from '~/components/icons/AppIcon.vue'
+  import { useSidebar } from '~/components/ui/sidebar'
   import type { BreadcrumbEntry, View } from '~/types/dashboard'
 
   const { view, breadcrumbs } = defineProps<{
@@ -53,7 +46,7 @@
         aria-label="Toggle sidebar"
         @click="toggleSidebar"
       >
-        <AppIcon class="size-8" />
+        <IconsAppIcon class="size-8" />
       </Button>
 
       <div>

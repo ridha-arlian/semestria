@@ -1,14 +1,12 @@
 <script setup lang="ts">
   import { ArrowUpRight } from '@lucide/vue'
-  import AppLogo from '~/components/icons/AppLogo.vue'
-  import ColorModeToggle from '~/components/ColorModeToggle.vue'
 </script>
 
 <template>
   <div class="min-h-screen bg-background text-ink">
     <header class="mx-auto flex h-16 w-[calc(100%-24px)] max-w-295 items-center justify-between border-b border-line md:h-19.5 md:w-[calc(100%-64px)]">
       <NuxtLink to="/" aria-label="Semestria home" class="flex items-center">
-        <AppLogo class="h-7 w-auto md:h-9" />
+        <IconsAppLogo class="h-7 w-auto md:h-9" />
       </NuxtLink>
 
       <div class="flex items-center gap-2.5 font-mono text-[10px] tracking-[0.04em] md:gap-5">

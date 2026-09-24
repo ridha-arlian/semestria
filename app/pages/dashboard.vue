@@ -3,13 +3,14 @@
   import { useRouter } from 'vue-router'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+  import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
+  import { Plus, FolderOpen, CheckCircle2, Pencil, Trash2 } from '@lucide/vue'
   import DataTable from '@/components/ui/data-table/DataTable.vue'
-  import { columns, type Workspace } from '@/components/ui/data-table/columns'
+  import { columns, type Workspace } from '~/components/dashboard/workspaceColumns.ts'
   import type { StatItem } from '~/types/dashboard'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
-  import NewSemesterDialog from '~/components/dashboard/NewSemesterDialog.vue'
-  import DeleteSemesterDialog from '~/components/dashboard/DeleteSemesterDialog.vue'
-  import { Plus } from '@lucide/vue'
+  import NewWorkspaceDialog from '~/components/dashboard/NewWorkspaceDialog.vue'
+  import DeleteWorkspaceDialog from '~/components/dashboard/DeleteWorkspaceDialog.vue'
 
   definePageMeta({
     layout: 'dashboard'
@@ -41,17 +42,21 @@
     console.log('Proses hapus workspace:', workspace)
   }
 
-  function handleSemesterSuccess(data: any) {
+  function handleWorkspaceSuccess(data: any) {
     if (selectedWorkspace.value) {
-      console.log('Update semester:', data)
+      console.log('Update workspace:', data)
     } else {
-      console.log('Data semester baru:', data)
+      console.log('Data workspace baru:', data)
     }
   }
 
   function handleRowClick(workspace: Workspace) {
     // router.push(`/workspaces/${workspace.name.toLowerCase().replace(/\s+/g, '-')}`)
     router.push(`/workspaces`)
+  }
+
+  function handleSetActive(workspace: Workspace) {
+    console.log('Set aktif:', workspace)
   }
 
   const workspaces = [
@@ -85,14 +90,14 @@
         New workspace
       </Button>
       
-      <NewSemesterDialog
+      <NewWorkspaceDialog
         v-model:open="isModalOpen"
         :workspace-to-edit="selectedWorkspace"
-        @success="handleSemesterSuccess"
+        @success="handleWorkspaceSuccess"
         @close="selectedWorkspace = null"
       />
 
-      <DeleteSemesterDialog
+      <DeleteWorkspaceDialog
         v-model:open="isDeleteModalOpen"
         :workspace="workspaceToDelete"
         @confirm="handleConfirmDelete"
@@ -115,13 +120,33 @@
       </CardHeader>
 
       <CardContent class="p-0">
-        <DataTable 
-          :columns="columns" 
-          :data="workspaces" 
+        <DataTable
+          :columns="columns"
+          :data="workspaces"
+          :mobile-hidden-columns="['progress', 'assignments']"
+          :meta="{
+            onEdit: handleEditWorkspace,
+            onDelete: handleDeleteWorkspace,
+          }"
           @row-click="handleRowClick"
-          @edit="handleEditWorkspace"
-          @delete="handleDeleteWorkspace"
-        />
+        >
+          <template #context-menu="{ row }">
+            <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">
+              <FolderOpen class="mr-2 size-3.5 text-subline" /> Open workspace
+            </ContextMenuItem>
+            <ContextMenuItem v-if="!row.active" class="cursor-pointer text-xs" @select="handleSetActive(row)">
+              <CheckCircle2 class="mr-2 size-3.5 text-subline" /> Set as active
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem class="cursor-pointer text-xs" @select="handleEditWorkspace(row)">
+              <Pencil class="mr-2 size-3.5 text-subline" /> Edit workspace
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @select="handleDeleteWorkspace(row)">
+              <Trash2 class="mr-2 size-3.5" /> Delete workspace
+            </ContextMenuItem>
+          </template>
+        </DataTable>
       </CardContent>
     </Card>
   </main>

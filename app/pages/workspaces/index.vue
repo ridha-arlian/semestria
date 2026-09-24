@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import { Plus } from '@lucide/vue'
-  import { computed, inject } from 'vue'
-  import { Button } from '@/components/ui/button'
+  // import { computed, inject } from 'vue'
+  // import { Button } from '@/components/ui/button'
   import AssignmentsView from '~/components/dashboard/AssignmentsView.vue'
   import MaterialsView from '~/components/dashboard/MaterialsView.vue'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
   import SemesterProgress from '~/components/dashboard/SemesterProgress.vue'
-  import UpcomingAssignments from '~/components/dashboard/UpcomingAssignments.vue'
+  // import UpcomingAssignments from '~/components/workspaces/UpcomingAssignments.vue'
   import type { Assignment, ModalType, Material, View, StatItem } from '~/types/dashboard'
   import type { Ref } from 'vue'
 
@@ -75,7 +75,7 @@
       <OverviewStats :stats="overviewStats" />
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <UpcomingAssignments :assignments="assignments" @view-all="view = 'Assignments'" />
+        <WorkspacesUpcomingAssignments :assignments="assignments" @view-all="view = 'Assignments'" />
         <SemesterProgress
           :completed="completed"
           :total="assignments.length"
