@@ -46,15 +46,22 @@
 </script>
 
 <template>
-  <div class="w-full sm:overflow-x-auto">
-    <Table class="w-full sm:min-w-160">
+  <div class="w-full overflow-hidden">
+    <Table class="w-full table-auto">
       <TableBody>
         <template v-if="table.getRowModel().rows?.length">
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <ContextMenu v-if="hasContextMenu">
               <ContextMenuTrigger as-child>
                 <TableRow class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="emit('row-click', row.original)">
-                  <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-4 py-3 align-middle sm:px-6 sm:py-4">
+                  <TableCell 
+                    v-for="cell in row.getVisibleCells()" 
+                    :key="cell.id" 
+                    :class="[
+                      'px-3 py-3 align-middle sm:px-6 sm:py-4',
+                      cell.column.id === 'actions' ? 'w-1 shrink-0 whitespace-nowrap text-right' : 'w-full'
+                    ]"
+                  >
                     <FlexRender :cell="cell" />
                   </TableCell>
                 </TableRow>
@@ -65,7 +72,14 @@
             </ContextMenu>
 
             <TableRow v-else class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="emit('row-click', row.original)">
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="px-4 py-3 align-middle sm:px-6 sm:py-4">
+              <TableCell 
+                v-for="cell in row.getVisibleCells()" 
+                :key="cell.id" 
+                :class="[
+                  'px-3 py-3 align-middle sm:px-6 sm:py-4',
+                  cell.column.id === 'actions' ? 'w-1 shrink-0 whitespace-nowrap text-right' : 'w-full'
+                ]"
+              >
                 <FlexRender :cell="cell" />
               </TableCell>
             </TableRow>
