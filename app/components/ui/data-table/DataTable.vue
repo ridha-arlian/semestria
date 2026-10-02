@@ -1,4 +1,5 @@
 <script setup lang="ts" generic="TData extends RowData">
+  import { computed, ref, watchEffect, useSlots } from 'vue'
   import { FlexRender, useTable } from '@tanstack/vue-table'
   import type { ColumnDef, RowData, TableMeta, ColumnVisibilityState } from '@tanstack/vue-table'
   import { useMediaQuery } from '@vueuse/core'
@@ -47,19 +48,24 @@
 
 <template>
   <div class="w-full overflow-hidden">
-    <Table class="w-full table-auto">
+    <Table class="w-full table-fixed">
       <TableBody>
         <template v-if="table.getRowModel().rows?.length">
           <template v-for="row in table.getRowModel().rows" :key="row.id">
             <ContextMenu v-if="hasContextMenu">
               <ContextMenuTrigger as-child>
                 <TableRow class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="emit('row-click', row.original)">
-                  <TableCell 
-                    v-for="cell in row.getVisibleCells()" 
-                    :key="cell.id" 
+                  <TableCell
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
                     :class="[
-                      'px-3 py-3 align-middle sm:px-6 sm:py-4',
-                      cell.column.id === 'actions' ? 'w-1 shrink-0 whitespace-nowrap text-right' : 'w-full'
+                      'px-4 py-3.5 sm:px-6 sm:py-4',
+                      
+                      cell.column.id === 'priority' ? 'w-5 shrink-0 align-middle text-center' : '',
+                      
+                      cell.column.id === 'task' ? 'w-auto min-w-0 align-top' : '',
+                      
+                      cell.column.id === 'actions' ? 'w-8 shrink-0 align-middle text-right' : ''
                     ]"
                   >
                     <FlexRender :cell="cell" />
@@ -72,12 +78,14 @@
             </ContextMenu>
 
             <TableRow v-else class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="emit('row-click', row.original)">
-              <TableCell 
-                v-for="cell in row.getVisibleCells()" 
-                :key="cell.id" 
+              <TableCell
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
                 :class="[
-                  'px-3 py-3 align-middle sm:px-6 sm:py-4',
-                  cell.column.id === 'actions' ? 'w-1 shrink-0 whitespace-nowrap text-right' : 'w-full'
+                  'px-4 py-3.5 sm:px-6 sm:py-4',
+                  cell.column.id === 'priority' ? 'w-5 shrink-0 align-middle' : '',
+                  cell.column.id === 'task' ? 'w-auto min-w-0 align-top' : '',
+                  cell.column.id === 'actions' ? 'w-8 shrink-0 align-middle text-right' : ''
                 ]"
               >
                 <FlexRender :cell="cell" />
