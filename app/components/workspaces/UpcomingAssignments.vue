@@ -62,9 +62,9 @@
         <div class="flex items-center justify-start gap-2.5 shrink-0 pt-1 sm:pt-0">
           <Select v-model="sortBy">
             <SelectTrigger
-              class="flex h-7 items-center gap-1.5 border-0 bg-transparent p-0 text-xs font-medium text-subline shadow-none hover:bg-transparent hover:text-headline focus:outline-none focus:ring-0 focus:ring-offset-0 [&>svg:last-child]:size-3"
+              class="w-fit! h-7 gap-1.5 justify-start border-0! bg-transparent! p-0 text-xs font-medium text-subline shadow-none! ring-0! outline-none! hover:bg-transparent! hover:text-headline focus:ring-0 focus-visible:ring-0 focus-visible:border-0! focus-visible:outline-none data-[size=default]:h-7 [&>svg:last-child]:size-3 [&>svg:last-child]:opacity-100 [&>svg:last-child]:text-subline hover:[&>svg:last-child]:text-headline [&>svg:last-child]:transition-colors"
             >
-              <ArrowUpDown class="size-3 shrink-0" />
+              <ArrowUpDown class="size-3 shrink-0 text-current" />
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent align="end" class="min-w-36">

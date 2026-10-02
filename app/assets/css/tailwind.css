@@ -5,6 +5,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* @custom-variant dark (&:is(.dark *)); */
+
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -38,6 +40,16 @@
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-status-idle: var(--status-idle);
+  --color-status-progress: var(--status-progress);
+  --color-status-done: var(--status-done);
+  --color-priority-high: var(--priority-high);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-low: var(--priority-low);
+  --color-urgency-overdue: var(--urgency-overdue);
+  --color-urgency-due: var(--urgency-due);
+  --color-urgency-later: var(--urgency-later);
 
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -94,6 +106,16 @@
   --input: #e4e4e7;
   --ring: #18181b;
 
+  --status-idle: #8a8a92;
+  --status-progress: #d97706;
+  --status-done: #059669;
+  --priority-high: #ef4444;
+  --priority-medium: #f59e0b;
+  --priority-low: #a1a1aa;
+  --urgency-overdue: #ef4444;
+  --urgency-due: #f59e0b;
+  --urgency-later: #8a8a92;
+
   --sidebar-background: #eeede8;
   --sidebar-foreground: #18181b;
   --sidebar-primary: #18181b;
@@ -136,6 +158,16 @@
   --border: #38383d;
   --input: #38383d;
   --ring: #a1a1a6;
+
+  --status-idle: #a1a1a6;
+  --status-progress: #fbbf24;
+  --status-done: #34d399;
+  --priority-high: #f87171;
+  --priority-medium: #fbbf24;
+  --priority-low: #55555c;
+  --urgency-overdue: #f87171;
+  --urgency-due: #fbbf24;
+  --urgency-later: #a1a1a6;
 
   --sidebar-background: #17171a;
   --sidebar-foreground: #f2f2f0;
@@ -200,6 +232,9 @@
     clip-path: circle(150% at var(--x, 50%) var(--y, 50%));
   }
 }
+
+
+
 
 /* ::view-transition-old(root) {
   animation: fade-out 0.25s ease-out forwards;

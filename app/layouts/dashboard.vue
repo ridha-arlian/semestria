@@ -83,11 +83,11 @@
         </SidebarGroup>
       </LayoutsAppSidebar>
 
-      <div class="flex-1 overflow-y-auto">
+      <SidebarInset class="flex flex-1 flex-col">
         <LayoutsAppHeader :view="view" />
 
         <slot />
-      </div>
+      </SidebarInset>
     </div>
   </SidebarProvider>
 </template>
