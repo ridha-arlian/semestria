@@ -21,7 +21,7 @@
   interface TaskPayload {
     title: string
     course: string
-    due: string // YYYY-MM-DD atau ''
+    due: string
     priority: Priority
     description: string
   }
@@ -36,7 +36,6 @@
     submit: [payload: TaskPayload, addAnother: boolean]
   }>()
 
-  // md ke atas = Dialog, di bawahnya = Drawer (bottom sheet)
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const Root = computed(() => (isDesktop.value ? Dialog : Drawer))
   const Content = computed(() => (isDesktop.value ? DialogContent : DrawerContent))
@@ -98,7 +97,6 @@
     nextTick(() => (titleEl.value?.$el as HTMLInputElement | undefined)?.focus())
   }
 
-  // Hanya fokus otomatis di desktop, di mobile keyboard akan langsung menutupi form
   function onOpenAutoFocus() {
     if (isDesktop.value)
       focusTitle()
@@ -126,7 +124,6 @@
   }
 
   function onPriorityChange(value: unknown) {
-    // ToggleGroup single bisa mengirim kosong saat item aktif diklik lagi
     if (value)
       priority.value = value as Priority
   }
@@ -142,7 +139,6 @@
       description: description.value.trim(),
     }, addAnother)
     if (addAnother) {
-      // Course & priority dipertahankan supaya input beruntun lebih cepat
       title.value = ''
       due.value = undefined
       description.value = ''
@@ -156,7 +152,7 @@
   <component :is="Root" :open="open" @update:open="onOpenChange">
     <component
       :is="Content"
-      :class="isDesktop && 'max-w-md'"
+      :class="isDesktop && 'flex max-h-[90vh] max-w-md flex-col'"
       @open-auto-focus.prevent="onOpenAutoFocus"
     >
       <component :is="Header" class="text-left">
@@ -171,7 +167,7 @@
         </component>
       </component>
 
-      <div :class="isDesktop ? 'mt-2' : 'max-h-[75vh] overflow-y-auto px-4 pb-6'">
+      <div :class="isDesktop ? '-mx-6 min-h-0 flex-1 overflow-y-auto px-6 py-1' : 'max-h-[75vh] overflow-y-auto px-4 pb-6'">
         <form
           class="space-y-6"
           @submit.prevent="handleSubmit(false)"
@@ -278,7 +274,6 @@
             </Collapsible>
           </div>
 
-          <!-- Mobile: tombol utama di atas, "add another" di bawah. Desktop: sejajar. -->
           <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Button type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
               Create & add another

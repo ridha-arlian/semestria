@@ -1,5 +1,6 @@
 export type Status = 'In progress' | 'To do' | 'Done'
 export type Priority = 'High' | 'Medium' | 'Low'
+export type MaterialType = 'Notes' | 'Book' | 'Slides' | 'Collection' | 'Link' | 'PDF' | 'Video'
 
 export interface Task {
   id: number
@@ -9,15 +10,19 @@ export interface Task {
   status: Status
   priority: Priority
   progress: number
+  description?: string
 }
 
 export interface Material {
   id: number
   title: string
   course: string
-  type: string
+  type: MaterialType
   tags: string
   reviewed: string
+  url?: string
+  description?: string
+  taskId?: number
 }
 
 export interface StatItem {

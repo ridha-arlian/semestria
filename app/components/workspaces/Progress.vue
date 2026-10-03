@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { CalendarClock, Plus } from '@lucide/vue'
-import { computed } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const props = withDefaults(defineProps<{
   completed: number

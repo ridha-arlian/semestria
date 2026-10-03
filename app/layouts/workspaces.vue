@@ -71,16 +71,23 @@
       showModal.value = false
   }
 
-  function handleMaterialSubmit(payload: { task: string, course: string, due: string }) {
+  function handleMaterialSubmit(
+    payload: { title: string, course: string, type: Material['type'], url: string, tags: string[], description: string, taskId: number | null },
+    addAnother: boolean,
+  ) {
     materials.value.unshift({
       id: Date.now(),
-      title: payload.task,
+      title: payload.title,
       course: payload.course,
-      type: 'Note',
-      tags: 'new',
+      type: payload.type,
+      tags: payload.tags.join(', '),
+      url: payload.url,
+      description: payload.description,
+      taskId: payload.taskId ?? undefined,
       reviewed: 'Just now',
     })
-    showModal.value = false
+    if (!addAnother)
+      showModal.value = false
   }
 
   function openAdd(type: ModalType) {
@@ -252,12 +259,13 @@
         @close="showModal = false"
         @submit="handleTaskSubmit"
       />
-      <!-- <DashboardAddItemModal
+      <WorkspacesMaterialModal
         :open="showModal && modalType === 'material'"
-        modal-type="material"
+        :courses="courses"
+        :tasks="tasks"
         @close="showModal = false"
         @submit="handleMaterialSubmit"
-      /> -->
+      />
     </div>
   </SidebarProvider>
 </template>
