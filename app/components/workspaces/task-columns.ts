@@ -2,12 +2,12 @@ import { h } from 'vue'
 import { createColumnHelper } from '@tanstack/vue-table'
 import { Dot } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
-import AssignmentDropdown from './AssignmentDropdown.vue'
-import type { Assignment } from '~/types/dashboard'
+import TasksDropdown from './TasksDropdown.vue'
+import type { Task } from '~/types/dashboard'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
 type Urgency = { label: string, class: string } | null
-const columnHelper = createColumnHelper<DataTableFeatures, Assignment>()
+const columnHelper = createColumnHelper<DataTableFeatures, Task>()
 
 function initials(course: string) {
   return course.split(' ').map(w => w[0]).join('').slice(0, 2)
@@ -32,13 +32,13 @@ function getUrgency(due: string, status: string): Urgency {
 
   const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 0) return { label: 'Lewat tenggat', class: 'text-urgency-overdue font-medium' }
-  if (diffDays === 0) return { label: 'Jatuh tempo', class: 'text-urgency-due font-medium' }
-  if (diffDays <= 2) return { label: 'Makin dekat', class: 'text-urgency-due font-medium' }
-  return { label: 'Masih lama', class: 'text-urgency-later' }
+  if (diffDays < 0) return { label: 'Overdue', class: 'text-urgency-overdue font-medium' }
+  if (diffDays === 0) return { label: 'Due today', class: 'text-urgency-due font-medium' }
+  if (diffDays <= 2) return { label: 'Due soon', class: 'text-urgency-due font-medium' }
+  return { label: 'Later', class: 'text-urgency-later' }
 }
 
-export const assignmentColumns = [
+export const taskColumns = [
   columnHelper.display({
     id: 'priority',
     header: '',
@@ -114,10 +114,10 @@ export const assignmentColumns = [
       class: 'pr-4 sm:pr-6 flex h-full items-center justify-end',
       onClick: (e: MouseEvent) => e.stopPropagation(),
     }, [
-      h(AssignmentDropdown, {
-        assignment: row.original,
-        onChangeStatus: (a: Assignment) => table.options.meta?.onChangeStatus?.(a),
-        onShare: (a: Assignment) => table.options.meta?.onShare?.(a),
+      h(TasksDropdown, {
+        task: row.original,
+        onChangeStatus: (t: Task) => table.options.meta?.onChangeStatus?.(t),
+        onShare: (t: Task) => table.options.meta?.onShare?.(t),
       }),
     ]),
   }),

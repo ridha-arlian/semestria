@@ -1,13 +1,8 @@
 <script setup lang="ts">
   import { Plus } from '@lucide/vue'
-  // import { computed, inject } from 'vue'
-  // import { Button } from '@/components/ui/button'
-  import AssignmentsView from '~/components/dashboard/AssignmentsView.vue'
   import MaterialsView from '~/components/dashboard/MaterialsView.vue'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
-  import SemesterProgress from '~/components/dashboard/SemesterProgress.vue'
-  // import UpcomingAssignments from '~/components/workspaces/UpcomingAssignments.vue'
-  import type { Assignment, ModalType, Material, View, StatItem } from '~/types/dashboard'
+  import type { Task, ModalType, Material, View, StatItem } from '~/types/dashboard'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -16,29 +11,29 @@
 
   interface WorkspaceContext {
     view: Ref<View>
-    assignments: Ref<Assignment[]>
+    tasks: Ref<Task[]>
     materials: Ref<Material[]>
     openAdd: (type: ModalType) => void
-    cycleStatus: (item: Assignment) => void
-    removeAssignment: (id: number) => void
+    cycleStatus: (item: Task) => void
+    removeTask: (id: number) => void
   }
 
-  const { view, assignments, materials, openAdd, cycleStatus, removeAssignment } = inject('workspace') as WorkspaceContext
+  const { view, tasks, materials, openAdd, cycleStatus, removeTask } = inject('workspace') as WorkspaceContext
 
-  const completed = computed(() => assignments.value.filter(a => a.status === 'Done').length)
+  const completed = computed(() => tasks.value.filter(t => t.status === 'Done').length)
 
   const overviewStats = computed<StatItem[]>(() => [
     {
-      label: 'Active assignments',
-      value: String(assignments.value.filter(a => a.status !== 'Done').length),
+      label: 'Active tasks',
+      value: String(tasks.value.filter(t => t.status !== 'Done').length),
       note: '2 due this week',
-      to: '/assignments?status=active',
+      to: '/tasks?status=active',
     },
     {
       label: 'Completed',
       value: String(completed.value),
-      note: `of ${assignments.value.length} assignments`,
-      to: '/assignments?status=completed',
+      note: `of ${tasks.value.length} tasks`,
+      to: '/tasks?status=completed',
     },
     {
       label: 'Study progress',
@@ -65,31 +60,34 @@
         <h1 class="hidden text-2xl font-bold tracking-tight text-headline sm:block">
           Fall 2026
         </h1>
-  
-        <Button class="w-full sm:w-auto">
+
+        <Button class="w-full sm:w-auto" @click="openAdd('task')">
           <Plus class="mr-2 h-4 w-4" />
-          New assignment
+          New task
         </Button>
       </div>
 
       <OverviewStats :stats="overviewStats" />
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <WorkspacesUpcomingAssignments :assignments="assignments" @view-all="view = 'Assignments'" />
-        <SemesterProgress
-          :completed="completed"
-          :total="assignments.length"
-          @add-material="openAdd('material')"
+        <WorkspacesOverviewTasks :tasks="tasks" @view-all="view = 'Tasks'" />
+        <WorkspacesProgress
+          :completed="1"
+          :in-progress="2"
+          :total="6"
+          :current-week="3"
+          :total-weeks="16"
+          :next-deadline="{ title: 'Research proposal', dueIn: '2 days' }"
         />
       </div>
     </div>
 
-    <AssignmentsView
-      v-else-if="view === 'Assignments'"
-      :assignments="assignments"
-      @add="openAdd('assignment')"
+    <DashboardTasksView
+      v-else-if="view === 'Tasks'"
+      :tasks="tasks"
+      @add="openAdd('task')"
       @toggle-status="cycleStatus"
-      @remove="removeAssignment"
+      @remove="removeTask"
     />
 
     <MaterialsView

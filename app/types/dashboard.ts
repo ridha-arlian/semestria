@@ -1,7 +1,7 @@
-export type Status = 'In progress' | 'Not started' | 'Done'
+export type Status = 'In progress' | 'To do' | 'Done'
 export type Priority = 'High' | 'Medium' | 'Low'
 
-export interface Assignment {
+export interface Task {
   id: number
   task: string
   course: string
@@ -33,5 +33,5 @@ export interface BreadcrumbEntry {
   to?: string
 }
 
-export type View = 'Overview' | 'Assignments' | 'Materials' | 'All Workspaces'
-export type ModalType = 'assignment' | 'material'
+export type View = 'Overview' | 'Tasks' | 'Materials' | 'All Workspaces'
+export type ModalType = 'task' | 'material'

@@ -3,23 +3,23 @@
   import { ArrowUpRight, ArrowUpDown } from '@lucide/vue'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
-  import { assignmentColumns } from '~/components/workspaces/assignment-columns.ts'
-  import type { Assignment } from '~/types/dashboard'
+  import { taskColumns } from '~/components/workspaces/task-columns.ts'
+  import type { Task } from '~/types/dashboard'
 
   const props = defineProps<{
-    assignments: Assignment[]
+    tasks: Task[]
   }>()
 
   const emit = defineEmits<{
-    'change-status': [assignment: Assignment]
-    share: [assignment: Assignment]
+    'change-status': [task: Task]
+    share: [task: Task]
   }>()
 
   const sortBy = ref<'nearest' | 'farthest' | 'status' | 'priority'>('nearest')
 
   const statusOrder: Record<string, number> = {
     'In progress': 0,
-    'Not started': 1,
+    'To do': 1,
     'Done': 2,
   }
 
@@ -30,7 +30,7 @@
   }
 
   const sorted = computed(() => {
-    const list = [...props.assignments]
+    const list = [...props.tasks]
     if (sortBy.value === 'nearest') {
       list.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime())
     } else if (sortBy.value === 'farthest') {
@@ -48,14 +48,14 @@
 
 <template>
   <Card class="overflow-hidden">
-    <CardHeader class="border-b border-line px-4 py-3 sm:px-6 sm:py-4">
+    <CardHeader class="border-b border-line">
       <div class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div class="min-w-0">
           <CardTitle class="text-sm font-semibold text-headline">
-            Upcoming assignments
+            Tasks
           </CardTitle>
           <CardDescription class="mt-0.5 text-xs text-subline">
-            Your next deadlines at a glance.
+            Everything on your plate.
           </CardDescription>
         </div>
 
@@ -78,7 +78,7 @@
           <div class="h-3.5 w-px shrink-0 bg-line" />
 
           <NuxtLink
-            to="/assignments"
+            to="/tasks"
             class="group inline-flex shrink-0 items-center gap-1 text-xs font-medium text-subline transition-colors hover:text-headline whitespace-nowrap"
           >
             <span>View all</span>
@@ -90,11 +90,11 @@
 
     <CardContent class="p-0">
       <DataTable
-        :columns="assignmentColumns"
+        :columns="taskColumns"
         :data="preview"
         :meta="{
-          onChangeStatus: (a) => emit('change-status', a),
-          onShare: (a) => emit('share', a),
+          onChangeStatus: (t) => emit('change-status', t),
+          onShare: (t) => emit('share', t),
         }"
       />
     </CardContent>

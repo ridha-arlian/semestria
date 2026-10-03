@@ -1,0 +1,299 @@
+<script setup lang="ts">
+  import { getLocalTimeZone, today } from '@internationalized/date'
+  import type { DateValue } from '@internationalized/date'
+  import { CalendarIcon, ChevronDown } from '@lucide/vue'
+  import { useMediaQuery } from '@vueuse/core'
+  import { computed, nextTick, ref, watch } from 'vue'
+  import { Button } from '@/components/ui/button'
+  import { Calendar } from '@/components/ui/calendar'
+  import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+  import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+  import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+  import { Input } from '@/components/ui/input'
+  import { Label } from '@/components/ui/label'
+  import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+  import { Textarea } from '@/components/ui/textarea'
+  import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+
+  type Priority = 'low' | 'medium' | 'high'
+
+  interface TaskPayload {
+    title: string
+    course: string
+    due: string // YYYY-MM-DD atau ''
+    priority: Priority
+    description: string
+  }
+
+  const props = defineProps<{
+    open: boolean
+    courses?: string[]
+  }>()
+
+  const emit = defineEmits<{
+    close: []
+    submit: [payload: TaskPayload, addAnother: boolean]
+  }>()
+
+  // md ke atas = Dialog, di bawahnya = Drawer (bottom sheet)
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const Root = computed(() => (isDesktop.value ? Dialog : Drawer))
+  const Content = computed(() => (isDesktop.value ? DialogContent : DrawerContent))
+  const Header = computed(() => (isDesktop.value ? DialogHeader : DrawerHeader))
+  const Title = computed(() => (isDesktop.value ? DialogTitle : DrawerTitle))
+  const Description = computed(() => (isDesktop.value ? DialogDescription : DrawerDescription))
+
+  const NEW_COURSE = '__new__'
+
+  const priorities: { value: Priority, label: string, dot: string }[] = [
+    { value: 'low', label: 'Low', dot: 'bg-neutral-400' },
+    { value: 'medium', label: 'Medium', dot: 'bg-amber-500' },
+    { value: 'high', label: 'High', dot: 'bg-red-500' },
+  ]
+
+  const quickDates = [
+    { label: 'Today', days: 0 },
+    { label: 'Tomorrow', days: 1 },
+    { label: 'Next week', days: 7 },
+  ]
+
+  const title = ref('')
+  const course = ref('')
+  const addingCourse = ref(false)
+  const due = ref<DateValue>()
+  const priority = ref<Priority>('medium')
+  const description = ref('')
+  const showMore = ref(false)
+  const calendarOpen = ref(false)
+  const titleEl = ref<InstanceType<typeof Input> | null>(null)
+
+  const showCourseInput = computed(() => !props.courses?.length || addingCourse.value)
+  const canSubmit = computed(() => !!title.value.trim() && !!course.value.trim())
+  const isPast = computed(() => !!due.value && due.value.compare(today(getLocalTimeZone())) < 0)
+
+  const dueLabel = computed(() =>
+    due.value
+      ? due.value.toDate(getLocalTimeZone()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : 'Pick a date',
+  )
+
+  function reset() {
+    title.value = ''
+    course.value = ''
+    addingCourse.value = false
+    due.value = undefined
+    priority.value = 'medium'
+    description.value = ''
+    showMore.value = false
+    calendarOpen.value = false
+  }
+
+  watch(() => props.open, (isOpen) => {
+    if (isOpen)
+      reset()
+  })
+
+  function focusTitle() {
+    nextTick(() => (titleEl.value?.$el as HTMLInputElement | undefined)?.focus())
+  }
+
+  // Hanya fokus otomatis di desktop, di mobile keyboard akan langsung menutupi form
+  function onOpenAutoFocus() {
+    if (isDesktop.value)
+      focusTitle()
+  }
+
+  function onOpenChange(value: boolean) {
+    if (!value)
+      emit('close')
+  }
+
+  function setDueIn(days: number) {
+    due.value = today(getLocalTimeZone()).add({ days })
+    calendarOpen.value = false
+  }
+
+  function onCourseSelect(value: unknown) {
+    if (value === NEW_COURSE) {
+      addingCourse.value = true
+      course.value = ''
+    }
+    else {
+      addingCourse.value = false
+      course.value = String(value ?? '')
+    }
+  }
+
+  function onPriorityChange(value: unknown) {
+    // ToggleGroup single bisa mengirim kosong saat item aktif diklik lagi
+    if (value)
+      priority.value = value as Priority
+  }
+
+  function handleSubmit(addAnother = false) {
+    if (!canSubmit.value)
+      return
+    emit('submit', {
+      title: title.value.trim(),
+      course: course.value.trim(),
+      due: due.value ? due.value.toString() : '',
+      priority: priority.value,
+      description: description.value.trim(),
+    }, addAnother)
+    if (addAnother) {
+      // Course & priority dipertahankan supaya input beruntun lebih cepat
+      title.value = ''
+      due.value = undefined
+      description.value = ''
+      if (isDesktop.value)
+        focusTitle()
+    }
+  }
+</script>
+
+<template>
+  <component :is="Root" :open="open" @update:open="onOpenChange">
+    <component
+      :is="Content"
+      :class="isDesktop && 'max-w-md'"
+      @open-auto-focus.prevent="onOpenAutoFocus"
+    >
+      <component :is="Header" class="text-left">
+        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+          New task
+        </p>
+        <component :is="Title" class="text-base">
+          Make it part of the plan.
+        </component>
+        <component :is="Description" class="sr-only">
+          Tambahkan task baru ke timeline semester aktif.
+        </component>
+      </component>
+
+      <div :class="isDesktop ? 'mt-2' : 'max-h-[75vh] overflow-y-auto px-4 pb-6'">
+        <form
+          class="space-y-6"
+          @submit.prevent="handleSubmit(false)"
+          @keydown.ctrl.enter.prevent="handleSubmit(false)"
+          @keydown.meta.enter.prevent="handleSubmit(false)"
+        >
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label for="task-title" class="text-xs">Title</Label>
+              <Input id="task-title" ref="titleEl" v-model="title" class="text-sm" placeholder="e.g. Read chapter 4" />
+            </div>
+
+            <div class="space-y-2">
+              <Label class="text-xs">Course</Label>
+              <Select
+                v-if="courses?.length"
+                :model-value="addingCourse ? NEW_COURSE : course"
+                @update:model-value="onCourseSelect"
+              >
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="Select a course" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="c in courses" :key="c" :value="c">
+                    {{ c }}
+                  </SelectItem>
+                  <SelectItem :value="NEW_COURSE">
+                    + New course
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Input v-if="showCourseInput" v-model="course" class="text-sm" placeholder="e.g. Design Research" />
+            </div>
+
+            <div class="space-y-2">
+              <Label class="text-xs">Due date <span class="font-normal text-muted-foreground">(optional)</span></Label>
+              <Popover v-model:open="calendarOpen">
+                <PopoverTrigger as-child>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    class="w-full justify-start font-normal"
+                    :class="!due && 'text-muted-foreground'"
+                  >
+                    <CalendarIcon class="size-4" />
+                    {{ dueLabel }}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-0" align="start">
+                  <Calendar v-model="due" initial-focus @update:model-value="calendarOpen = false" />
+                </PopoverContent>
+              </Popover>
+              <div class="flex flex-wrap gap-1.5">
+                <Button
+                  v-for="q in quickDates"
+                  :key="q.label"
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  class="h-7 rounded-full px-2.5 text-[11px]"
+                  @click="setDueIn(q.days)"
+                >
+                  {{ q.label }}
+                </Button>
+              </div>
+              <p v-if="isPast" class="text-[11px] text-amber-600">
+                Tanggal ini sudah lewat, task akan langsung tampil overdue.
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <Label class="text-xs">Priority</Label>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                class="grid w-full grid-cols-3"
+                :model-value="priority"
+                @update:model-value="onPriorityChange"
+              >
+                <ToggleGroupItem v-for="p in priorities" :key="p.value" :value="p.value" class="gap-2 text-xs">
+                  <span class="size-1.5 rounded-full" :class="p.dot" />
+                  {{ p.label }}
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            <Collapsible v-model:open="showMore">
+              <CollapsibleTrigger as-child>
+                <Button type="button" variant="ghost" size="sm" class="-ml-2 gap-1 text-xs text-muted-foreground">
+                  More options
+                  <ChevronDown class="size-3.5 transition-transform" :class="showMore && 'rotate-180'" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent class="mt-2 space-y-2">
+                <Label for="task-notes" class="text-xs">Notes <span class="font-normal text-muted-foreground">(optional)</span></Label>
+                <Textarea
+                  id="task-notes"
+                  v-model="description"
+                  rows="3"
+                  class="resize-none text-sm"
+                  placeholder="Detail singkat, link, atau catatan dosen"
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          <!-- Mobile: tombol utama di atas, "add another" di bawah. Desktop: sejajar. -->
+          <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <Button type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
+              Create & add another
+            </Button>
+            <div class="flex gap-2">
+              <Button type="button" variant="outline" class="flex-1 sm:flex-none" @click="emit('close')">
+                Cancel
+              </Button>
+              <Button type="submit" class="flex-1 sm:flex-none" :disabled="!canSubmit">
+                Add task
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </component>
+  </component>
+</template>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Assignment, BreadcrumbEntry, ModalType, Material, View } from '~/types/dashboard'
+  import type { Task, BreadcrumbEntry, ModalType, Material, View } from '~/types/dashboard'
 
   const view = ref<View>('Overview')
   const showModal = ref(false)
-  const modalType = ref<ModalType>('assignment')
+  const modalType = ref<ModalType>('task')
 
   const breadcrumbExtra = ref<BreadcrumbEntry[]>([])
   provide('breadcrumbExtra', breadcrumbExtra)
@@ -24,12 +24,12 @@
 
   watch(view, () => { breadcrumbExtra.value = [] })
 
-  const assignments = ref<Assignment[]>([
+  const tasks = ref<Task[]>([
     { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 20, 2026', status: 'In progress', priority: 'High', progress: 65 },
-    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'Not started', priority: 'Medium', progress: 0 },
+    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'To do', priority: 'Medium', progress: 0 },
     { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 25, 2026', status: 'In progress', priority: 'High', progress: 40 },
-    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'Not started', priority: 'Low', progress: 0 },
-    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'Not started', priority: 'Medium', progress: 0 },
+    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'To do', priority: 'Low', progress: 0 },
+    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'To do', priority: 'Medium', progress: 0 },
     { id: 6, task: 'Final case study', course: 'Cultural Studies', due: 'Sep 22, 2026', status: 'Done', priority: 'Low', progress: 100 },
   ])
 
@@ -40,28 +40,46 @@
     { id: 4, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29' },
   ])
 
-  function handleSubmit(payload: { task: string, course: string, due: string }) {
-    if (modalType.value === 'assignment') {
-      assignments.value.unshift({
-        id: Date.now(),
-        task: payload.task,
-        course: payload.course,
-        due: payload.due || 'No due date',
-        status: 'Not started',
-        priority: 'Medium',
-        progress: 0,
-      })
-    }
-    else {
-      materials.value.unshift({
-        id: Date.now(),
-        title: payload.task,
-        course: payload.course,
-        type: 'Note',
-        tags: 'new',
-        reviewed: 'Just now',
-      })
-    }
+  const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
+
+  const priorityMap = { low: 'Low', medium: 'Medium', high: 'High' } as const
+
+  function formatDue(iso: string) {
+    if (!iso)
+      return 'No due date'
+    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  function handleTaskSubmit(
+    payload: { title: string, course: string, due: string, priority: 'low' | 'medium' | 'high', description: string },
+    addAnother: boolean,
+  ) {
+    tasks.value.unshift({
+      id: Date.now(),
+      task: payload.title,
+      course: payload.course,
+      due: formatDue(payload.due),
+      status: 'To do',
+      priority: priorityMap[payload.priority],
+      progress: 0,
+    })
+    if (!addAnother)
+      showModal.value = false
+  }
+
+  function handleMaterialSubmit(payload: { task: string, course: string, due: string }) {
+    materials.value.unshift({
+      id: Date.now(),
+      title: payload.task,
+      course: payload.course,
+      type: 'Note',
+      tags: 'new',
+      reviewed: 'Just now',
+    })
     showModal.value = false
   }
 
@@ -70,30 +88,30 @@
     showModal.value = true
   }
 
-  function cycleStatus(item: Assignment) {
-    item.status = item.status === 'Not started' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'Not started'
+  function cycleStatus(item: Task) {
+    item.status = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
     item.progress = item.status === 'Done' ? 100 : item.status === 'In progress' ? 50 : 0
   }
 
-  function removeAssignment(id: number) {
-    assignments.value = assignments.value.filter(a => a.id !== id)
+  function removeTask(id: number) {
+    tasks.value = tasks.value.filter(t => t.id !== id)
   }
 
   provide('workspace', {
     view,
-    assignments,
+    tasks,
     materials,
     openAdd,
     cycleStatus,
-    removeAssignment,
+    removeTask,
   })
 
   const mainNavItems = [
     { name: 'Overview' as const, icon: LayoutDashboard },
-    { name: 'Assignments' as const, icon: Check },
+    { name: 'Tasks' as const, icon: Check },
     { name: 'Materials' as const, icon: BookOpen },
   ]
-  
+
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
   const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
 </script>
@@ -125,9 +143,9 @@
                     </span>
                   </div>
 
-                  <div v-if="item.name === 'Assignments'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
+                  <div v-if="item.name === 'Tasks'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
                     <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
-                      {{ assignments.length }}
+                      {{ tasks.length }}
                     </SidebarMenuBadge>
                   </div>
                 </SidebarMenuButton>
@@ -177,7 +195,7 @@
         <LayoutsAppHeader
           :view="view"
           :breadcrumbs="breadcrumbs"
-          @add-assignment="openAdd('assignment')"
+          @add-task="openAdd('task')"
           @add-material="openAdd('material')"
           @navigate="view = $event"
         >
@@ -189,9 +207,9 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" class="w-48">
-                <DropdownMenuItem @click="openAdd('assignment')">
+                <DropdownMenuItem @click="openAdd('task')">
                   <SquareCheck class="mr-2 size-4 text-subline" />
-                  <span>New Assignment</span>
+                  <span>New Task</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="openAdd('material')">
                   <FileText class="mr-2 size-4 text-subline" />
@@ -228,12 +246,18 @@
         <slot />
       </SidebarInset>
 
-      <DashboardAddItemModal
-        :open="showModal"
-        :modal-type="modalType"
+      <WorkspacesTaskModal
+        :open="showModal && modalType === 'task'"
+        :courses="courses"
         @close="showModal = false"
-        @submit="handleSubmit"
+        @submit="handleTaskSubmit"
       />
+      <!-- <DashboardAddItemModal
+        :open="showModal && modalType === 'material'"
+        modal-type="material"
+        @close="showModal = false"
+        @submit="handleMaterialSubmit"
+      /> -->
     </div>
   </SidebarProvider>
 </template>

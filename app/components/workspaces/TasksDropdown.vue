@@ -1,11 +1,11 @@
 <script setup lang="ts">
   import { MoreHorizontal, RefreshCcw, Share2 } from '@lucide/vue'
-  import type { Assignment } from '~/types/dashboard'
+  import type { Task } from '~/types/dashboard'
 
-  defineProps<{ assignment: Assignment }>()
+  defineProps<{ task: Task }>()
   const emit = defineEmits<{
-    'change-status': [assignment: Assignment]
-    share: [assignment: Assignment]
+    'change-status': [task: Task]
+    share: [task: Task]
   }>()
 </script>
 
@@ -21,12 +21,12 @@
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-40">
-      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('change-status', assignment)">
-        <RefreshCcw class="mr-2 size-3.5 text-subline" /> Ubah status
+      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('change-status', task)">
+        <RefreshCcw class="mr-2 size-3.5 text-subline" /> Change status
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('share', assignment)">
-        <Share2 class="mr-2 size-3.5 text-subline" /> Bagikan tautan
+      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('share', task)">
+        <Share2 class="mr-2 size-3.5 text-subline" /> Share link
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

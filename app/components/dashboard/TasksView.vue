@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
 import { computed, ref } from 'vue'
-import type { Assignment, Priority, Status } from '~/types/dashboard'
+import type { Task, Priority, Status } from '~/types/dashboard'
 
 const props = defineProps<{
-  assignments: Assignment[]
+  tasks: Task[]
 }>()
 
 const emit = defineEmits<{
   'add': []
-  'toggle-status': [item: Assignment]
+  'toggle-status': [item: Task]
   'remove': [id: number]
 }>()
 
@@ -17,9 +17,9 @@ const search = ref('')
 const statusFilter = ref<'All' | Status>('All')
 
 const filtered = computed(() =>
-  props.assignments.filter(a =>
-    [a.task, a.course, a.status, a.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
-    && (statusFilter.value === 'All' || a.status === statusFilter.value),
+  props.tasks.filter(t =>
+    [t.task, t.course, t.status, t.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
+    && (statusFilter.value === 'All' || t.status === statusFilter.value),
   ),
 )
 
@@ -48,7 +48,7 @@ function priorityClass(priority: Priority) {
       </p>
       <button class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white" @click="emit('add')">
         <Plus class="size-3.5" />
-        Add assignment
+        Add task
       </button>
     </div>
 
@@ -58,7 +58,7 @@ function priorityClass(priority: Priority) {
         <input
           v-model="search"
           class="w-full rounded-md border border-neutral-200 bg-white py-2.5 pl-9 pr-3 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-900"
-          placeholder="Search assignments..."
+          placeholder="Search tasks..."
         >
       </div>
       <div class="flex items-center gap-2">
@@ -66,7 +66,7 @@ function priorityClass(priority: Priority) {
         <select v-model="statusFilter" class="rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none">
           <option>All</option>
           <option>In progress</option>
-          <option>Not started</option>
+          <option>To do</option>
           <option>Done</option>
         </select>
       </div>

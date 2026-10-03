@@ -10,7 +10,7 @@
   }>()
 
   const emit = defineEmits<{
-    'add-assignment': []
+    'add-task': []
     'add-material': []
     'navigate': [view: View]
   }>()
@@ -25,7 +25,7 @@
 
   const isMounted = useMounted()
   const formattedDate = useDateFormat(computed(() => (isMounted.value ? new Date() : undefined)), 'dddd, MMMM D, YYYY', { locales: 'en-US' })
-  
+
   const headingDesktop = computed(() => 'Good morning, Ari.')
   const headingMobile = computed(() => view)
   const isOverview = computed(() => !breadcrumbs || breadcrumbs.length === 0)
@@ -123,9 +123,9 @@
             No results found.
           </CommandEmpty>
           <CommandGroup heading="Actions">
-            <CommandItem value="add assignment" @select="handleSelectAction(() => emit('add-assignment'))">
+            <CommandItem value="add task" @select="handleSelectAction(() => emit('add-task'))">
               <Plus class="mr-2 size-4" />
-              <span>Create assignment</span>
+              <span>Create task</span>
             </CommandItem>
             <CommandItem value="add material" @select="handleSelectAction(() => emit('add-material'))">
               <Plus class="mr-2 size-4" />
@@ -139,8 +139,8 @@
             <CommandItem value="overview" @select="handleSelectAction(() => emit('navigate', 'Overview'))">
               <span>Go to Overview</span>
             </CommandItem>
-            <CommandItem value="assignments" @select="handleSelectAction(() => emit('navigate', 'Assignments'))">
-              <span>Go to Assignments</span>
+            <CommandItem value="tasks" @select="handleSelectAction(() => emit('navigate', 'Tasks'))">
+              <span>Go to Tasks</span>
             </CommandItem>
             <CommandItem value="materials" @select="handleSelectAction(() => emit('navigate', 'Materials'))">
               <span>Go to Materials</span>
