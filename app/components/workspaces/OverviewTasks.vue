@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
   import { ArrowUpRight, ArrowUpDown } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
   import { taskColumns } from '~/components/workspaces/task-columns.ts'

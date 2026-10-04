@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, View } from '~/types/dashboard'
+  import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types/dashboard'
 
   const view = ref<View>('Overview')
   const showModal = ref(false)
@@ -42,7 +42,11 @@
 
   const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
 
-  const priorityMap = { low: 'Low', medium: 'Medium', high: 'High' } as const
+  const priorityMap: Record<TaskPriority, Task['priority']> = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+  }
 
   function formatDue(iso: string) {
     if (!iso)
@@ -54,10 +58,7 @@
     })
   }
 
-  function handleTaskSubmit(
-    payload: { title: string, course: string, due: string, priority: 'low' | 'medium' | 'high', description: string },
-    addAnother: boolean,
-  ) {
+  function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
     tasks.value.unshift({
       id: Date.now(),
       task: payload.title,
@@ -66,15 +67,13 @@
       status: 'To do',
       priority: priorityMap[payload.priority],
       progress: 0,
+      description: payload.description,
     })
     if (!addAnother)
       showModal.value = false
   }
 
-  function handleMaterialSubmit(
-    payload: { title: string, course: string, type: Material['type'], url: string, tags: string[], description: string, taskId: number | null },
-    addAnother: boolean,
-  ) {
+  function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
     materials.value.unshift({
       id: Date.now(),
       title: payload.title,
@@ -253,13 +252,13 @@
         <slot />
       </SidebarInset>
 
-      <WorkspacesTaskModal
+      <WorkspacesModalTask
         :open="showModal && modalType === 'task'"
         :courses="courses"
         @close="showModal = false"
         @submit="handleTaskSubmit"
       />
-      <WorkspacesMaterialModal
+      <WorkspacesModalMaterial
         :open="showModal && modalType === 'material'"
         :courses="courses"
         :tasks="tasks"

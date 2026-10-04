@@ -40,3 +40,23 @@ export interface BreadcrumbEntry {
 
 export type View = 'Overview' | 'Tasks' | 'Materials' | 'All Workspaces'
 export type ModalType = 'task' | 'material'
+
+export type TaskPriority = 'low' | 'medium' | 'high'
+
+export interface TaskPayload {
+  title: string
+  course: string
+  due: string
+  priority: TaskPriority
+  description: string
+}
+
+export interface MaterialPayload {
+  title: string
+  course: string
+  type: MaterialType
+  url: string
+  tags: string[]
+  description: string
+  taskId: number | null
+}

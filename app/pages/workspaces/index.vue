@@ -21,6 +21,14 @@
   const { view, tasks, materials, openAdd, cycleStatus, removeTask } = inject('workspace') as WorkspaceContext
 
   const completed = computed(() => tasks.value.filter(t => t.status === 'Done').length)
+  const inProgress = computed(() => tasks.value.filter(t => t.status === 'In progress').length)
+
+  // Catatan fokus per minggu: ganti minggu = otomatis kosong
+  const currentWeek = 3
+  const totalWeeks = 16
+  const weeklyNotes = ref<Record<number, string>>({
+    [currentWeek]: 'Finish the research proposal and review last week`s notes.',
+  })
 
   const overviewStats = computed<StatItem[]>(() => [
     {
@@ -71,13 +79,15 @@
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <WorkspacesOverviewTasks :tasks="tasks" @view-all="view = 'Tasks'" />
-        <WorkspacesProgress
-          :completed="1"
-          :in-progress="2"
-          :total="6"
-          :current-week="3"
-          :total-weeks="16"
+        <WorkspacesOverviewProgress
+          :completed="completed"
+          :in-progress="inProgress"
+          :total="tasks.length"
+          :current-week="currentWeek"
+          :total-weeks="totalWeeks"
+          :focus="weeklyNotes[currentWeek]"
           :next-deadline="{ title: 'Research proposal', dueIn: '2 days' }"
+          @update:focus="weeklyNotes[currentWeek] = $event"
         />
       </div>
     </div>
