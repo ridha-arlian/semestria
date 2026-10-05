@@ -14,11 +14,9 @@
     tasks: Ref<Task[]>
     materials: Ref<Material[]>
     openAdd: (type: ModalType) => void
-    cycleStatus: (item: Task) => void
-    removeTask: (id: number) => void
   }
 
-  const { view, tasks, materials, openAdd, cycleStatus, removeTask } = inject('workspace') as WorkspaceContext
+  const { view, tasks, materials, openAdd } = inject('workspace') as WorkspaceContext
 
   const completed = computed(() => tasks.value.filter(t => t.status === 'Done').length)
   const inProgress = computed(() => tasks.value.filter(t => t.status === 'In progress').length)
@@ -78,7 +76,7 @@
       <OverviewStats :stats="overviewStats" />
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <WorkspacesOverviewTasks :tasks="tasks" @view-all="view = 'Tasks'" />
+        <WorkspacesOverviewTasks :tasks="tasks" />
         <WorkspacesOverviewProgress
           :completed="completed"
           :in-progress="inProgress"
@@ -91,14 +89,6 @@
         />
       </div>
     </div>
-
-    <DashboardTasksView
-      v-else-if="view === 'Tasks'"
-      :tasks="tasks"
-      @add="openAdd('task')"
-      @toggle-status="cycleStatus"
-      @remove="removeTask"
-    />
 
     <MaterialsView
       v-else

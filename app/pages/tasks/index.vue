@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
-import { computed, ref } from 'vue'
-import type { Task, Priority, Status } from '~/types/dashboard'
+import type { Ref } from 'vue'
+import type { Task, Priority, Status, ModalType } from '~/types/dashboard'
 
-const props = defineProps<{
-  tasks: Task[]
-}>()
+definePageMeta({ layout: 'tasks' })
 
-const emit = defineEmits<{
-  'add': []
-  'toggle-status': [item: Task]
-  'remove': [id: number]
-}>()
+interface WorkspaceContext {
+  tasks: Ref<Task[]>
+  openAdd: (type: ModalType) => void
+  cycleStatus: (item: Task) => void
+  removeTask: (id: number) => void
+}
+
+const { tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
 
 const search = ref('')
 const statusFilter = ref<'All' | Status>('All')
 
 const filtered = computed(() =>
-  props.tasks.filter(t =>
+  tasks.value.filter(t =>
     [t.task, t.course, t.status, t.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
     && (statusFilter.value === 'All' || t.status === statusFilter.value),
   ),
@@ -41,12 +42,12 @@ function priorityClass(priority: Priority) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-5 md:p-8">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <p class="text-sm text-neutral-500">
         Keep every deadline in sight, without the spreadsheet stiffness.
       </p>
-      <button class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white" @click="emit('add')">
+      <button class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white" @click="openAdd('task')">
         <Plus class="size-3.5" />
         Add task
       </button>
@@ -72,7 +73,7 @@ function priorityClass(priority: Priority) {
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
       <table class="w-full min-w-190 text-left">
         <thead class="border-b border-neutral-200 bg-neutral-50">
           <tr class="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
@@ -91,7 +92,7 @@ function priorityClass(priority: Priority) {
                 <button
                   class="grid size-5 place-items-center rounded border border-neutral-300 transition hover:border-neutral-900"
                   :class="item.status === 'Done' ? 'bg-neutral-900 text-white' : ''"
-                  @click="emit('toggle-status', item)"
+                  @click="cycleStatus(item)"
                 >
                   <Check v-if="item.status === 'Done'" class="size-3" />
                 </button>
@@ -127,7 +128,7 @@ function priorityClass(priority: Priority) {
               </div>
             </td>
             <td class="px-2 py-4">
-              <button class="text-neutral-300 opacity-0 transition hover:text-neutral-900 group-hover:opacity-100" @click="emit('remove', item.id)">
+              <button class="text-neutral-300 opacity-0 transition hover:text-neutral-900 group-hover:opacity-100" @click="removeTask(item.id)">
                 <Trash2 class="size-3.5" />
               </button>
             </td>

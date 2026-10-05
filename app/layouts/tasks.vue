@@ -1,126 +1,127 @@
 <script setup lang="ts">
-  import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types/dashboard'
+import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
+import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types/dashboard'
 
-  const view = ref<View>('Overview')
-  const showModal = ref(false)
-  const modalType = ref<ModalType>('task')
+const view = ref<View>('Tasks')
+const showModal = ref(false)
+const modalType = ref<ModalType>('task')
 
-  const breadcrumbExtra = ref<BreadcrumbEntry[]>([])
-  provide('breadcrumbExtra', breadcrumbExtra)
+const breadcrumbExtra = ref<BreadcrumbEntry[]>([])
+provide('breadcrumbExtra', breadcrumbExtra)
 
-  const workspaceName = ref('Fall 2026')
+const workspaceName = ref('Fall 2026')
 
-  const breadcrumbs = computed<BreadcrumbEntry[]>(() => {
-    const base: BreadcrumbEntry[] = [
-      { label: 'Dashboard', to: 'dashboard' },
-      { label: workspaceName.value, view: 'Overview' },
-    ]
-    if (view.value !== 'Overview') {
-      base.push({ label: view.value, view: view.value })
-    }
-    return [...base, ...breadcrumbExtra.value]
-  })
-
-  watch(view, () => { breadcrumbExtra.value = [] })
-
-  const tasks = ref<Task[]>([
-    { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 20, 2026', status: 'In progress', priority: 'High', progress: 65 },
-    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'To do', priority: 'Medium', progress: 0 },
-    { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 25, 2026', status: 'In progress', priority: 'High', progress: 40 },
-    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'To do', priority: 'Low', progress: 0 },
-    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'To do', priority: 'Medium', progress: 0 },
-    { id: 6, task: 'Final case study', course: 'Cultural Studies', due: 'Sep 22, 2026', status: 'Done', priority: 'Low', progress: 100 },
-  ])
-
-  const materials = ref<Material[]>([
-    { id: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: 'Yesterday' },
-    { id: 2, title: 'Week 03 — Research methods', course: 'Design Research', type: 'Slides', tags: 'methods, week 03', reviewed: 'Sep 08' },
-    { id: 3, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05' },
-    { id: 4, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29' },
-  ])
-
-  const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
-
-  const priorityMap: Record<TaskPriority, Task['priority']> = {
-    low: 'Low',
-    medium: 'Medium',
-    high: 'High',
-  }
-
-  function formatDue(iso: string) {
-    if (!iso)
-      return 'No due date'
-    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
-    tasks.value.unshift({
-      id: Date.now(),
-      task: payload.title,
-      course: payload.course,
-      due: formatDue(payload.due),
-      status: 'To do',
-      priority: priorityMap[payload.priority],
-      progress: 0,
-      description: payload.description,
-    })
-    if (!addAnother)
-      showModal.value = false
-  }
-
-  function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
-    materials.value.unshift({
-      id: Date.now(),
-      title: payload.title,
-      course: payload.course,
-      type: payload.type,
-      tags: payload.tags.join(', '),
-      url: payload.url,
-      description: payload.description,
-      taskId: payload.taskId ?? undefined,
-      reviewed: 'Just now',
-    })
-    if (!addAnother)
-      showModal.value = false
-  }
-
-  function openAdd(type: ModalType) {
-    modalType.value = type
-    showModal.value = true
-  }
-
-  function cycleStatus(item: Task) {
-    item.status = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
-    item.progress = item.status === 'Done' ? 100 : item.status === 'In progress' ? 50 : 0
-  }
-
-  function removeTask(id: number) {
-    tasks.value = tasks.value.filter(t => t.id !== id)
-  }
-
-  provide('workspace', {
-    view,
-    tasks,
-    materials,
-    openAdd,
-    cycleStatus,
-    removeTask,
-  })
-
-  const route = useRoute()
-  const mainNavItems = [
-    { name: 'Overview' as const, icon: LayoutDashboard, to: '/workspaces' },
-    { name: 'Tasks' as const, icon: Check, to: '/tasks' },
-    { name: 'Materials' as const, icon: BookOpen },
+const breadcrumbs = computed<BreadcrumbEntry[]>(() => {
+  const base: BreadcrumbEntry[] = [
+    { label: 'Dashboard', to: 'dashboard' },
+    { label: workspaceName.value, view: 'Overview' },
   ]
+  if (view.value !== 'Overview') {
+    base.push({ label: view.value, view: view.value })
+  }
+  return [...base, ...breadcrumbExtra.value]
+})
 
-  const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
-  const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
+watch(view, () => { breadcrumbExtra.value = [] })
+
+const tasks = ref<Task[]>([
+  { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 20, 2026', status: 'In progress', priority: 'High', progress: 65 },
+  { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'To do', priority: 'Medium', progress: 0 },
+  { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 25, 2026', status: 'In progress', priority: 'High', progress: 40 },
+  { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'To do', priority: 'Low', progress: 0 },
+  { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'To do', priority: 'Medium', progress: 0 },
+  { id: 6, task: 'Final case study', course: 'Cultural Studies', due: 'Sep 22, 2026', status: 'Done', priority: 'Low', progress: 100 },
+])
+
+const materials = ref<Material[]>([
+  { id: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: 'Yesterday' },
+  { id: 2, title: 'Week 03 — Research methods', course: 'Design Research', type: 'Slides', tags: 'methods, week 03', reviewed: 'Sep 08' },
+  { id: 3, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05' },
+  { id: 4, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29' },
+])
+
+const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
+
+const priorityMap: Record<TaskPriority, Task['priority']> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+}
+
+function formatDue(iso: string) {
+  if (!iso)
+    return 'No due date'
+  return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
+  tasks.value.unshift({
+    id: Date.now(),
+    task: payload.title,
+    course: payload.course,
+    due: formatDue(payload.due),
+    status: 'To do',
+    priority: priorityMap[payload.priority],
+    progress: 0,
+    description: payload.description,
+  })
+  if (!addAnother)
+    showModal.value = false
+}
+
+function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
+  materials.value.unshift({
+    id: Date.now(),
+    title: payload.title,
+    course: payload.course,
+    type: payload.type,
+    tags: payload.tags.join(', '),
+    url: payload.url,
+    description: payload.description,
+    taskId: payload.taskId ?? undefined,
+    reviewed: 'Just now',
+  })
+  if (!addAnother)
+    showModal.value = false
+}
+
+function openAdd(type: ModalType) {
+  modalType.value = type
+  showModal.value = true
+}
+
+function cycleStatus(item: Task) {
+  item.status = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
+  item.progress = item.status === 'Done' ? 100 : item.status === 'In progress' ? 50 : 0
+}
+
+function removeTask(id: number) {
+  tasks.value = tasks.value.filter(t => t.id !== id)
+}
+
+provide('workspace', {
+  view,
+  tasks,
+  materials,
+  openAdd,
+  cycleStatus,
+  removeTask,
+})
+
+const route = useRoute()
+
+const mainNavItems = [
+  { name: 'Overview' as const, icon: LayoutDashboard, to: '/workspaces' },
+  { name: 'Tasks' as const, icon: Check, to: '/tasks' },
+  { name: 'Materials' as const, icon: BookOpen },
+]
+
+const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
+const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
 </script>
 
 <template>
