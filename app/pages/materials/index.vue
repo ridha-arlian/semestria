@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { ArrowUpRight, FileText, Plus, Search, Sparkles } from '@lucide/vue'
-import { computed, ref } from 'vue'
-import type { Material } from '~/types/dashboard'
+  import { ArrowUpRight, FileText, Plus, Search, Sparkles } from '@lucide/vue'
+  import type { Material, ModalType } from '~/types/dashboard'
 
-const props = defineProps<{
-  materials: Material[]
-}>()
+  definePageMeta({ layout: 'workspaces' })
 
-const emit = defineEmits<{
-  add: []
-}>()
+  interface WorkspaceContext {
+    materials: Ref<Material[]>
+    openAdd: (type: ModalType) => void
+  }
 
-const search = ref('')
+  const { materials, openAdd } = inject<WorkspaceContext>('workspace')!
 
-const filtered = computed(() =>
-  props.materials.filter(m =>
-    [m.title, m.course, m.type, m.tags].join(' ').toLowerCase().includes(search.value.toLowerCase()),
-  ),
-)
+  const search = ref('')
+
+  const filtered = computed(() =>
+    materials.value.filter(m =>
+      [m.title, m.course, m.type, m.tags].join(' ').toLowerCase().includes(search.value.toLowerCase()),
+    ),
+  )
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-5 md:p-8">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <p class="text-sm text-neutral-500">
         A flexible shelf for everything worth coming back to.
       </p>
-      <button class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white" @click="emit('add')">
+      <button
+        class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-neutral-800"
+        @click="openAdd('material')"
+      >
         <Plus class="size-3.5" />
         Add material
       </button>
@@ -43,15 +46,25 @@ const filtered = computed(() =>
       </div>
     </div>
 
-    <div class="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
       <table class="w-full min-w-190 text-left">
         <thead class="border-b border-neutral-200 bg-neutral-50">
           <tr class="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
-            <th class="px-5 py-3">Material</th>
-            <th class="px-4 py-3">Course</th>
-            <th class="px-4 py-3">Type</th>
-            <th class="px-4 py-3">Tags</th>
-            <th class="px-4 py-3">Last reviewed</th>
+            <th class="px-5 py-3">
+              Material
+            </th>
+            <th class="px-4 py-3">
+              Course
+            </th>
+            <th class="px-4 py-3">
+              Type
+            </th>
+            <th class="px-4 py-3">
+              Tags
+            </th>
+            <th class="px-4 py-3">
+              Last reviewed
+            </th>
             <th class="w-12 px-2" />
           </tr>
         </thead>

@@ -2,7 +2,24 @@
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
   import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types/dashboard'
 
-  const view = ref<View>('Overview')
+  const route = useRoute()
+
+  const routeMap: Record<View, string> = {
+    'Overview': '/workspaces',
+    'Tasks': '/tasks',
+    'Materials': '/materials',
+    'All Workspaces': '/dashboard',
+  }
+
+  const view = computed<View>(() => {
+    const match = Object.entries(routeMap).find(([, to]) => to === route.path)
+    return (match?.[0] as View) ?? 'Overview'
+  })
+
+  function handleNavigate(target: View) {
+    navigateTo(routeMap[target])
+  }
+
   const showModal = ref(false)
   const modalType = ref<ModalType>('task')
 
@@ -112,11 +129,10 @@
     removeTask,
   })
 
-  const route = useRoute()
   const mainNavItems = [
-    { name: 'Overview' as const, icon: LayoutDashboard, to: '/workspaces' },
-    { name: 'Tasks' as const, icon: Check, to: '/tasks' },
-    { name: 'Materials' as const, icon: BookOpen },
+    { name: 'Overview' as const, icon: LayoutDashboard, to: routeMap.Overview },
+    { name: 'Tasks' as const, icon: Check, to: routeMap.Tasks },
+    { name: 'Materials' as const, icon: BookOpen, to: routeMap.Materials },
   ]
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
@@ -136,26 +152,6 @@
           <SidebarGroupContent class="mt-2 group-data-[collapsible=icon]:mt-0">
             <SidebarMenu class="space-y-1">
               <SidebarMenuItem v-for="item in mainNavItems" :key="item.name" class="flex justify-center overflow-hidden">
-                <!-- <SidebarMenuButton
-                  :is-active="view === item.name"
-                  :tooltip="item.name"
-                  :class="menuButtonClass"
-                  @click="view = item.name"
-                >
-                  <component :is="item.icon" class="size-4 shrink-0" :stroke-width="1.8" />
-
-                  <div :class="collapseWrap">
-                    <span class="overflow-hidden truncate whitespace-nowrap">
-                      {{ item.name }}
-                    </span>
-                  </div>
-
-                  <div v-if="item.name === 'Tasks'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                    <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
-                      {{ tasks.length }}
-                    </SidebarMenuBadge>
-                  </div>
-                </SidebarMenuButton> -->
                 <SidebarMenuButton
                   as-child
                   :is-active="route.path === item.to"
@@ -226,7 +222,7 @@
           :breadcrumbs="breadcrumbs"
           @add-task="openAdd('task')"
           @add-material="openAdd('material')"
-          @navigate="view = $event"
+          @navigate="handleNavigate"
         >
           <template #actions>
             <DropdownMenu>
@@ -258,7 +254,7 @@
                     <NuxtLink v-if="crumb.to" :to="crumb.to" class="flex items-center gap-1 text-xs">
                       {{ crumb.label }}
                     </NuxtLink>
-                    <NuxtLink v-else-if="crumb.view" class="cursor-pointer text-xs" @click="view = crumb.view">
+                    <NuxtLink v-else-if="crumb.view" class="cursor-pointer text-xs" @click="handleNavigate(crumb.view)">
                       {{ crumb.label }}
                     </NuxtLink>
                   </BreadcrumbLink>

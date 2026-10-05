@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { Plus } from '@lucide/vue'
-  import MaterialsView from '~/components/dashboard/MaterialsView.vue'
+  // import MaterialsView from '~/components/dashboard/MaterialsView.vue'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
   import type { Task, ModalType, Material, View, StatItem } from '~/types/dashboard'
   import type { Ref } from 'vue'
@@ -90,10 +90,10 @@
       </div>
     </div>
 
-    <MaterialsView
+    <!-- <MaterialsView
       v-else
       :materials="materials"
       @add="openAdd('material')"
-    />
+    /> -->
   </main>
 </template>

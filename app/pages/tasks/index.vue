@@ -1,44 +1,43 @@
 <script setup lang="ts">
-import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
-import type { Ref } from 'vue'
-import type { Task, Priority, Status, ModalType } from '~/types/dashboard'
+  import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
+  import type { Task, Priority, Status, ModalType } from '~/types/dashboard'
 
-definePageMeta({ layout: 'tasks' })
+  definePageMeta({ layout: 'workspaces' })
 
-interface WorkspaceContext {
-  tasks: Ref<Task[]>
-  openAdd: (type: ModalType) => void
-  cycleStatus: (item: Task) => void
-  removeTask: (id: number) => void
-}
+  interface WorkspaceContext {
+    tasks: Ref<Task[]>
+    openAdd: (type: ModalType) => void
+    cycleStatus: (item: Task) => void
+    removeTask: (id: number) => void
+  }
 
-const { tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
+  const { tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
 
-const search = ref('')
-const statusFilter = ref<'All' | Status>('All')
+  const search = ref('')
+  const statusFilter = ref<'All' | Status>('All')
 
-const filtered = computed(() =>
-  tasks.value.filter(t =>
-    [t.task, t.course, t.status, t.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
-    && (statusFilter.value === 'All' || t.status === statusFilter.value),
-  ),
-)
+  const filtered = computed(() =>
+    tasks.value.filter(t =>
+      [t.task, t.course, t.status, t.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
+      && (statusFilter.value === 'All' || t.status === statusFilter.value),
+    ),
+  )
 
-function statusClass(status: Status) {
-  return status === 'Done'
-    ? 'bg-neutral-900 text-white'
-    : status === 'In progress'
-      ? 'bg-neutral-100 text-neutral-900 border border-neutral-300'
-      : 'bg-white text-neutral-500 border border-neutral-200'
-}
+  function statusClass(status: Status) {
+    return status === 'Done'
+      ? 'bg-neutral-900 text-white'
+      : status === 'In progress'
+        ? 'bg-neutral-100 text-neutral-900 border border-neutral-300'
+        : 'bg-white text-neutral-500 border border-neutral-200'
+  }
 
-function priorityClass(priority: Priority) {
-  return priority === 'High'
-    ? 'text-neutral-900 font-semibold'
-    : priority === 'Medium'
-      ? 'text-neutral-500'
-      : 'text-neutral-400'
-}
+  function priorityClass(priority: Priority) {
+    return priority === 'High'
+      ? 'text-neutral-900 font-semibold'
+      : priority === 'Medium'
+        ? 'text-neutral-500'
+        : 'text-neutral-400'
+  }
 </script>
 
 <template>
