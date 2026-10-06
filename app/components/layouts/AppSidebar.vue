@@ -1,8 +1,27 @@
 <script setup lang="ts">
   import { Settings } from '@lucide/vue'
   import { useSidebar } from '~/components/ui/sidebar'
-  
-  const { state, toggleSidebar, isMobile } = useSidebar()
+
+  const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
+  const route = useRoute()
+
+  // Auto-close mobile drawer (Sheet) on navigation.
+  // Desktop uses collapsible="icon" and must not be affected.
+  watch(() => route.path, () => {
+    if (isMobile.value)
+      setOpenMobile(false)
+  })
+
+  // Instant close when a navigation link inside the drawer is tapped.
+  // Only reacts to <a> clicks so Accordion triggers don't close the drawer.
+  // This runs inside SidebarProvider, so useSidebar injection is valid here.
+  function handleContentClick(e: MouseEvent) {
+    if (!isMobile.value)
+      return
+    const el = e.target as HTMLElement | null
+    if (el?.closest?.('a'))
+      setOpenMobile(false)
+  }
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
 </script>
@@ -55,7 +74,7 @@
       <IconsAppLogo class="size-8 w-auto text-ink" />
     </div>
 
-    <SidebarContent class="px-3 py-6 group-data-[collapsible=icon]:px-0 overflow-x-hidden">
+    <SidebarContent class="px-3 py-6 group-data-[collapsible=icon]:px-0 overflow-x-hidden" @click="handleContentClick">
       <slot />
     </SidebarContent>
 
