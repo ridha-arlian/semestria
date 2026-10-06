@@ -2,8 +2,25 @@ export type Status = 'In progress' | 'To do' | 'Done'
 export type Priority = 'High' | 'Medium' | 'Low'
 export type MaterialType = 'Notes' | 'Book' | 'Slides' | 'Collection' | 'Link' | 'PDF' | 'Video'
 
+export interface Workspace {
+  id: number
+  name: string
+  slug: string
+  dates: string
+  courses: number
+  assignments: number
+  completed: number
+  progress: number
+  active: boolean
+  next: string
+  nextDue: string
+  startDate?: string
+  endDate?: string
+}
+
 export interface Task {
   id: number
+  workspaceId: number
   task: string
   course: string
   due: string
@@ -15,6 +32,7 @@ export interface Task {
 
 export interface Material {
   id: number
+  workspaceId: number
   title: string
   course: string
   type: MaterialType

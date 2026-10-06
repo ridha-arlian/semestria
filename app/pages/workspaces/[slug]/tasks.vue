@@ -1,8 +1,12 @@
 <script setup lang="ts">
   import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
-  import type { Task, Priority, Status, ModalType } from '~/types/dashboard'
+  import type { Task, Priority, Status, ModalType } from '~/types'
+  import type { Ref } from 'vue'
 
-  definePageMeta({ layout: 'workspaces' })
+  definePageMeta({
+    layout: 'workspaces',
+    middleware: 'workspace',
+  })
 
   interface WorkspaceContext {
     tasks: Ref<Task[]>

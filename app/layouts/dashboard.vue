@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { LayoutDashboard, CircleSmall } from '@lucide/vue'
-  import type { View } from '@/types/dashboard'
+  import type { View } from '~/types'
 
   const view = ref<View>('Overview')
 

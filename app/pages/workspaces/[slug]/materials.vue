@@ -1,8 +1,12 @@
 <script setup lang="ts">
   import { ArrowUpRight, FileText, Plus, Search, Sparkles } from '@lucide/vue'
-  import type { Material, ModalType } from '~/types/dashboard'
+  import type { Material, ModalType } from '~/types'
+  import type { Ref } from 'vue'
 
-  definePageMeta({ layout: 'workspaces' })
+  definePageMeta({
+    layout: 'workspaces',
+    middleware: 'workspace',
+  })
 
   interface WorkspaceContext {
     materials: Ref<Material[]>

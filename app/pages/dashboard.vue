@@ -1,22 +1,22 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
-  import { useRouter } from 'vue-router'
   import { Button } from '@/components/ui/button'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
   import { Plus, FolderOpen, CheckCircle2, Pencil, Trash2 } from '@lucide/vue'
   import DataTable from '@/components/ui/data-table/DataTable.vue'
-  import { columns, type Workspace } from '~/components/dashboard/workspaceColumns.ts'
-  import type { StatItem } from '~/types/dashboard'
+  import { columns } from '~/components/dashboard/workspaceColumns'
+  import type { StatItem, Workspace } from '~/types'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
   import NewWorkspaceDialog from '~/components/dashboard/NewWorkspaceDialog.vue'
   import DeleteWorkspaceDialog from '~/components/dashboard/DeleteWorkspaceDialog.vue'
 
   definePageMeta({
-    layout: 'dashboard'
+    layout: 'dashboard',
   })
 
-  const router = useRouter()
+  const workspaces = useApi().getWorkspaces()
+
   const isModalOpen = ref(false)
   const selectedWorkspace = ref<Workspace | null>(null)
 
@@ -51,27 +51,21 @@
   }
 
   function handleRowClick(workspace: Workspace) {
-    // router.push(`/workspaces/${workspace.name.toLowerCase().replace(/\s+/g, '-')}`)
-    router.push(`/workspaces`)
+    navigateTo(`/workspaces/${workspace.slug}`)
   }
 
   function handleSetActive(workspace: Workspace) {
     console.log('Set aktif:', workspace)
   }
 
-  const workspaces = [
-    { name: 'Fall 2026', dates: 'Aug 24 — Dec 18, 2026', courses: 4, assignments: 5, completed: 1, progress: 42, active: true, next: 'Research proposal', nextDue: 'Sep 12' },
-    { name: 'Spring 2026', dates: 'Jan 12 — May 08, 2026', courses: 5, assignments: 18, completed: 16, progress: 88, active: false, next: 'Semester complete', nextDue: '—' },
-    { name: 'Fall 2025', dates: 'Aug 25 — Dec 19, 2025', courses: 4, assignments: 21, completed: 21, progress: 100, active: false, next: 'Semester complete', nextDue: '—' },
-  ]
-
   const totalAssignments = workspaces.reduce((sum, w) => sum + w.assignments, 0)
   const completedAssignments = workspaces.reduce((sum, w) => sum + w.completed, 0)
+  const activeWorkspace = workspaces.find(w => w.active)
 
   const homeStats = computed<StatItem[]>(() => [
     { label: 'Workspaces', value: String(workspaces.length), note: 'workspaces in your space' },
     { label: 'Assignments', value: String(totalAssignments), note: `${completedAssignments} completed overall` },
-    { label: 'Active semester', value: 'Fall 2026', note: 'Week 3 of 16' },
+    { label: 'Active semester', value: activeWorkspace?.name ?? '—', note: 'Week 3 of 16' },
   ])
 </script>
 

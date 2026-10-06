@@ -1,23 +1,43 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types/dashboard'
+  import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
 
   const route = useRoute()
+  const api = useApi()
 
-  const routeMap: Record<View, string> = {
-    'Overview': '/workspaces',
-    'Tasks': '/tasks',
-    'Materials': '/materials',
+  const slug = computed(() => route.params.slug as string)
+  const workspace = computed(() => api.getWorkspaceBySlug(slug.value))
+  const workspaceName = computed(() => workspace.value?.name ?? '')
+
+  const week = computed(() => {
+    const w = workspace.value
+    if (!w?.startDate || !w?.endDate) return null
+
+    const WEEK = 7 * 24 * 60 * 60 * 1000
+    const start = new Date(`${w.startDate}T00:00:00`).getTime()
+    const end = new Date(`${w.endDate}T00:00:00`).getTime()
+
+    const total = Math.ceil((end - start) / WEEK)
+    const current = Math.min(Math.max(Math.floor((Date.now() - start) / WEEK) + 1, 1), total)
+
+    return { current, total }
+  })
+
+  const routeMap = computed<Record<View, string>>(() => ({
+    'Overview': `/workspaces/${slug.value}`,
+    'Tasks': `/workspaces/${slug.value}/tasks`,
+    'Materials': `/workspaces/${slug.value}/materials`,
     'All Workspaces': '/dashboard',
-  }
+  }))
 
   const view = computed<View>(() => {
-    const match = Object.entries(routeMap).find(([, to]) => to === route.path)
+    const path = route.path.replace(/\/$/, '')
+    const match = Object.entries(routeMap.value).find(([, to]) => to === path)
     return (match?.[0] as View) ?? 'Overview'
   })
 
   function handleNavigate(target: View) {
-    navigateTo(routeMap[target])
+    navigateTo(routeMap.value[target])
   }
 
   const showModal = ref(false)
@@ -26,11 +46,9 @@
   const breadcrumbExtra = ref<BreadcrumbEntry[]>([])
   provide('breadcrumbExtra', breadcrumbExtra)
 
-  const workspaceName = ref('Fall 2026')
-
   const breadcrumbs = computed<BreadcrumbEntry[]>(() => {
     const base: BreadcrumbEntry[] = [
-      { label: 'Dashboard', to: 'dashboard' },
+      { label: 'Dashboard', to: '/dashboard' },
       { label: workspaceName.value, view: 'Overview' },
     ]
     if (view.value !== 'Overview') {
@@ -41,21 +59,17 @@
 
   watch(view, () => { breadcrumbExtra.value = [] })
 
-  const tasks = ref<Task[]>([
-    { id: 1, task: 'Research proposal', course: 'Design Research', due: 'Sep 20, 2026', status: 'In progress', priority: 'High', progress: 65 },
-    { id: 2, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Sep 24, 2026', status: 'To do', priority: 'Medium', progress: 0 },
-    { id: 3, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Sep 25, 2026', status: 'In progress', priority: 'High', progress: 40 },
-    { id: 4, task: 'Reading response #04', course: 'Design Research', due: 'Sep 26, 2026', status: 'To do', priority: 'Low', progress: 0 },
-    { id: 5, task: 'Group critique notes', course: 'Studio Practice', due: 'Sep 30, 2026', status: 'To do', priority: 'Medium', progress: 0 },
-    { id: 6, task: 'Final case study', course: 'Cultural Studies', due: 'Sep 22, 2026', status: 'Done', priority: 'Low', progress: 100 },
-  ])
+  const tasks = ref<Task[]>([])
+  const materials = ref<Material[]>([])
 
-  const materials = ref<Material[]>([
-    { id: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: 'Yesterday' },
-    { id: 2, title: 'Week 03 — Research methods', course: 'Design Research', type: 'Slides', tags: 'methods, week 03', reviewed: 'Sep 08' },
-    { id: 3, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05' },
-    { id: 4, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29' },
-  ])
+  function loadData() {
+    const id = workspace.value?.id
+    tasks.value = id ? api.getTasks(id) : []
+    materials.value = id ? api.getMaterials(id) : []
+  }
+
+  loadData()
+  watch(slug, loadData)
 
   const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
 
@@ -78,6 +92,7 @@
   function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
     tasks.value.unshift({
       id: Date.now(),
+      workspaceId: workspace.value!.id,
       task: payload.title,
       course: payload.course,
       due: formatDue(payload.due),
@@ -93,6 +108,7 @@
   function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
     materials.value.unshift({
       id: Date.now(),
+      workspaceId: workspace.value!.id,
       title: payload.title,
       course: payload.course,
       type: payload.type,
@@ -121,6 +137,8 @@
   }
 
   provide('workspace', {
+    workspace,
+    week,
     view,
     tasks,
     materials,
@@ -129,11 +147,11 @@
     removeTask,
   })
 
-  const mainNavItems = [
-    { name: 'Overview' as const, icon: LayoutDashboard, to: routeMap.Overview },
-    { name: 'Tasks' as const, icon: Check, to: routeMap.Tasks },
-    { name: 'Materials' as const, icon: BookOpen, to: routeMap.Materials },
-  ]
+  const mainNavItems = computed(() => [
+    { name: 'Overview' as const, icon: LayoutDashboard, to: routeMap.value.Overview },
+    { name: 'Tasks' as const, icon: Check, to: routeMap.value.Tasks },
+    { name: 'Materials' as const, icon: BookOpen, to: routeMap.value.Materials },
+  ])
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
   const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
@@ -193,19 +211,19 @@
                   <Card class="bg-card border-line shadow-none p-3 gap-0 overflow-hidden">
                     <CardHeader class="p-0 flex flex-row items-center justify-between space-y-0">
                       <CardTitle class="text-xs font-semibold text-headline">
-                        Fall 2026
+                        {{ workspace?.name }}
                       </CardTitle>
                     </CardHeader>
 
                     <CardContent class="p-0 mt-1">
                       <p class="text-[11px] text-subline whitespace-nowrap">
-                        Aug 24 — Dec 18, 2026
+                        {{ workspace?.dates }}
                       </p>
 
-                      <Progress :model-value="42" class="mt-3 h-1 bg-soft" />
+                      <Progress :model-value="workspace?.progress ?? 0" class="mt-3 h-1 bg-soft" />
 
-                      <p class="mt-1.5 text-[10px] text-subline whitespace-nowrap">
-                        Week 3 of 16
+                      <p v-if="week" class="mt-1.5 text-[10px] text-subline whitespace-nowrap">
+                        Week {{ week.current }} of {{ week.total }}
                       </p>
                     </CardContent>
                   </Card>

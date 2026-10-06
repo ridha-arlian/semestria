@@ -5,18 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import DataTableDropdown from '~/components/dashboard/DataTableDropDown.vue'
 import type { DataTableFeatures } from '~/components/ui/data-table/features.ts'
-
-export interface Workspace {
-  name: string
-  dates: string
-  courses: number
-  assignments: number
-  completed: number
-  progress: number
-  active: boolean
-  next: string
-  nextDue: string
-}
+import type { Workspace } from '~/types'
 
 const columnHelper = createColumnHelper<DataTableFeatures, Workspace>()
 
@@ -24,7 +13,6 @@ export const columns = [
   columnHelper.accessor('name', {
     header: 'Semester',
     cell: ({ row }) => h('div', {}, [
-      // Desktop
       h('div', { class: 'hidden sm:block' }, [
         h('div', { class: 'flex items-center gap-2.5' }, [
           h('h3', { class: 'text-sm font-semibold text-headline' }, row.original.name),
@@ -41,7 +29,6 @@ export const columns = [
         ]),
       ]),
 
-      // Mobile: 3 baris
       h('div', { class: 'sm:hidden space-y-1.5 min-w-0' }, [
         h('div', { class: 'flex items-center justify-between gap-2' }, [
           h('div', { class: 'flex items-center gap-2 min-w-0' }, [

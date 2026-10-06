@@ -1,10 +1,5 @@
 <script setup lang="ts">
   import { ArrowUpRight, Plus, Circle } from '@lucide/vue'
-  import { Button } from '~/components/ui/button'
-  import { Badge } from '~/components/ui/badge'
-  import { Separator } from '~/components/ui/separator'
-  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-  import GoogleIcon from '~/components/icons/GoogleIcon.vue'
 
   definePageMeta({
     layout: 'landing'
@@ -88,7 +83,7 @@
           Sign in with Google, add what matters, and keep going. No template building, no setup. Just a workspace that's ready when you are.
         </p>
         <Button variant="outline" size="lg" class="w-full bg-soft text-ink hover:bg-hover sm:w-auto">
-          <GoogleIcon class="h-6! w-6! shrink-0" />
+          <IconsGoogleIcon class="h-6! w-6! shrink-0" />
           Continue with Google
         </Button>
       </div>
