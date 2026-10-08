@@ -99,7 +99,7 @@
       <OverviewStats :stats="overviewStats" />
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <WorkspacesOverviewTasks :tasks="tasks" />
+        <WorkspacesOverviewTasks :tasks="tasks" :view-all-to="`${base}/tasks`" />
         <WorkspacesOverviewProgress
           :completed="completed"
           :in-progress="inProgress"

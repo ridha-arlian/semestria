@@ -1,6 +1,8 @@
 <script setup lang="ts">
-  import { Check, Filter, Plus, Search, Sparkles, Trash2 } from '@lucide/vue'
-  import type { Task, Priority, Status, ModalType } from '~/types'
+  import { Plus, Search, Sparkles } from '@lucide/vue'
+  import DataTable from '~/components/ui/data-table/DataTable.vue'
+  import { tasksPageColumns } from '~/components/workspaces/tasks-page-columns.ts'
+  import type { Task, Status, ModalType } from '~/types'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -27,128 +29,79 @@
     ),
   )
 
-  function statusClass(status: Status) {
-    return status === 'Done'
-      ? 'bg-neutral-900 text-white'
-      : status === 'In progress'
-        ? 'bg-neutral-100 text-neutral-900 border border-neutral-300'
-        : 'bg-white text-neutral-500 border border-neutral-200'
-  }
-
-  function priorityClass(priority: Priority) {
-    return priority === 'High'
-      ? 'text-neutral-900 font-semibold'
-      : priority === 'Medium'
-        ? 'text-neutral-500'
-        : 'text-neutral-400'
-  }
+  const isFiltering = computed(() => search.value.trim() !== '' || statusFilter.value !== 'All')
 </script>
 
 <template>
-  <div class="space-y-6 p-5 md:p-8">
-    <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-      <p class="text-sm text-neutral-500">
-        Keep every deadline in sight, without the spreadsheet stiffness.
-      </p>
-      <button class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white" @click="openAdd('task')">
-        <Plus class="size-3.5" />
-        Add task
-      </button>
-    </div>
-
-    <div class="flex flex-col gap-3 border-y border-neutral-200 py-3 sm:flex-row">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-400" />
-        <input
-          v-model="search"
-          class="w-full rounded-md border border-neutral-200 bg-white py-2.5 pl-9 pr-3 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-900"
-          placeholder="Search tasks..."
-        >
+  <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
+    <div class="space-y-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-subline">
+          Keep every deadline in sight, without the spreadsheet stiffness.
+        </p>
+        <Button class="w-full sm:w-auto" @click="openAdd('task')">
+          <Plus class="mr-2 h-4 w-4" />
+          New task
+        </Button>
       </div>
-      <div class="flex items-center gap-2">
-        <Filter class="size-3.5 text-neutral-400" />
-        <select v-model="statusFilter" class="rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-xs outline-none">
-          <option>All</option>
-          <option>In progress</option>
-          <option>To do</option>
-          <option>Done</option>
-        </select>
-      </div>
-    </div>
 
-    <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
-      <table class="w-full min-w-190 text-left">
-        <thead class="border-b border-neutral-200 bg-neutral-50">
-          <tr class="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
-            <th class="px-5 py-3">Task</th>
-            <th class="px-4 py-3">Course</th>
-            <th class="px-4 py-3">Due date</th>
-            <th class="px-4 py-3">Status</th>
-            <th class="px-4 py-3">Progress</th>
-            <th class="w-12 px-2" />
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-neutral-100">
-          <tr v-for="item in filtered" :key="item.id" class="group transition hover:bg-neutral-50">
-            <td class="px-5 py-4">
-              <div class="flex items-center gap-3">
-                <button
-                  class="grid size-5 place-items-center rounded border border-neutral-300 transition hover:border-neutral-900"
-                  :class="item.status === 'Done' ? 'bg-neutral-900 text-white' : ''"
-                  @click="cycleStatus(item)"
-                >
-                  <Check v-if="item.status === 'Done'" class="size-3" />
-                </button>
-                <div>
-                  <p class="text-xs font-semibold" :class="item.status === 'Done' ? 'text-neutral-400 line-through' : ''">
-                    {{ item.task }}
-                  </p>
-                  <p class="mt-1 text-[10px]" :class="priorityClass(item.priority)">
-                    {{ item.priority }} priority
-                  </p>
-                </div>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <div class="relative flex-1">
+          <Search class="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-subline" />
+          <Input
+            v-model="search"
+            class="bg-card pl-9"
+            placeholder="Search tasks..."
+          />
+        </div>
+        <Select v-model="statusFilter">
+          <SelectTrigger class="w-full sm:w-44">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value="All" class="cursor-pointer text-xs">All statuses</SelectItem>
+            <SelectItem value="To do" class="cursor-pointer text-xs">To do</SelectItem>
+            <SelectItem value="In progress" class="cursor-pointer text-xs">In progress</SelectItem>
+            <SelectItem value="Done" class="cursor-pointer text-xs">Done</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card class="overflow-hidden">
+        <CardContent class="p-0">
+          <DataTable
+            :columns="tasksPageColumns"
+            :data="filtered"
+            :mobile-hidden-columns="['course', 'due', 'progress', 'status']"
+            show-header
+            :column-class="{
+              priority: 'w-12 px-0! text-center',
+              course: 'w-44 shrink-0',
+              due: 'w-36 shrink-0',
+              status: 'w-24 sm:w-32 shrink-0',
+              progress: 'w-52 shrink-0',
+              actions: 'w-16 sm:w-[120px] shrink-0',
+            }"
+            empty-text="Nothing found — try a different search or add something new."
+            :meta="{
+              onChangeStatus: (t) => cycleStatus(t),
+              onDelete: (t) => removeTask(t.id),
+            }"
+          >
+            <template #empty>
+              <div class="px-5 py-16 text-center">
+                <Sparkles class="mx-auto size-5 text-subline/50" />
+                <p class="mt-3 text-sm font-medium text-text-strong">
+                  {{ isFiltering ? 'No tasks match your filters' : 'No tasks yet' }}
+                </p>
+                <p class="mt-1 text-xs text-subline">
+                  {{ isFiltering ? 'Try a different search or status filter.' : 'Add your first task to get started.' }}
+                </p>
               </div>
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-500">
-              {{ item.course }}
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-600">
-              {{ item.due }}
-            </td>
-            <td class="px-4 py-4">
-              <span class="rounded px-2 py-1 text-[10px] font-medium" :class="statusClass(item.status)">
-                {{ item.status }}
-              </span>
-            </td>
-            <td class="px-4 py-4">
-              <div class="flex items-center gap-2">
-                <div class="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-100">
-                  <div class="h-full rounded-full bg-neutral-900" :style="{ width: item.progress + '%' }" />
-                </div>
-                <span class="font-mono text-[10px] text-neutral-400">
-                  {{ item.progress }}%
-                </span>
-              </div>
-            </td>
-            <td class="px-2 py-4">
-              <button class="text-neutral-300 opacity-0 transition hover:text-neutral-900 group-hover:opacity-100" @click="removeTask(item.id)">
-                <Trash2 class="size-3.5" />
-              </button>
-            </td>
-          </tr>
-          <tr v-if="filtered.length === 0">
-            <td colspan="6" class="px-5 py-16 text-center">
-              <Sparkles class="mx-auto size-5 text-neutral-300" />
-              <p class="mt-3 text-sm font-medium">
-                Nothing found
-              </p>
-              <p class="mt-1 text-xs text-neutral-400">
-                Try a different search or add something new.
-              </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </template>
+          </DataTable>
+        </CardContent>
+      </Card>
     </div>
-  </div>
+  </main>
 </template>

@@ -95,7 +95,7 @@
           </div>
           <Progress
             :model-value="timePercent"
-            class="h-2 bg-soft **:data-[slot=progress-indicator]:bg-ink"
+            class="h-2 **:data-[slot=progress-indicator]:bg-ink"
           />
         </div>
 
@@ -106,7 +106,7 @@
           </div>
           <Progress
             :model-value="taskPercent"
-            class="h-2 bg-soft **:data-[slot=progress-indicator]:bg-ink"
+            class="h-2 **:data-[slot=progress-indicator]:bg-ink"
           />
         </div>
 
@@ -121,7 +121,7 @@
           Status
         </p>
         <TooltipProvider :delay-duration="100">
-          <div class="flex h-2 gap-0.5 overflow-hidden rounded-full bg-soft">
+          <div class="flex h-2 gap-0.5 overflow-hidden rounded-full bg-primary/20">
             <template v-for="segment in segments" :key="segment.key">
               <Tooltip v-if="segment.count > 0">
                 <TooltipTrigger as-child>

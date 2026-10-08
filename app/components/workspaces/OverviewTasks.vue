@@ -1,11 +1,12 @@
 <script setup lang="ts">
   import { ArrowUpRight, ArrowUpDown } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
-  import { taskColumns } from '~/components/workspaces/task-columns.ts'
-  import type { Task } from '~/types/dashboard'
+  import { overviewTasksColumns } from '~/components/workspaces/overview-tasks-columns.ts'
+  import type { Task } from '~/types'
 
   const props = defineProps<{
     tasks: Task[]
+    viewAllTo: string
   }>()
 
   const emit = defineEmits<{
@@ -76,7 +77,7 @@
           <div class="h-3.5 w-px shrink-0 bg-line" />
 
           <NuxtLink
-            to="/tasks"
+            :to="viewAllTo"
             class="group inline-flex shrink-0 items-center gap-1 text-xs font-medium text-subline transition-colors hover:text-headline whitespace-nowrap"
           >
             <span>View all</span>
@@ -88,13 +89,24 @@
 
     <CardContent class="p-0">
       <DataTable
-        :columns="taskColumns"
+        :columns="overviewTasksColumns"
         :data="preview"
         :meta="{
           onChangeStatus: (t) => emit('change-status', t),
           onShare: (t) => emit('share', t),
         }"
-      />
+      >
+        <template #empty>
+          <div class="px-5 py-12 text-center">
+            <p class="text-sm font-medium text-text-strong">
+              No tasks yet
+            </p>
+            <p class="mt-1 text-xs text-subline">
+              Tasks you add will show up here.
+            </p>
+          </div>
+        </template>
+      </DataTable>
     </CardContent>
   </Card>
 </template>

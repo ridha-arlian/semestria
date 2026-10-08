@@ -22,6 +22,8 @@
       [m.title, m.course, m.type, m.tags].join(' ').toLowerCase().includes(search.value.toLowerCase()),
     ),
   )
+
+  const isSearching = computed(() => search.value.trim() !== '')
 </script>
 
 <template>
@@ -106,10 +108,10 @@
             <td colspan="6" class="px-5 py-16 text-center">
               <Sparkles class="mx-auto size-5 text-neutral-300" />
               <p class="mt-3 text-sm font-medium">
-                Nothing found
+                {{ isSearching ? 'No materials match your search' : 'No materials yet' }}
               </p>
               <p class="mt-1 text-xs text-neutral-400">
-                Try a different search or add something new.
+                {{ isSearching ? 'Try a different keyword.' : 'Add your first material to start your shelf.' }}
               </p>
             </td>
           </tr>

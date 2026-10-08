@@ -29,10 +29,10 @@ export const columns = [
         ]),
       ]),
 
-      h('div', { class: 'sm:hidden space-y-1.5 min-w-0' }, [
+      h('div', { class: 'sm:hidden space-y-1.5 min-w-0 px-2' }, [
         h('div', { class: 'flex items-center justify-between gap-2' }, [
           h('div', { class: 'flex items-center gap-2 min-w-0' }, [
-            h('h3', { class: 'text-sm font-semibold text-headline truncate' }, row.original.name),
+            h('h3', { class: 'text-sm font-semibold text-headline truncate min-w-0' }, row.original.name),
             row.original.active
               ? h(Badge, {
                   variant: 'default',
@@ -42,7 +42,7 @@ export const columns = [
           ]),
           h('span', { class: 'text-[11px] font-mono text-subline shrink-0' }, `${row.original.progress}%`),
         ]),
-        h(Progress, { modelValue: row.original.progress, class: 'h-1.5 bg-soft w-full' }),
+        h(Progress, { modelValue: row.original.progress, class: 'h-1.5 w-full' }),
         h('div', { class: 'flex items-center justify-between gap-2 text-[11px] text-subline' }, [
           h('span', { class: 'flex items-center gap-1.5 shrink-0' }, [
             h(CalendarDays, { class: 'size-3.5' }),
@@ -65,7 +65,7 @@ export const columns = [
       ]),
       h(Progress, {
         modelValue: row.original.progress,
-        class: 'h-1.5 bg-soft'
+        class: 'h-1.5'
       }),
     ]),
   }),
@@ -94,7 +94,7 @@ export const columns = [
     id: 'actions',
     header: '',
     cell: ({ row, table }) => h('div', {
-      class: 'flex justify-end',
+      class: 'flex justify-end pr-2 sm:pr-0',
       onClick: (e: MouseEvent) => e.stopPropagation()
     }, [
       h(DataTableDropdown, {

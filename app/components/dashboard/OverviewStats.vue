@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ArrowUpRight } from '@lucide/vue'
   import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-  import type { StatItem } from '~/types/dashboard'
+  import type { StatItem } from '~/types'
 
   defineProps<{ stats: StatItem[] }>()
 </script>

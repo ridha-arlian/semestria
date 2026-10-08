@@ -118,12 +118,26 @@
           :columns="columns"
           :data="workspaces"
           :mobile-hidden-columns="['progress', 'assignments']"
+          :column-class="{
+            progress: 'w-56 shrink-0',
+            assignments: 'w-64 shrink-0',
+          }"
           :meta="{
             onEdit: handleEditWorkspace,
             onDelete: handleDeleteWorkspace,
           }"
           @row-click="handleRowClick"
         >
+          <template #empty>
+            <div class="px-5 py-16 text-center">
+              <p class="text-sm font-medium text-text-strong">
+                No workspaces yet
+              </p>
+              <p class="mt-1 text-xs text-subline">
+                Create your first workspace to start organizing your semester.
+              </p>
+            </div>
+          </template>
           <template #context-menu="{ row }">
             <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">
               <FolderOpen class="mr-2 size-3.5 text-subline" /> Open workspace

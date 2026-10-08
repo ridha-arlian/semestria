@@ -2,8 +2,9 @@ import { h } from 'vue'
 import { createColumnHelper } from '@tanstack/vue-table'
 import { Dot } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import TasksDropdown from './TasksDropdown.vue'
-import type { Task } from '~/types/dashboard'
+import type { Task } from '~/types'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
 type Urgency = { label: string, class: string } | null
@@ -38,15 +39,18 @@ function getUrgency(due: string, status: string): Urgency {
   return { label: 'Later', class: 'text-urgency-later' }
 }
 
-export const taskColumns = [
+export const overviewTasksColumns = [
   columnHelper.display({
     id: 'priority',
     header: '',
-    cell: ({ row }) => h('div', { class: 'pl-2 sm:pl-2 flex items-center justify-center pt-0.5 sm:pt-0' }, [
-      h(Dot, {
-        class: `size-4 shrink-0 ${priorityDotColor[row.original.priority] ?? priorityDotColor.Low}`,
-        strokeWidth: 8,
-      }),
+    cell: ({ row }) => h('div', { class: 'grid place-items-center' }, [
+      h(Tooltip, {}, () => [
+        h(TooltipTrigger, { asChild: true }, () => h(Dot, {
+          class: `ml-3 size-4 shrink-0 ${priorityDotColor[row.original.priority] ?? priorityDotColor.Low}`,
+          strokeWidth: 8,
+        })),
+        h(TooltipContent, { side: 'top' }, () => `${row.original.priority} priority`),
+      ]),
     ]),
   }),
 
@@ -56,7 +60,7 @@ export const taskColumns = [
       const urgency = getUrgency(row.original.due, row.original.status)
 
       return h('div', { class: 'min-w-0 w-full' }, [
-        h('div', { class: 'hidden items-center justify-between gap-3 sm:flex' }, [
+        h('div', { class: 'hidden grid-cols-[minmax(0,1fr)_6rem_5rem] items-center gap-4 sm:grid' }, [
           h('div', { class: 'flex min-w-0 items-center gap-2.5' }, [
             h('div', { class: 'grid size-8 shrink-0 place-items-center rounded bg-soft text-[10px] font-bold text-subline' }, initials(row.original.course)),
             h('div', { class: 'min-w-0' }, [
@@ -64,23 +68,19 @@ export const taskColumns = [
               h('p', { class: 'truncate text-[11px] text-subline' }, row.original.course),
             ]),
           ]),
-          h('div', { class: 'flex shrink-0 items-center gap-3' }, [
-            h('div', { class: 'flex min-h-8 w-24 flex-col items-end justify-center gap-0.5' }, [
-              h('p', { class: 'text-[11px] font-medium text-strong' }, row.original.due),
-              urgency
-                ? h('p', { class: `text-[10px] ${urgency.class}` }, urgency.label)
-                : null,
-            ]),
-            h('div', { class: 'flex w-20 justify-start' }, [
-              h(Badge, {
-                class: `rounded-full px-2 py-0.5 text-[9px] font-medium ${statusStyles[row.original.status] ?? statusStyles['Not started']}`,
-              }, () => row.original.status),
-            ]),
+          h('div', { class: 'flex min-h-8 min-w-0 flex-col justify-center gap-0.5' }, [
+            h('p', { class: 'truncate text-[11px] font-medium text-strong' }, row.original.due),
+            urgency
+              ? h('p', { class: `truncate text-[10px] ${urgency.class}` }, urgency.label)
+              : null,
           ]),
+          h(Badge, {
+            class: `w-fit rounded-full px-2 py-0.5 text-[9px] font-medium ${statusStyles[row.original.status] ?? statusStyles['Not started']}`,
+          }, () => row.original.status),
         ]),
 
         h('div', { class: 'min-w-0 space-y-1 sm:hidden' }, [
-          h('div', { class: 'flex items-start justify-between gap-2' }, [
+          h('div', { class: 'flex items-start justify-start gap-2' }, [
             h('p', { class: 'min-w-0 truncate text-xs font-semibold text-strong' }, row.original.task),
             h(Badge, {
               class: `shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${statusStyles[row.original.status] ?? statusStyles['Not started']}`,
