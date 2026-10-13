@@ -10,7 +10,7 @@ const workspaces: Workspace[] = [
 ]
 
 const tasks: Task[] = [
-  { id: 1, workspaceId: 1, task: 'Research proposal', course: 'Design Research', due: 'Oct 08, 2026', status: 'In progress', priority: 'High', progress: 65, description: 'Draft problem statement, method, and timeline.' },
+  { id: 1, workspaceId: 1, task: 'Research proposal', course: 'Design Research', due: 'Oct 08, 2026', status: 'In progress', priority: 'High', progress: 65, description: 'Draft problem statement, method, and timeline.', submissionUrls: ['https://classroom.google.com/'], checklist: [{ id: 1, title: 'Research question drafted', done: true }, { id: 2, title: 'References collected', done: false }, { id: 3, title: 'Proposal outline ready', done: false }], note: 'Remember to connect the interview findings to the central question.' },
   { id: 2, workspaceId: 1, task: 'Midterm reflection essay', course: 'Cultural Studies', due: 'Oct 10, 2026', status: 'To do', priority: 'Medium', progress: 0 },
   { id: 3, workspaceId: 1, task: 'Prototype v2 presentation', course: 'Interaction Design', due: 'Oct 12, 2026', status: 'In progress', priority: 'High', progress: 40, description: 'Slides plus a clickable prototype demo.' },
   { id: 4, workspaceId: 1, task: 'Reading response #04', course: 'Design Research', due: 'Oct 14, 2026', status: 'To do', priority: 'Low', progress: 0 },

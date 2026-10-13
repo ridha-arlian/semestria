@@ -1,6 +1,8 @@
 <script setup lang="ts">
-  import { ArrowUpRight, FileText, Plus, Search, Sparkles } from '@lucide/vue'
-  import type { Material, ModalType } from '~/types'
+  import { Plus, Search, Sparkles } from '@lucide/vue'
+  import DataTable from '~/components/ui/data-table/DataTable.vue'
+  import { materialsPageColumns } from '~/components/workspaces/materials/materials-page-columns.ts'
+  import type { Material, MaterialType, ModalType } from '~/types'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -16,107 +18,86 @@
   const { materials, openAdd } = inject<WorkspaceContext>('workspace')!
 
   const search = ref('')
+  const typeFilter = ref<'All' | MaterialType>('All')
 
   const filtered = computed(() =>
     materials.value.filter(m =>
-      [m.title, m.course, m.type, m.tags].join(' ').toLowerCase().includes(search.value.toLowerCase()),
+      [m.title, m.course, m.type, m.tags].join(' ').toLowerCase().includes(search.value.toLowerCase())
+      && (typeFilter.value === 'All' || m.type === typeFilter.value),
     ),
   )
 
-  const isSearching = computed(() => search.value.trim() !== '')
+  const isSearching = computed(() => search.value.trim() !== '' || typeFilter.value !== 'All')
 </script>
 
 <template>
-  <div class="space-y-6 p-5 md:p-8">
-    <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-      <p class="text-sm text-neutral-500">
-        A flexible shelf for everything worth coming back to.
-      </p>
-      <button
-        class="flex w-fit items-center gap-2 rounded-md bg-neutral-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-neutral-800"
-        @click="openAdd('material')"
-      >
-        <Plus class="size-3.5" />
-        Add material
-      </button>
-    </div>
-
-    <div class="flex flex-col gap-3 border-y border-neutral-200 py-3 sm:flex-row">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-400" />
-        <input
-          v-model="search"
-          class="w-full rounded-md border border-neutral-200 bg-white py-2.5 pl-9 pr-3 text-xs outline-none placeholder:text-neutral-400 focus:border-neutral-900"
-          placeholder="Search materials..."
-        >
+  <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
+    <div class="space-y-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-subline">
+          A flexible shelf for everything worth coming back to.
+        </p>
+        <Button class="w-full sm:w-auto" @click="openAdd('material')">
+          <Plus class="mr-2 h-4 w-4" />
+          Add material
+        </Button>
       </div>
-    </div>
 
-    <div class="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
-      <table class="w-full min-w-190 text-left">
-        <thead class="border-b border-neutral-200 bg-neutral-50">
-          <tr class="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">
-            <th class="px-5 py-3">
-              Material
-            </th>
-            <th class="px-4 py-3">
-              Course
-            </th>
-            <th class="px-4 py-3">
-              Type
-            </th>
-            <th class="px-4 py-3">
-              Tags
-            </th>
-            <th class="px-4 py-3">
-              Last reviewed
-            </th>
-            <th class="w-12 px-2" />
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-neutral-100">
-          <tr v-for="item in filtered" :key="item.id" class="group transition hover:bg-neutral-50">
-            <td class="px-5 py-4">
-              <div class="flex items-center gap-3">
-                <div class="grid size-8 place-items-center rounded bg-neutral-100">
-                  <FileText class="size-3.5 text-neutral-500" />
-                </div>
-                <p class="text-xs font-semibold">
-                  {{ item.title }}
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <div class="relative flex-1">
+          <Search class="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-subline" />
+          <Input
+            v-model="search"
+            class="bg-card pl-9"
+            placeholder="Search materials..."
+          />
+        </div>
+        <Select v-model="typeFilter">
+          <SelectTrigger class="w-full sm:w-44">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value="All" class="cursor-pointer text-xs">All types</SelectItem>
+            <SelectItem value="Notes" class="cursor-pointer text-xs">Notes</SelectItem>
+            <SelectItem value="Book" class="cursor-pointer text-xs">Book</SelectItem>
+            <SelectItem value="Slides" class="cursor-pointer text-xs">Slides</SelectItem>
+            <SelectItem value="Collection" class="cursor-pointer text-xs">Collection</SelectItem>
+            <SelectItem value="Link" class="cursor-pointer text-xs">Link</SelectItem>
+            <SelectItem value="PDF" class="cursor-pointer text-xs">PDF</SelectItem>
+            <SelectItem value="Video" class="cursor-pointer text-xs">Video</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card class="overflow-hidden">
+        <CardContent class="p-0">
+          <DataTable
+            :columns="materialsPageColumns"
+            :data="filtered"
+            :mobile-hidden-columns="['course', 'type', 'tags', 'reviewed']"
+            show-header
+            :column-class="{
+              course: 'w-44 shrink-0',
+              type: 'w-32 shrink-0',
+              tags: 'w-64 shrink-0',
+              reviewed: 'w-36 shrink-0',
+            }"
+            empty-text="No materials found."
+          >
+            <template #empty>
+              <div class="px-5 py-16 text-center">
+                <Sparkles class="mx-auto size-5 text-subline/50" />
+                <p class="mt-3 text-sm font-medium text-text-strong">
+                  {{ isSearching ? 'No materials match your search' : 'No materials yet' }}
+                </p>
+                <p class="mt-1 text-xs text-subline">
+                  {{ isSearching ? 'Try a different keyword or type filter.' : 'Add your first material to start your shelf.' }}
                 </p>
               </div>
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-500">
-              {{ item.course }}
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-600">
-              {{ item.type }}
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-500">
-              {{ item.tags }}
-            </td>
-            <td class="px-4 py-4 text-xs text-neutral-500">
-              {{ item.reviewed }}
-            </td>
-            <td class="px-2 py-4">
-              <button class="text-neutral-400 hover:text-neutral-900">
-                <ArrowUpRight class="size-3.5" />
-              </button>
-            </td>
-          </tr>
-          <tr v-if="filtered.length === 0">
-            <td colspan="6" class="px-5 py-16 text-center">
-              <Sparkles class="mx-auto size-5 text-neutral-300" />
-              <p class="mt-3 text-sm font-medium">
-                {{ isSearching ? 'No materials match your search' : 'No materials yet' }}
-              </p>
-              <p class="mt-1 text-xs text-neutral-400">
-                {{ isSearching ? 'Try a different keyword.' : 'Add your first material to start your shelf.' }}
-              </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </template>
+          </DataTable>
+        </CardContent>
+      </Card>
     </div>
-  </div>
+  </main>
 </template>

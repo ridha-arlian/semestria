@@ -170,12 +170,12 @@
 
 <template>
   <form
-    class="space-y-6"
+    class="space-y-7"
     @submit.prevent="handleSubmit(false)"
     @keydown.ctrl.enter.prevent="handleSubmit(false)"
     @keydown.meta.enter.prevent="handleSubmit(false)"
   >
-    <div class="space-y-4">
+    <div class="space-y-5">
       <div class="space-y-2">
         <Label for="material-title" class="text-xs">Title</Label>
         <Input
@@ -243,7 +243,7 @@
             <ChevronDown class="size-3.5 transition-transform" :class="showMore && 'rotate-180'" />
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent class="mt-2 space-y-4">
+        <CollapsibleContent class="mt-2 space-y-5">
           <div v-if="tasks?.length" class="space-y-2">
             <Label class="text-xs">Linked task <span class="font-normal text-muted-foreground">(optional)</span></Label>
             <Select

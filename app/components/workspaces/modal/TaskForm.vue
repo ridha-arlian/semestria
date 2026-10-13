@@ -32,9 +32,10 @@
   const title = ref('')
   const course = ref('')
   const addingCourse = ref(false)
-  const due = ref<DateValue>()
+  const due = ref<DateValue | undefined>(undefined)
   const priority = ref<TaskPriority>('medium')
   const description = ref('')
+  const submissionUrl = ref('')
   const showMore = ref(false)
   const calendarOpen = ref(false)
   const titleEl = ref<InstanceType<typeof Input> | null>(null)
@@ -88,11 +89,13 @@
       due: due.value ? due.value.toString() : '',
       priority: priority.value,
       description: description.value.trim(),
+      submissionUrl: submissionUrl.value.trim(),
     }, addAnother)
     if (addAnother) {
       title.value = ''
       due.value = undefined
       description.value = ''
+      submissionUrl.value = ''
       if (props.autofocus)
         focusTitle()
     }
@@ -101,12 +104,12 @@
 
 <template>
   <form
-    class="space-y-6"
+    class="space-y-7"
     @submit.prevent="handleSubmit(false)"
     @keydown.ctrl.enter.prevent="handleSubmit(false)"
     @keydown.meta.enter.prevent="handleSubmit(false)"
   >
-    <div class="space-y-4">
+    <div class="space-y-5">
       <div class="space-y-2">
         <Label for="task-title" class="text-xs">Title</Label>
         <Input id="task-title" ref="titleEl" v-model="title" class="text-sm" placeholder="e.g. Read chapter 4" />
@@ -149,6 +152,7 @@
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto p-0" align="start">
+            <!-- @vue-ignore: false-positive nominal-identity mismatch on DateValue classes under Volar (single installed copy verified at runtime); values are structurally identical -->
             <Calendar v-model="due" initial-focus @update:model-value="calendarOpen = false" />
           </PopoverContent>
         </Popover>
@@ -193,15 +197,27 @@
             <ChevronDown class="size-3.5 transition-transform" :class="showMore && 'rotate-180'" />
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent class="mt-2 space-y-2">
-          <Label for="task-notes" class="text-xs">Notes <span class="font-normal text-muted-foreground">(optional)</span></Label>
-          <Textarea
-            id="task-notes"
-            v-model="description"
-            rows="3"
-            class="resize-none text-sm"
-            placeholder="Detail singkat, link, atau catatan dosen"
-          />
+        <CollapsibleContent class="mt-2 space-y-5">
+          <div class="space-y-2">
+            <Label for="task-notes" class="text-xs">Notes <span class="font-normal text-muted-foreground">(optional)</span></Label>
+            <Textarea
+              id="task-notes"
+              v-model="description"
+              rows="3"
+              class="resize-none text-sm"
+              placeholder="Detail singkat, link, atau catatan dosen"
+            />
+          </div>
+          <div class="space-y-2">
+            <Label for="task-submission" class="text-xs">Submission link <span class="font-normal text-muted-foreground">(optional — more can be added later)</span></Label>
+            <Input
+              id="task-submission"
+              v-model="submissionUrl"
+              type="url"
+              class="text-sm"
+              placeholder="https://classroom.google.com/..."
+            />
+          </div>
         </CollapsibleContent>
       </Collapsible>
     </div>

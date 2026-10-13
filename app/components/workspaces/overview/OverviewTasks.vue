@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ArrowUpRight, ArrowUpDown } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
-  import { overviewTasksColumns } from '~/components/workspaces/overview-tasks-columns.ts'
+  import { overviewTasksColumns } from '~/components/workspaces/overview/overview-tasks-columns.ts'
   import type { Task } from '~/types'
 
   const props = defineProps<{

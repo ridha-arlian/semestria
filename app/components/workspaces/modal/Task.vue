@@ -3,7 +3,7 @@
   import type { TaskPayload } from '~/types/dashboard'
   import TaskForm from './TaskForm.vue'
 
-  defineProps<{
+  const props = defineProps<{
     open: boolean
     courses?: string[]
   }>()
@@ -18,6 +18,10 @@
   function onOpenChange(value: boolean) {
     if (!value)
       emit('close')
+  }
+
+  function handleSubmit(payload: TaskPayload, addAnother: boolean) {
+    emit('submit', payload, addAnother)
   }
 </script>
 
@@ -38,10 +42,11 @@
 
       <div class="-mx-6 min-h-0 flex-1 overflow-y-auto px-6 py-1">
         <TaskForm
+          key="new"
           :courses="courses"
           autofocus
           @cancel="emit('close')"
-          @submit="(payload, addAnother) => emit('submit', payload, addAnother)"
+          @submit="handleSubmit"
         />
       </div>
     </DialogContent>
@@ -63,9 +68,10 @@
 
       <div class="max-h-[75vh] overflow-y-auto px-4 pb-6">
         <TaskForm
+          key="new"
           :courses="courses"
           @cancel="emit('close')"
-          @submit="(payload, addAnother) => emit('submit', payload, addAnother)"
+          @submit="handleSubmit"
         />
       </div>
     </DrawerContent>

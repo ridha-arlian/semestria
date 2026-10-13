@@ -18,6 +18,12 @@ export interface Workspace {
   endDate?: string
 }
 
+export interface Subtask {
+  id: number
+  title: string
+  done: boolean
+}
+
 export interface Task {
   id: number
   workspaceId: number
@@ -28,6 +34,9 @@ export interface Task {
   priority: Priority
   progress: number
   description?: string
+  checklist?: Subtask[]
+  submissionUrls?: string[]
+  note?: string
 }
 
 export interface Material {
@@ -67,6 +76,7 @@ export interface TaskPayload {
   due: string
   priority: TaskPriority
   description: string
+  submissionUrl: string
 }
 
 export interface MaterialPayload {

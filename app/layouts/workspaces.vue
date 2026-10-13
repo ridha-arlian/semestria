@@ -33,7 +33,14 @@
   const view = computed<View>(() => {
     const path = route.path.replace(/\/$/, '')
     const match = Object.entries(routeMap.value).find(([, to]) => to === path)
-    return (match?.[0] as View) ?? 'Overview'
+    if (match)
+      return match[0] as View
+    // Detail sub-pages (e.g. /tasks/:id) belong to their section
+    if (path.startsWith(`${routeMap.value.Tasks}/`))
+      return 'Tasks'
+    if (path.startsWith(`${routeMap.value.Materials}/`))
+      return 'Materials'
+    return 'Overview'
   })
 
   function handleNavigate(target: View) {
@@ -65,6 +72,7 @@
   function loadData() {
     const id = workspace.value?.id
     tasks.value = id ? api.getTasks(id) : []
+    tasks.value.forEach(recalcTask)
     materials.value = id ? api.getMaterials(id) : []
   }
 
@@ -100,6 +108,7 @@
       priority: priorityMap[payload.priority],
       progress: 0,
       description: payload.description,
+      submissionUrls: payload.submissionUrl.trim() ? [payload.submissionUrl.trim()] : undefined,
     })
     if (!addAnother)
       showModal.value = false
@@ -127,13 +136,124 @@
     showModal.value = true
   }
 
+  function recalcTask(item: Task) {
+    const list = item.checklist
+    if (!list?.length)
+      return
+    item.progress = Math.round((list.filter(s => s.done).length / list.length) * 100)
+  }
+
+  function syncStatusFromChecklist(item: Task) {
+    const list = item.checklist
+    if (!list?.length)
+      return
+    if (list.every(s => s.done))
+      item.status = 'Done'
+    else if (list.some(s => s.done))
+      item.status = 'In progress'
+    else
+      item.status = 'To do'
+  }
+
   function cycleStatus(item: Task) {
-    item.status = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
-    item.progress = item.status === 'Done' ? 100 : item.status === 'In progress' ? 50 : 0
+    const next = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
+    item.status = next
+    const list = item.checklist
+    if (list?.length) {
+      if (next === 'Done')
+        list.forEach(s => s.done = true)
+      else if (next === 'To do')
+        list.forEach(s => s.done = false)
+      recalcTask(item)
+    }
+    else {
+      item.progress = next === 'Done' ? 100 : next === 'In progress' ? 50 : 0
+    }
+  }
+
+  function toggleSubtask(item: Task, subId: number) {
+    const sub = item.checklist?.find(s => s.id === subId)
+    if (!sub)
+      return
+    sub.done = !sub.done
+    recalcTask(item)
+    syncStatusFromChecklist(item)
+  }
+
+  function addSubtask(item: Task, title: string) {
+    const text = title.trim()
+    if (!text)
+      return
+    item.checklist ??= []
+    const ids = item.checklist.map(s => s.id)
+    item.checklist.push({ id: ids.length ? Math.max(...ids) + 1 : 1, title: text, done: false })
+    recalcTask(item)
+    syncStatusFromChecklist(item)
+  }
+
+  function updateSubtask(item: Task, subId: number, title: string) {
+    const text = title.trim()
+    if (!text)
+      return
+    const sub = item.checklist?.find(s => s.id === subId)
+    if (!sub)
+      return
+    sub.title = text
+  }
+
+  function removeSubtask(item: Task, subId: number) {
+    if (!item.checklist)
+      return
+    item.checklist = item.checklist.filter(s => s.id !== subId)
+    recalcTask(item)
+    syncStatusFromChecklist(item)
+  }
+
+  function normalizeUrl(raw: string) {
+    const text = raw.trim()
+    if (!text)
+      return ''
+    return /:\/\//.test(text) ? text : `https://${text}`
+  }
+
+  function addSubmissionUrl(item: Task, url: string) {
+    const value = normalizeUrl(url)
+    if (!value)
+      return
+    item.submissionUrls ??= []
+    item.submissionUrls.push(value)
+  }
+
+  function updateSubmissionUrl(item: Task, index: number, url: string) {
+    const value = normalizeUrl(url)
+    if (!value || !item.submissionUrls || !item.submissionUrls[index])
+      return
+    item.submissionUrls[index] = value
+  }
+
+  function removeSubmissionUrl(item: Task, index: number) {
+    if (!item.submissionUrls)
+      return
+    item.submissionUrls = item.submissionUrls.filter((_, i) => i !== index)
+  }
+
+  function updateNote(item: Task, text: string) {
+    item.note = text
   }
 
   function removeTask(id: number) {
     tasks.value = tasks.value.filter(t => t.id !== id)
+  }
+
+  function updateTask(id: number, payload: TaskPayload) {
+    const item = tasks.value.find(t => t.id === id)
+    if (!item)
+      return
+    item.task = payload.title
+    item.course = payload.course
+    item.due = formatDue(payload.due)
+    item.priority = priorityMap[payload.priority]
+    item.description = payload.description
   }
 
   provide('workspace', {
@@ -143,8 +263,17 @@
     tasks,
     materials,
     openAdd,
+    updateTask,
     cycleStatus,
     removeTask,
+    toggleSubtask,
+    addSubtask,
+    updateSubtask,
+    removeSubtask,
+    addSubmissionUrl,
+    updateSubmissionUrl,
+    removeSubmissionUrl,
+    updateNote,
   })
 
   const mainNavItems = computed(() => [
@@ -152,6 +281,11 @@
     { name: 'Tasks' as const, icon: Check, to: routeMap.value.Tasks },
     { name: 'Materials' as const, icon: BookOpen, to: routeMap.value.Materials },
   ])
+
+  function isNavActive(to: string) {
+    // Detail sub-pages keep their section highlighted
+    return route.path === to || (to !== routeMap.value.Overview && route.path.startsWith(`${to}/`))
+  }
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
   const menuButtonClass = 'w-full justify-start gap-3 px-3 py-2.5 text-[14px]'
@@ -172,7 +306,7 @@
               <SidebarMenuItem v-for="item in mainNavItems" :key="item.name" class="flex justify-center overflow-hidden">
                 <SidebarMenuButton
                   as-child
-                  :is-active="route.path === item.to"
+                  :is-active="isNavActive(item.to)"
                   :tooltip="item.name"
                   :class="menuButtonClass"
                 >
@@ -190,6 +324,12 @@
                         {{ tasks.length }}
                       </SidebarMenuBadge>
                     </div>
+
+                    <div v-if="item.name === 'Materials'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
+                      <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
+                        {{ materials.length }}
+                      </SidebarMenuBadge>
+                    </div>
                   </NuxtLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -201,7 +341,7 @@
           <SidebarGroupContent class="px-3">
             <Accordion type="single" collapsible default-value="semester" class="w-full">
               <AccordionItem value="semester" class="border-none">
-                <AccordionTrigger class="h-auto py-0 flex items-center justify-start gap-1.5 hover:no-underline [&>svg]:transition-all [&>svg]:duration-200 [&>svg]:-rotate-90 [&[data-state=open]>svg]:rotate-0 opacity-100 md:[&>svg]:opacity-0 md:hover:[&>svg]:opacity-100">
+                <AccordionTrigger class="h-auto py-0 flex items-center justify-start gap-1.5 hover:no-underline [&>svg]:translate-y-0 [&>svg]:transition-all [&>svg]:duration-200 [&>svg]:-rotate-90 [&[data-state=open]>svg]:rotate-0 opacity-100 md:[&>svg]:opacity-0 md:hover:[&>svg]:opacity-100">
                   <SidebarGroupLabel class="p-0 h-auto cursor-pointer text-[10px] font-bold uppercase tracking-[0.18em] text-subline hover:text-ink transition-colors">
                     Timeline
                   </SidebarGroupLabel>

@@ -22,10 +22,10 @@
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-44">
-      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('change-status', task)">
+      <DropdownMenuItem v-if="!(task.checklist?.length)" class="cursor-pointer text-xs" @click="emit('change-status', task)">
         <RefreshCcw class="mr-2 size-3.5 text-subline" /> Change status
       </DropdownMenuItem>
-      <DropdownMenuSeparator />
+      <DropdownMenuSeparator v-if="!(task.checklist?.length)" />
       <DropdownMenuItem
         class="cursor-pointer text-xs text-destructive focus:text-destructive"
         @click="emit('delete', task)"

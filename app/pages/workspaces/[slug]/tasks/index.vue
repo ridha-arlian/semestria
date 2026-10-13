@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { Plus, Search, Sparkles } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
-  import { tasksPageColumns } from '~/components/workspaces/tasks-page-columns.ts'
+  import { tasksPageColumns } from '~/components/workspaces/tasks/tasks-page-columns.ts'
   import type { Task, Status, ModalType } from '~/types'
   import type { Ref } from 'vue'
 
@@ -18,6 +18,13 @@
   }
 
   const { tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
+
+  const route = useRoute()
+  const slug = computed(() => route.params.slug as string)
+
+  function handleRowClick(item: Task) {
+    navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
+  }
 
   const search = ref('')
   const statusFilter = ref<'All' | Status>('All')
@@ -87,6 +94,7 @@
               onChangeStatus: (t) => cycleStatus(t),
               onDelete: (t) => removeTask(t.id),
             }"
+            @row-click="handleRowClick"
           >
             <template #empty>
               <div class="px-5 py-16 text-center">

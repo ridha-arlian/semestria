@@ -16,7 +16,7 @@ function initials(course: string) {
   return course.split(' ').map(w => w[0]).join('').slice(0, 2)
 }
 
-const statusStyles: Record<string, string> = {
+export const statusStyles: Record<string, string> = {
   'To do': 'bg-soft text-status-idle hover:bg-soft',
   'In progress': 'border border-status-progress/30 bg-status-progress/10 text-status-progress hover:bg-status-progress/10',
   'Done': 'border border-status-done/30 bg-status-done/10 text-status-done hover:bg-status-done/10',
@@ -28,7 +28,7 @@ const priorityDotColor: Record<string, string> = {
   Low: 'text-priority-low',
 }
 
-function getUrgency(due: string, status: string): Urgency {
+export function getUrgency(due: string, status: string): Urgency {
   if (status === 'Done')
     return null
   const dueDate = new Date(due)
