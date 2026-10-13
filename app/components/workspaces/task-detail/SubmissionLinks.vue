@@ -63,8 +63,9 @@ onUnmounted(() => {
       </div>
     </CardHeader>
     <CardContent class="space-y-2 p-2">
-      <div
-        v-for="(url, i) in links"
+      <div class="max-h-37 space-y-2 overflow-y-auto overscroll-contain">
+        <div
+          v-for="(url, i) in links"
         :key="`${i}-${url}`"
         role="link"
         tabindex="0"
@@ -118,7 +119,8 @@ onUnmounted(() => {
       <p v-if="links.length === 0" class="px-2 py-4 text-center text-xs text-subline">
         No submission links yet — paste the first one below.
       </p>
-      <div class="flex items-center gap-2 px-2 pb-1 pt-2">
+      </div>
+      <div class="flex shrink-0 items-center gap-2 px-2 pb-1 pt-2">
         <Input
           v-model="newLink"
           type="url"

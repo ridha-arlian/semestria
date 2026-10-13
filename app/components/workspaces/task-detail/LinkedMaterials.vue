@@ -7,9 +7,6 @@ const props = defineProps<{
   task: Task
 }>()
 
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
-
 const ctx = inject<TaskDetailContext>('workspace')!
 const linkedMaterials = computed(() => ctx.materials.value.filter(m => m.taskId === props.task.id))
 
@@ -30,6 +27,7 @@ function openMaterial(m: Material) {
       </CardDescription>
     </CardHeader>
     <CardContent class="p-2">
+      <div class="max-h-[150px] space-y-1 overflow-y-auto overscroll-contain">
       <div v-if="linkedMaterials.length > 0">
         <button
           v-for="m in linkedMaterials"
@@ -55,13 +53,6 @@ function openMaterial(m: Material) {
       <p v-else class="px-2 py-4 text-center text-xs text-subline">
         No linked materials.
       </p>
-      <div class="px-2 pb-1 pt-2">
-        <NuxtLink
-          :to="`/workspaces/${slug}/materials`"
-          class="text-xs font-medium text-subline transition-colors hover:text-headline"
-        >
-          View all materials
-        </NuxtLink>
       </div>
     </CardContent>
   </Card>

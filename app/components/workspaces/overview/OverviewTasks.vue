@@ -14,6 +14,13 @@
     share: [task: Task]
   }>()
 
+  const route = useRoute()
+  const slug = computed(() => route.params.slug as string)
+
+  function handleRowClick(item: Task) {
+    navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
+  }
+
   const sortBy = ref<'nearest' | 'farthest' | 'status' | 'priority'>('nearest')
 
   const statusOrder: Record<string, number> = {
@@ -95,6 +102,7 @@
           onChangeStatus: (t) => emit('change-status', t),
           onShare: (t) => emit('share', t),
         }"
+        @row-click="handleRowClick"
       >
         <template #empty>
           <div class="px-5 py-12 text-center">

@@ -54,10 +54,10 @@ onUnmounted(() => {
       </div>
     </CardHeader>
     <CardContent class="space-y-3 p-3">
-      <Textarea
-        v-model="noteDraft"
-        rows="5"
-        class="min-h-28 resize-y text-sm"
+              <Textarea
+                v-model="noteDraft"
+                rows="4"
+                class="min-h-24 resize-y text-sm"
         placeholder="Write anything worth keeping — decisions, feedback, reminders..."
         @keydown.escape.prevent="revertNote"
         @blur="saveNote"

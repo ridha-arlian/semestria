@@ -64,8 +64,6 @@
     return [...base, ...breadcrumbExtra.value]
   })
 
-  watch(view, () => { breadcrumbExtra.value = [] })
-
   const tasks = ref<Task[]>([])
   const materials = ref<Material[]>([])
 

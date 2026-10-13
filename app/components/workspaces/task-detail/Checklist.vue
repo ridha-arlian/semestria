@@ -77,7 +77,7 @@ onUnmounted(() => {
         <span class="shrink-0 font-mono text-[11px] text-subline">{{ task.progress }}%</span>
       </div>
     </CardHeader>
-    <CardContent class="flex min-h-[368px] flex-col gap-2 p-2">
+    <CardContent class="flex min-h-92 flex-col gap-2 p-2">
       <div class="max-h-75 space-y-2 overflow-y-auto overscroll-contain">
         <div
           v-for="sub in checklist"
