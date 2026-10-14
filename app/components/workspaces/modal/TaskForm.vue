@@ -3,7 +3,7 @@
   import type { DateValue } from '@internationalized/date'
   import { CalendarIcon, ChevronDown } from '@lucide/vue'
   import { Input } from '@/components/ui/input'
-  import type { TaskPayload, TaskPriority } from '~/types/dashboard'
+  import type { TaskPayload, TaskPriority } from '~/types'
 
   const props = defineProps<{
     courses?: string[]

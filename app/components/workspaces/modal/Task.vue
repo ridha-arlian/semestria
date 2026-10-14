@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useMediaQuery } from '@vueuse/core'
-  import type { TaskPayload } from '~/types/dashboard'
+  import type { TaskPayload } from '~/types'
   import TaskForm from './TaskForm.vue'
 
   const props = defineProps<{

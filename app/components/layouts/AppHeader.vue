@@ -2,7 +2,7 @@
   import { Plus, SearchIcon } from '@lucide/vue'
   import { useDateFormat, useMagicKeys, useMounted, whenever } from '@vueuse/core'
   import { useSidebar } from '~/components/ui/sidebar'
-  import type { BreadcrumbEntry, View } from '~/types/dashboard'
+  import type { BreadcrumbEntry, View } from '~/types'
 
   const { view, breadcrumbs } = defineProps<{
     view: View

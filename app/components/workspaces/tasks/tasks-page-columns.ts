@@ -1,11 +1,10 @@
 import { h } from 'vue'
 import { createColumnHelper } from '@tanstack/vue-table'
-import { Dot, RefreshCcw, Trash2 } from '@lucide/vue'
+import { Dot } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import TasksMobileActions from './TasksMobileActions.vue'
+import TasksRowActions from './TasksRowActions.vue'
 import type { Task } from '~/types'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
@@ -138,40 +137,14 @@ export const tasksPageColumns = [
     id: 'actions',
     header: '',
     cell: ({ row, table }) => h('div', {
-      class: 'flex h-full items-center justify-start gap-0.5',
+      class: 'flex h-full items-center justify-end',
       onClick: (e: MouseEvent) => e.stopPropagation(),
     }, [
-      // Desktop: two inline icon buttons with tooltips
-      h('div', { class: 'hidden items-center gap-0.5 sm:flex' }, [
-        h(Tooltip, {}, () => [
-          h(TooltipTrigger, { asChild: true }, () => h(Button, {
-            variant: 'ghost',
-            size: 'icon',
-            class: 'size-8 shrink-0 text-subline opacity-0 transition-opacity hover:text-ink group-hover:opacity-100',
-            ariaLabel: 'Change status',
-            onClick: () => table.options.meta?.onChangeStatus?.(row.original),
-          }, () => h(RefreshCcw, { class: 'size-4' }))),
-          h(TooltipContent, { side: 'top' }, () => 'Change status'),
-        ]),
-        h(Tooltip, {}, () => [
-          h(TooltipTrigger, { asChild: true }, () => h(Button, {
-            variant: 'ghost',
-            size: 'icon',
-            class: 'size-8 shrink-0 text-subline opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100',
-            ariaLabel: 'Delete task',
-            onClick: () => table.options.meta?.onDelete?.(row.original),
-          }, () => h(Trash2, { class: 'size-4' }))),
-          h(TooltipContent, { side: 'top' }, () => 'Delete task'),
-        ]),
-      ]),
-      // Mobile: single "more" dropdown
-      h('div', { class: 'flex items-center sm:hidden' }, [
-        h(TasksMobileActions, {
-          task: row.original,
-          onChangeStatus: (t: Task) => table.options.meta?.onChangeStatus?.(t),
-          onDelete: (t: Task) => table.options.meta?.onDelete?.(t),
-        }),
-      ]),
+      h(TasksRowActions, {
+        task: row.original,
+        onChangeStatus: (t: Task) => table.options.meta?.onChangeStatus?.(t),
+        onDelete: (t: Task) => table.options.meta?.onDelete?.(t),
+      }),
     ]),
   }),
 ]

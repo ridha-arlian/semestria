@@ -1,21 +1,40 @@
 <script setup lang="ts">
-  import { MoreHorizontal, RefreshCcw, Share2 } from '@lucide/vue'
-  import type { Task } from '~/types'
+import { MoreHorizontal, RefreshCcw, Share2 } from '@lucide/vue'
+import type { Task } from '~/types'
 
-  defineProps<{ task: Task }>()
-  const emit = defineEmits<{
-    'change-status': [task: Task]
-    share: [task: Task]
-  }>()
+interface MenuBarrier {
+  registerMenuOpen: (open: boolean) => void
+  shouldSwallowActivation: () => boolean
+}
+
+defineProps<{ task: Task }>()
+const emit = defineEmits<{
+  'change-status': [task: Task]
+  share: [task: Task]
+}>()
+
+const barrier = inject<MenuBarrier | null>('dataTableMenuBarrier', null)
+const menuOpen = ref(false)
+
+function onUpdateOpen(open: boolean) {
+  // A click that just dismissed another menu must only close, never open.
+  if (open && barrier?.shouldSwallowActivation())
+    return
+  if (menuOpen.value !== open) {
+    menuOpen.value = open
+    barrier?.registerMenuOpen(open)
+  }
+}
 </script>
 
 <template>
-  <DropdownMenu>
+  <DropdownMenu :open="menuOpen" @update:open="onUpdateOpen">
     <DropdownMenuTrigger as-child>
       <Button
         variant="ghost"
         size="icon"
-        class="size-8 text-subline opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 hover:text-ink"
+        class="size-8 text-subline opacity-100 transition-opacity hover:text-ink sm:opacity-0 sm:group-hover:opacity-100"
+        aria-label="Task actions"
       >
         <MoreHorizontal class="size-4" />
       </Button>
@@ -30,4 +49,11 @@
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
+  <Teleport to="body">
+    <div
+      v-if="menuOpen"
+      class="fixed inset-0 z-40 cursor-default"
+      aria-hidden="true"
+    />
+  </Teleport>
 </template>

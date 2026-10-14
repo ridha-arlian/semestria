@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useMediaQuery } from '@vueuse/core'
-  import type { MaterialPayload } from '~/types/dashboard'
+  import type { MaterialPayload } from '~/types'
   import MaterialForm from './MaterialForm.vue'
 
   defineProps<{

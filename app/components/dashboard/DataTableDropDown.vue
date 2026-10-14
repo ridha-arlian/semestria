@@ -2,15 +2,33 @@
   import { MoreHorizontal, Pencil, Trash2 } from '@lucide/vue'
   import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
 
+  interface MenuBarrier {
+    registerMenuOpen: (open: boolean) => void
+    shouldSwallowActivation: () => boolean
+  }
+
   defineProps<{ workspace: Workspace }>()
   const emit = defineEmits<{
     edit: [workspace: Workspace]
     delete: [workspace: Workspace]
   }>()
+
+  const barrier = inject<MenuBarrier | null>('dataTableMenuBarrier', null)
+  const menuOpen = ref(false)
+
+  function onUpdateOpen(open: boolean) {
+    // A click that just dismissed another menu must only close, never open.
+    if (open && barrier?.shouldSwallowActivation())
+      return
+    if (menuOpen.value !== open) {
+      menuOpen.value = open
+      barrier?.registerMenuOpen(open)
+    }
+  }
 </script>
 
 <template>
-  <DropdownMenu>
+  <DropdownMenu :open="menuOpen" @update:open="onUpdateOpen">
     <DropdownMenuTrigger as-child>
       <Button 
         variant="ghost" 
@@ -30,4 +48,11 @@
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
+  <Teleport to="body">
+    <div
+      v-if="menuOpen"
+      class="fixed inset-0 z-40 cursor-default"
+      aria-hidden="true"
+    />
+  </Teleport>
 </template>

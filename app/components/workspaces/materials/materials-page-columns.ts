@@ -1,9 +1,9 @@
 import { h } from 'vue'
 import { createColumnHelper } from '@tanstack/vue-table'
-import { ArrowUpRight, FileText } from '@lucide/vue'
+import { FileText } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import MaterialsRowActions from './MaterialsRowActions.vue'
 import type { Material } from '~/types'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
@@ -33,24 +33,6 @@ function tagChips(tags: string) {
           h(TooltipContent, { side: 'top' }, () => hidden.map(t => `#${t}`).join(' ')),
         ])
       : null,
-  ])
-}
-
-function openUrl(url?: string) {
-  if (url)
-    window.open(url, '_blank', 'noopener,noreferrer')
-}
-
-function openLinkButton(item: Material) {
-  return h(Tooltip, {}, () => [
-    h(TooltipTrigger, { asChild: true }, () => h(Button, {
-      variant: 'ghost',
-      size: 'icon',
-      class: 'size-8 shrink-0 text-subline opacity-100 transition-opacity hover:text-ink sm:opacity-0 sm:group-hover:opacity-100',
-      ariaLabel: `Open ${item.title}`,
-      onClick: () => openUrl(item.url),
-    }, () => h(ArrowUpRight, { class: 'size-4' }))),
-    h(TooltipContent, { side: 'top' }, () => 'Open link'),
   ])
 }
 
@@ -109,14 +91,17 @@ export const materialsPageColumns = [
   columnHelper.display({
     id: 'actions',
     header: '',
-    cell: ({ row }) => {
-      if (!row.original.url)
-        return null
+    cell: ({ row, table }) => {
       return h('div', {
         class: 'flex h-full items-center justify-end',
         onClick: (e: MouseEvent) => e.stopPropagation(),
       }, [
-        openLinkButton(row.original),
+        h(MaterialsRowActions, {
+          material: row.original,
+          onOpenLink: (m: Material) => table.options.meta?.onOpenLink?.(m),
+          onMarkReviewed: (m: Material) => table.options.meta?.onMarkReviewed?.(m),
+          onDelete: (m: Material) => table.options.meta?.onDelete?.(m),
+        }),
       ])
     },
   }),

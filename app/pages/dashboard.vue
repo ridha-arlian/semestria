@@ -9,7 +9,7 @@
   import type { StatItem, Workspace } from '~/types'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
   import NewWorkspaceDialog from '~/components/dashboard/NewWorkspaceDialog.vue'
-  import DeleteWorkspaceDialog from '~/components/dashboard/DeleteWorkspaceDialog.vue'
+  import DeleteConfirmDialog from '~/components/DeleteConfirmDialog.vue'
 
   definePageMeta({
     layout: 'dashboard',
@@ -91,12 +91,17 @@
         @close="selectedWorkspace = null"
       />
 
-      <DeleteWorkspaceDialog
+      <DeleteConfirmDialog
         v-model:open="isDeleteModalOpen"
-        :workspace="workspaceToDelete"
-        @confirm="handleConfirmDelete"
+        title="Delete workspace"
+        confirm-label="Delete workspace"
+        @confirm="workspaceToDelete && handleConfirmDelete(workspaceToDelete)"
         @close="workspaceToDelete = null"
-      />
+      >
+        <template #description>
+          Are you sure you want to delete <strong class="font-semibold text-destructive">{{ workspaceToDelete?.name }}</strong>? This action cannot be undone and will delete all associated courses and assignments.
+        </template>
+      </DeleteConfirmDialog>
     </div>
 
     <OverviewStats class="mt-6 sm:mt-8" :stats="homeStats" />

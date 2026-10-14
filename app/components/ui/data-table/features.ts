@@ -6,6 +6,8 @@ declare module '@tanstack/vue-table' {
     onDelete?: (item: TData) => void
     onChangeStatus?: (item: TData) => void
     onShare?: (item: TData) => void
+    onOpenLink?: (item: TData) => void
+    onMarkReviewed?: (item: TData) => void
   }
 }
 

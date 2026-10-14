@@ -233,6 +233,25 @@
   }
 }
 
+/* Freeze table visuals while any menu is open. Reka marks the open trigger
+   (row for context menus, "..." button for dropdowns) with
+   data-state="open". Pure CSS on purpose: no JS open-state involved. */
+tbody:has([data-state="open"]) tr,
+tbody:has([data-state="open"]) tr button {
+  cursor: default;
+}
+tbody:has([data-state="open"]) tr:hover {
+  background-color: transparent;
+}
+tbody:has([data-state="open"]) tr:hover .group-hover\:opacity-100,
+tbody:has([data-state="open"]) tr:hover .sm\:group-hover\:opacity-100 {
+  opacity: 0;
+}
+tbody:has([data-state="open"]) tr button:hover {
+  background-color: transparent;
+  color: var(--color-subline);
+}
+
 /* ::view-transition-old(root) {
   animation: fade-out 0.25s ease-out forwards;
 }

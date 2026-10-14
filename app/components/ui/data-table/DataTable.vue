@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="TData extends RowData">
-  import { computed, ref, watchEffect, useSlots } from 'vue'
+  import { computed, provide, ref, watchEffect, useSlots } from 'vue'
   import { FlexRender, useTable } from '@tanstack/vue-table'
   import type { ColumnDef, RowData, TableMeta, ColumnVisibilityState } from '@tanstack/vue-table'
   import { useMediaQuery } from '@vueuse/core'
@@ -34,6 +34,38 @@
   const slots = useSlots()
   const hasContextMenu = computed(() => !!slots['context-menu'])
 
+  // Unified menu barrier: every menu hosted in this table (context menus and
+  // "..." dropdowns) reports opens here. Any pointerdown that lands while a
+  // menu is open is the dismissing press, so activations arriving right after
+  // it (row navigation, another dropdown opening) are swallowed — like a
+  // native menu, the first click outside only closes.
+  const openMenuCount = ref(0)
+  const lastDismissAt = ref(0)
+
+  function registerMenuOpen(open: boolean) {
+    openMenuCount.value = Math.max(0, openMenuCount.value + (open ? 1 : -1))
+  }
+
+  function onWrapperPointerDownCapture() {
+    if (openMenuCount.value > 0)
+      lastDismissAt.value = Date.now()
+  }
+
+  function shouldSwallowActivation() {
+    return Date.now() - lastDismissAt.value < 350
+  }
+
+  function handleRowClick(rowData: TData) {
+    if (shouldSwallowActivation())
+      return
+    emit('row-click', rowData)
+  }
+
+  provide('dataTableMenuBarrier', {
+    registerMenuOpen,
+    shouldSwallowActivation,
+  })
+
   const isMobile = useMediaQuery('(max-width: 639px)')
   const columnVisibility = ref<ColumnVisibilityState>({})
 
@@ -61,7 +93,7 @@
 </script>
 
 <template>
-  <div class="w-full overflow-hidden">
+  <div class="w-full overflow-hidden" @pointerdown.capture="onWrapperPointerDownCapture">
     <Table class="w-full table-fixed">
       <TableHeader v-if="props.showHeader">
         <TableRow
@@ -85,9 +117,9 @@
       <TableBody>
         <template v-if="table.getRowModel().rows?.length">
           <template v-for="row in table.getRowModel().rows" :key="row.id">
-            <ContextMenu v-if="hasContextMenu">
+            <ContextMenu v-if="hasContextMenu" @update:open="registerMenuOpen">
               <ContextMenuTrigger as-child>
-                <TableRow class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="emit('row-click', row.original)">
+                <TableRow class="group cursor-pointer border-b border-line transition-colors hover:bg-soft/80 last:border-0" @click="handleRowClick(row.original)">
                   <TableCell
                     v-for="cell in row.getVisibleCells()"
                     :key="cell.id"
@@ -139,5 +171,12 @@
         </template>
       </TableBody>
     </Table>
+    <Teleport to="body">
+      <div
+        v-if="hasContextMenu && openMenuCount > 0"
+        class="fixed inset-0 z-40 cursor-default"
+        aria-hidden="true"
+      />
+    </Teleport>
   </div>
 </template>
