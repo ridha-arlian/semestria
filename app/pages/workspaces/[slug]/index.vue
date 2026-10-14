@@ -14,11 +14,38 @@
     week: Ref<{ current: number, total: number } | null>
     tasks: Ref<Task[]>
     openAdd: (type: ModalType) => void
+    cycleStatus: (item: Task) => void
   }
 
-  const { workspace, week, tasks, openAdd } = inject('workspace') as WorkspaceContext
+  const { workspace, week, tasks, openAdd, cycleStatus } = inject('workspace') as WorkspaceContext
 
   const base = computed(() => `/workspaces/${workspace.value?.slug}`)
+
+  function taskUrl(item: Task) {
+    return `${window.location.origin}${base.value}/tasks/${item.id}`
+  }
+
+  async function handleShareLink(item: Task) {
+    const url = taskUrl(item)
+    try {
+      await navigator.clipboard.writeText(url)
+    }
+    catch {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      try {
+        document.execCommand('copy')
+      }
+      catch {
+        // Silent: no toast infra yet.
+      }
+      document.body.removeChild(ta)
+    }
+  }
 
   const completed = computed(() => tasks.value.filter(t => t.status === 'Done').length)
   const inProgress = computed(() => tasks.value.filter(t => t.status === 'In progress').length)
@@ -99,7 +126,12 @@
       <OverviewStats :stats="overviewStats" />
 
       <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <WorkspacesOverviewTasks :tasks="tasks" :view-all-to="`${base}/tasks`" />
+        <WorkspacesOverviewTasks
+          :tasks="tasks"
+          :view-all-to="`${base}/tasks`"
+          @change-status="cycleStatus"
+          @share="handleShareLink"
+        />
         <WorkspacesOverviewProgress
           :completed="completed"
           :in-progress="inProgress"

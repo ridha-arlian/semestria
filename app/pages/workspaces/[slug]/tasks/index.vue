@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { Plus, Search, Sparkles } from '@lucide/vue'
+  import { Plus, RefreshCcw, Search, Sparkles, SquareCheck, Trash2 } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
+  import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
   import { tasksPageColumns } from '~/components/workspaces/tasks/tasks-page-columns.ts'
   import type { Task, Status, ModalType } from '~/types'
   import type { Ref } from 'vue'
@@ -24,6 +25,19 @@
 
   function handleRowClick(item: Task) {
     navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
+  }
+
+  const deleteTarget = ref<Task | null>(null)
+
+  function askDeleteTask(item: Task) {
+    deleteTarget.value = item
+  }
+
+  function confirmDeleteTask() {
+    if (!deleteTarget.value)
+      return
+    removeTask(deleteTarget.value.id)
+    deleteTarget.value = null
   }
 
   const search = ref('')
@@ -87,15 +101,28 @@
               due: 'w-36 shrink-0',
               status: 'w-24 sm:w-32 shrink-0',
               progress: 'w-52 shrink-0',
-              actions: 'w-16 sm:w-[120px] shrink-0',
+              actions: 'w-12 shrink-0',
             }"
             empty-text="Nothing found — try a different search or add something new."
             :meta="{
               onChangeStatus: (t) => cycleStatus(t),
-              onDelete: (t) => removeTask(t.id),
+              onDelete: (t) => askDeleteTask(t),
             }"
             @row-click="handleRowClick"
           >
+            <template #context-menu="{ row }">
+              <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">
+                <SquareCheck class="mr-2 size-3.5 text-subline" /> Open task
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem v-if="!(row.checklist?.length)" class="cursor-pointer text-xs" @select="cycleStatus(row)">
+                <RefreshCcw class="mr-2 size-3.5 text-subline" /> Change status
+              </ContextMenuItem>
+              <ContextMenuSeparator v-if="!(row.checklist?.length)" />
+              <ContextMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @select="askDeleteTask(row)">
+                <Trash2 class="mr-2 size-3.5" /> Delete
+              </ContextMenuItem>
+            </template>
             <template #empty>
               <div class="px-5 py-16 text-center">
                 <Sparkles class="mx-auto size-5 text-subline/50" />
@@ -110,6 +137,18 @@
           </DataTable>
         </CardContent>
       </Card>
+
+      <DeleteConfirmDialog
+        :open="!!deleteTarget"
+        title="Delete this task?"
+        confirm-label="Delete task"
+        @update:open="(v: boolean) => { if (!v) deleteTarget = null }"
+        @confirm="confirmDeleteTask"
+      >
+        <template #description>
+          Are you sure you want to delete <strong class="font-semibold text-destructive">"{{ deleteTarget?.task }}"</strong>? This action can't be undone. Linked materials will be kept, but the link to this task will be removed.
+        </template>
+      </DeleteConfirmDialog>
     </div>
   </main>
 </template>

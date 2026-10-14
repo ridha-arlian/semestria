@@ -115,6 +115,8 @@
       editPriority.value = value as TaskPriority
   }
 
+  const deleteOpen = ref(false)
+
   function handleDelete() {
     if (!task.value)
       return
@@ -288,12 +290,23 @@
         <Button
           variant="ghost"
           class="w-full text-destructive hover:text-destructive sm:w-auto"
-          @click="handleDelete"
+          @click="deleteOpen = true"
         >
           <Trash2 class="mr-2 size-3.5" />
           Delete
         </Button>
       </div>
+
+      <DeleteConfirmDialog
+        v-model:open="deleteOpen"
+        title="Delete this task?"
+        confirm-label="Delete task"
+        @confirm="handleDelete"
+      >
+        <template #description>
+          Are you sure you want to delete <strong class="font-semibold text-destructive">"{{ task?.task }}"</strong>? This action can't be undone. Linked materials will be kept, but the link to this task will be removed.
+        </template>
+      </DeleteConfirmDialog>
 
       <Drawer v-if="isEditingHeader && !isDesktop" :open="true" @update:open="onEditDrawerChange">
         <DrawerContent class="max-h-[85vh]">

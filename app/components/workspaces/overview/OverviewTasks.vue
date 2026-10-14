@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { ArrowUpRight, ArrowUpDown } from '@lucide/vue'
+  import { ArrowUpRight, ArrowUpDown, RefreshCcw, Share2, SquareCheck } from '@lucide/vue'
   import DataTable from '~/components/ui/data-table/DataTable.vue'
+  import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
   import { overviewTasksColumns } from '~/components/workspaces/overview/overview-tasks-columns.ts'
   import type { Task } from '~/types'
 
@@ -102,9 +103,22 @@
           onChangeStatus: (t) => emit('change-status', t),
           onShare: (t) => emit('share', t),
         }"
-        @row-click="handleRowClick"
-      >
-        <template #empty>
+          @row-click="handleRowClick"
+        >
+          <template #context-menu="{ row }">
+            <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">
+              <SquareCheck class="mr-2 size-3.5 text-subline" /> Open task
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem v-if="!(row.checklist?.length)" class="cursor-pointer text-xs" @select="emit('change-status', row)">
+              <RefreshCcw class="mr-2 size-3.5 text-subline" /> Change status
+            </ContextMenuItem>
+            <ContextMenuSeparator v-if="!(row.checklist?.length)" />
+            <ContextMenuItem class="cursor-pointer text-xs" @select="emit('share', row)">
+              <Share2 class="mr-2 size-3.5 text-subline" /> Share link
+            </ContextMenuItem>
+          </template>
+          <template #empty>
           <div class="px-5 py-12 text-center">
             <p class="text-sm font-medium text-text-strong">
               No tasks yet
