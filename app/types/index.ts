@@ -37,6 +37,7 @@ export interface Task {
   checklist?: Subtask[]
   submissionUrls?: string[]
   note?: string
+  materialIds?: number[]
 }
 
 export interface Material {
@@ -87,4 +88,14 @@ export interface MaterialPayload {
   tags: string[]
   description: string
   taskId: number | null
+}
+
+export type MaterialActivityKind = 'Created' | 'Note updated' | 'File replaced' | 'Marked reviewed' | 'Tag added' | 'Edited'
+
+export interface MaterialActivity {
+  id: number
+  kind: MaterialActivityKind
+  label: string
+  detail?: string
+  at: string
 }

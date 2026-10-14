@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
 
   const route = useRoute()
   const api = useApi()
@@ -254,12 +254,87 @@
     item.description = payload.description
   }
 
+  const materialActivities = ref<Record<number, MaterialActivity[]>>({})
+  let activitySeq = 1
+
+  function pushMaterialActivity(materialId: number, kind: MaterialActivityKind, label: string, detail?: string) {
+    const entry: MaterialActivity = { id: activitySeq++, kind, label, detail, at: 'Just now' }
+    const list = materialActivities.value[materialId] ??= []
+    list.unshift(entry)
+  }
+
+  function getMaterialActivities(material: Material): MaterialActivity[] {
+    const session = materialActivities.value[material.id] ?? []
+    const created: MaterialActivity = { id: 0, kind: 'Created', label: 'Created', at: material.reviewed || '—' }
+    return [session, [created]].flat()
+  }
+
+  function updateMaterial(id: number, payload: MaterialPayload) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    const prevTags = item.tags
+    const prevUrl = item.url
+    const prevNote = item.description ?? ''
+    item.title = payload.title
+    item.course = payload.course
+    item.type = payload.type
+    item.url = payload.url || undefined
+    item.tags = payload.tags.join(', ')
+    item.description = payload.description
+    item.taskId = payload.taskId ?? undefined
+    if (prevTags !== item.tags)
+      pushMaterialActivity(id, 'Tag added', 'Tag added', item.tags || undefined)
+    else
+      pushMaterialActivity(id, 'Edited', 'Edited')
+    if (prevUrl !== item.url && item.url)
+      pushMaterialActivity(id, 'File replaced', 'File replaced', item.url)
+    if (prevNote !== item.description)
+      pushMaterialActivity(id, 'Note updated', 'Note updated')
+  }
+
+  function updateMaterialNote(id: number, text: string) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item || item.description === text)
+      return
+    item.description = text
+    pushMaterialActivity(id, 'Note updated', 'Note updated')
+  }
+
+  function updateMaterialUrl(id: number, url: string) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    item.url = url || undefined
+    item.reviewed = 'Just now'
+    pushMaterialActivity(id, 'File replaced', 'File replaced', url || undefined)
+  }
+
+  function markMaterialReviewed(id: number) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    item.reviewed = 'Just now'
+    pushMaterialActivity(id, 'Marked reviewed', 'Marked reviewed')
+  }
+
+  function removeMaterial(id: number) {
+    materials.value = materials.value.filter(m => m.id !== id)
+    // Linked tasks are kept; only the link is removed.
+    for (const t of tasks.value) {
+      if (t.materialIds?.includes(id))
+        t.materialIds = t.materialIds.filter(mid => mid !== id)
+    }
+    delete materialActivities.value[id]
+  }
+
   provide('workspace', {
     workspace,
     week,
     view,
     tasks,
     materials,
+    materialActivities,
     openAdd,
     updateTask,
     cycleStatus,
@@ -272,6 +347,13 @@
     updateSubmissionUrl,
     removeSubmissionUrl,
     updateNote,
+    updateMaterial,
+    updateMaterialNote,
+    updateMaterialUrl,
+    markMaterialReviewed,
+    removeMaterial,
+    pushMaterialActivity,
+    getMaterialActivities,
   })
 
   const mainNavItems = computed(() => [

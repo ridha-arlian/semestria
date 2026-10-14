@@ -1,12 +1,14 @@
 <script setup lang="ts">
   import { ChevronDown, X } from '@lucide/vue'
   import { Input } from '@/components/ui/input'
-  import type { MaterialPayload, MaterialType } from '~/types/dashboard'
+  import type { MaterialPayload, MaterialType } from '~/types'
 
   const props = defineProps<{
     courses?: string[]
     tasks?: { id: number, task: string, course: string }[]
     autofocus?: boolean
+    initial?: MaterialPayload | null
+    submitLabel?: string
   }>()
 
   const emit = defineEmits<{
@@ -40,11 +42,29 @@
     [...(props.tasks ?? [])].sort((a, b) => Number(b.course === course.value) - Number(a.course === course.value)),
   )
 
+  function applyInitial() {
+    const init = props.initial
+    if (!init)
+      return
+    title.value = init.title
+    course.value = init.course
+    type.value = init.type
+    typeTouched.value = true
+    url.value = init.url
+    tags.value = [...init.tags]
+    tagInput.value = ''
+    description.value = init.description
+    linkedTask.value = init.taskId
+  }
+
+  watch(() => props.initial, applyInitial)
+
   function focusTitle() {
     nextTick(() => (titleEl.value?.$el as HTMLInputElement | undefined)?.focus())
   }
 
   onMounted(() => {
+    applyInitial()
     if (props.autofocus)
       focusTitle()
   })
@@ -305,15 +325,16 @@
     </div>
 
     <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <Button type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
+      <Button v-if="!props.initial" type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
         Create & add another
       </Button>
+      <span v-else />
       <div class="flex gap-2">
         <Button type="button" variant="outline" class="flex-1 sm:flex-none" @click="emit('cancel')">
           Cancel
         </Button>
         <Button type="submit" class="flex-1 sm:flex-none" :disabled="!canSubmit">
-          Add material
+          {{ props.submitLabel ?? 'Add material' }}
         </Button>
       </div>
     </div>
