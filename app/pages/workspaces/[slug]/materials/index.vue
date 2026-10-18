@@ -40,11 +40,9 @@
   }
 
   const menuDeleteTarget = ref<Material | null>(null)
-  const menuDeleteFromDrive = ref(false)
 
   function askDeleteMaterial(item: Material) {
     menuDeleteTarget.value = item
-    menuDeleteFromDrive.value = false
   }
 
   function confirmDeleteMaterial() {
@@ -184,18 +182,9 @@
         confirm-label="Delete material"
         @update:open="(v: boolean) => { if (!v) menuDeleteTarget = null }"
         @confirm="confirmDeleteMaterial"
-        @close="menuDeleteFromDrive = false"
       >
         <template #description>
           Are you sure you want to delete <strong class="font-semibold text-destructive">"{{ menuDeleteTarget?.title }}"</strong>? This action can't be undone. Linked tasks will be kept, but the link to this material will be removed.
-        </template>
-        <template #extra>
-          <label v-if="menuDeleteTarget?.url" class="flex cursor-pointer items-start gap-2.5 rounded-md border border-line px-3 py-2.5 text-left">
-            <Checkbox v-model="menuDeleteFromDrive" />
-            <span class="text-xs leading-relaxed text-text-strong">
-              Also delete the file from Google Drive
-            </span>
-          </label>
         </template>
       </DeleteConfirmDialog>
     </div>

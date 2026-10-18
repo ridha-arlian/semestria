@@ -65,7 +65,11 @@ function filterByTag(tag: string) {
       </div>
       <div class="flex items-center justify-between gap-3 text-sm">
         <span class="shrink-0 text-xs text-subline">Last reviewed</span>
-        <span class="text-xs text-text-strong">{{ material.reviewed }}</span>
+        <span class="text-xs text-text-strong">{{ material.reviewed || 'Not reviewed yet' }}</span>
+      </div>
+      <div class="flex items-center justify-between gap-3 text-sm">
+        <span class="shrink-0 text-xs text-subline">Last opened</span>
+        <span class="text-xs text-text-strong">{{ material.lastOpened || 'Not opened yet' }}</span>
       </div>
     </CardContent>
   </Card>

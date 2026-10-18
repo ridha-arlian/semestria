@@ -85,7 +85,7 @@ export const materialsPageColumns = [
 
   columnHelper.accessor('reviewed', {
     header: 'Last reviewed',
-    cell: ({ row }) => h('span', { class: 'text-xs text-subline' }, row.original.reviewed),
+    cell: ({ row }) => h('span', { class: 'text-xs text-subline' }, row.original.reviewed || 'Not reviewed yet'),
   }),
 
   columnHelper.display({

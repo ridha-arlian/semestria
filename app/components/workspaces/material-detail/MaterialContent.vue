@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, Check, CloudUpload, FileText, RefreshCw, X } from '@lucide/vue'
+import { ArrowUpRight, CloudUpload, FileText, RefreshCw, X } from '@lucide/vue'
 import type { Material } from '~/types'
 import type { MaterialDetailContext } from './materialDetailContext.ts'
 
@@ -8,13 +8,6 @@ const props = defineProps<{
 }>()
 
 const ctx = inject<MaterialDetailContext>('workspace')!
-
-// --- Google Drive connection (mocked locally until a real integration exists) ---
-const driveConnected = ref(true)
-
-function connectDrive() {
-  driveConnected.value = true
-}
 
 // --- File upload state (all in-memory) ---
 const MAX_MB = 20
@@ -49,8 +42,10 @@ const fileName = computed(() => {
 
 function openFile() {
   const target = uploadedObjectUrl.value ?? props.material.url
-  if (target)
-    window.open(target, '_blank', 'noopener,noreferrer')
+  if (!target)
+    return
+  ctx.markMaterialOpened(props.material.id)
+  window.open(target, '_blank', 'noopener,noreferrer')
 }
 
 function pickFile() {
@@ -102,7 +97,6 @@ function finishUpload(file: File) {
   if (uploadedObjectUrl.value)
     URL.revokeObjectURL(uploadedObjectUrl.value)
   uploadedObjectUrl.value = URL.createObjectURL(file)
-  // Mock Drive URL until a real integration exists.
   ctx.updateMaterialUrl(props.material.id, uploadedObjectUrl.value)
   pendingFile = null
 }
@@ -141,52 +135,6 @@ onUnmounted(() => {
     URL.revokeObjectURL(uploadedObjectUrl.value)
 })
 
-// --- Notes (autosave with "Saved" indicator) ---
-const noteDraft = ref('')
-const noteJustSaved = ref(false)
-let noteSavedTimer: ReturnType<typeof setTimeout> | undefined
-let noteDebounce: ReturnType<typeof setTimeout> | undefined
-const noteDirty = computed(() => noteDraft.value !== (props.material.description ?? ''))
-
-watch(() => props.material.id, () => {
-  noteDraft.value = props.material.description ?? ''
-}, { immediate: true })
-
-watch(() => props.material.description, (value) => {
-  // Ignore echoes of our own saves.
-  if (!noteDirty.value)
-    noteDraft.value = value ?? ''
-})
-
-function persistNote() {
-  if (!noteDirty.value)
-    return
-  ctx.updateMaterialNote(props.material.id, noteDraft.value)
-  noteJustSaved.value = true
-  if (noteSavedTimer)
-    clearTimeout(noteSavedTimer)
-  noteSavedTimer = setTimeout(() => {
-    noteJustSaved.value = false
-  }, 2000)
-}
-
-watch(noteDraft, () => {
-  if (noteDebounce)
-    clearTimeout(noteDebounce)
-  noteDebounce = setTimeout(persistNote, 800)
-})
-
-function revertNote() {
-  noteDraft.value = props.material.description ?? ''
-}
-
-onUnmounted(() => {
-  if (noteSavedTimer)
-    clearTimeout(noteSavedTimer)
-  if (noteDebounce)
-    clearTimeout(noteDebounce)
-  persistNote()
-})
 </script>
 
 <template>
@@ -200,22 +148,7 @@ onUnmounted(() => {
       </CardDescription>
     </CardHeader>
     <CardContent class="space-y-5 p-4 sm:p-5">
-      <!-- Drive not connected -->
-      <div v-if="!driveConnected" class="rounded-lg border border-line bg-soft/50 px-4 py-6 text-center">
-        <CloudUpload class="mx-auto size-5 text-subline" />
-        <p class="mt-2 text-sm font-medium text-text-strong">
-          Connect Google Drive to upload
-        </p>
-        <p class="mt-1 text-xs text-subline">
-          Link your Drive account to attach files to this material.
-        </p>
-        <Button size="sm" class="mt-3" @click="connectDrive">
-          Connect Google Drive
-        </Button>
-      </div>
-
-      <template v-else>
-        <!-- Uploading -->
+      <!-- Uploading -->
         <div v-if="progress !== null" class="space-y-2">
           <div class="flex items-center justify-between gap-2 text-xs">
             <p class="min-w-0 truncate font-medium text-text-strong">
@@ -261,12 +194,12 @@ onUnmounted(() => {
               {{ fileName }}
             </p>
             <p class="mt-0.5 truncate text-xs text-subline">
-              {{ uploadedSize ?? 'Drive file' }} · Uploaded {{ material.reviewed }}
+              {{ uploadedSize ?? 'Attached file' }}
             </p>
           </div>
           <div class="flex shrink-0 items-center gap-1.5">
             <Button size="sm" variant="outline" @click="openFile">
-              Open in Drive
+              Open file
               <ArrowUpRight class="ml-1 size-3.5" />
             </Button>
             <Button size="sm" variant="ghost" @click="pickFile">
@@ -306,29 +239,10 @@ onUnmounted(() => {
           tabindex="-1"
           @change="onInputChange"
         >
-      </template>
 
       <Separator />
 
-      <!-- Notes -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <Label for="material-notes" class="text-xs font-medium">Notes</Label>
-          <p v-if="noteJustSaved" class="flex items-center gap-1 text-[11px] text-text-muted">
-            <Check class="size-3" />
-            Saved
-          </p>
-        </div>
-        <Textarea
-          id="material-notes"
-          v-model="noteDraft"
-          rows="5"
-          class="min-h-28 resize-y text-sm"
-          placeholder="Write notes..."
-          @keydown.escape.prevent="revertNote"
-          @blur="persistNote"
-        />
-      </div>
+      <WorkspacesMaterialDetailMaterialNotes :material="material" />
     </CardContent>
   </Card>
 </template>

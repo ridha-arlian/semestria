@@ -30,7 +30,6 @@
   const url = ref('')
   const tags = ref<string[]>([])
   const tagInput = ref('')
-  const description = ref('')
   const linkedTask = ref<number | null>(null)
   const showMore = ref(false)
   const titleEl = ref<InstanceType<typeof Input> | null>(null)
@@ -53,7 +52,6 @@
     url.value = init.url
     tags.value = [...init.tags]
     tagInput.value = ''
-    description.value = init.description
     linkedTask.value = init.taskId
   }
 
@@ -170,7 +168,6 @@
       type: type.value,
       url: parsed ? parsed.toString() : '',
       tags: [...tags.value],
-      description: description.value.trim(),
       taskId: linkedTask.value,
     }, addAnother)
     if (addAnother) {
@@ -180,7 +177,6 @@
       url.value = ''
       tags.value = []
       tagInput.value = ''
-      description.value = ''
       linkedTask.value = null
       if (props.autofocus)
         focusTitle()
@@ -229,7 +225,7 @@
         <Input v-if="showCourseInput" v-model="course" class="text-sm" placeholder="e.g. Design Research" />
       </div>
 
-      <div class="space-y-2">
+      <div v-if="!props.initial" class="space-y-2">
         <Label for="material-url" class="text-xs">Link <span class="font-normal text-muted-foreground">(optional)</span></Label>
         <Input
           id="material-url"
@@ -237,7 +233,7 @@
           type="url"
           inputmode="url"
           class="text-sm"
-          placeholder="https://drive.google.com/…"
+          placeholder="https://…"
           @blur="onUrlBlur"
         />
       </div>
@@ -308,17 +304,6 @@
                 @blur="commitTag"
               />
             </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="material-notes" class="text-xs">Notes <span class="font-normal text-muted-foreground">(optional)</span></Label>
-            <Textarea
-              id="material-notes"
-              v-model="description"
-              rows="3"
-              class="resize-none text-sm"
-              placeholder="Halaman yang perlu dibaca, poin penting, dll."
-            />
           </div>
         </CollapsibleContent>
       </Collapsible>

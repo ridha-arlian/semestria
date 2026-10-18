@@ -39,14 +39,15 @@ const tasks: Task[] = [
 ]
 
 const materials: Material[] = [
-  { id: 1, workspaceId: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: 'Yesterday' },
+  { id: 1, workspaceId: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: '' },
   { id: 2, workspaceId: 1, title: 'Week 03 — Research methods', course: 'Design Research', type: 'Slides', tags: 'methods, week 03', reviewed: 'Sep 08', taskId: 1 },
   { id: 3, workspaceId: 1, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05' },
   { id: 4, workspaceId: 1, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29', taskId: 2 },
-  { id: 5, workspaceId: 1, title: 'Nielsen: 10 usability heuristics', course: 'Interaction Design', type: 'Link', tags: 'usability, heuristics', reviewed: 'Oct 03', url: 'https://www.nngroup.com/articles/ten-usability-heuristics/', taskId: 9 },
-  { id: 6, workspaceId: 1, title: 'Ethnography field guide', course: 'Cultural Studies', type: 'PDF', tags: 'ethnography, method', reviewed: 'Oct 01', url: 'https://example.com/ethnography-guide.pdf', taskId: 12 },
+  { id: 5, workspaceId: 1, title: 'Nielsen: 10 usability heuristics', course: 'Interaction Design', type: 'Link', tags: 'usability, heuristics', reviewed: 'Oct 03', lastOpened: 'Oct 04', url: 'https://www.nngroup.com/articles/ten-usability-heuristics/', taskId: 9 },
+  { id: 6, workspaceId: 1, title: 'Ethnography field guide', course: 'Cultural Studies', type: 'PDF', tags: 'ethnography, method', reviewed: 'Oct 01', lastOpened: 'Oct 02', url: '/files/ethnography-field-guide.pdf', taskId: 12, description: 'Focus on chapters 2-3 for Thursday\'s discussion.' },
   { id: 7, workspaceId: 1, title: 'Prototyping in Figma — walkthrough', course: 'Interaction Design', type: 'Video', tags: 'figma, prototype', reviewed: 'Sep 27', url: 'https://example.com/figma-walkthrough', taskId: 3 },
   { id: 8, workspaceId: 1, title: 'Literature matrix template', course: 'Design Research', type: 'Notes', tags: 'template, bibliography', reviewed: 'Just now', taskId: 10 },
+  { id: 18, workspaceId: 1, title: 'Prototyping handbook', course: 'Interaction Design', type: 'PDF', tags: 'figma, prototype', reviewed: 'Just now', url: '/files/prototyping-handbook.pdf', taskId: 4 },
 
   { id: 9, workspaceId: 2, title: 'Thinking with Type', course: 'Visual Design', type: 'Book', tags: 'typography, reading', reviewed: 'Feb 12' },
   { id: 10, workspaceId: 2, title: 'WCAG 2.2 quick reference', course: 'Interaction Design', type: 'Link', tags: 'accessibility, wcag', reviewed: 'Apr 10', url: 'https://www.w3.org/WAI/WCAG22/quickref/' },

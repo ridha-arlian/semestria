@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
 
   const route = useRoute()
   const api = useApi()
@@ -121,9 +121,8 @@
       type: payload.type,
       tags: payload.tags.join(', '),
       url: payload.url,
-      description: payload.description,
       taskId: payload.taskId ?? undefined,
-      reviewed: 'Just now',
+      reviewed: '',
     })
     if (!addAnother)
       showModal.value = false
@@ -275,29 +274,101 @@
       return
     const prevTags = item.tags
     const prevUrl = item.url
-    const prevNote = item.description ?? ''
+    const prevTaskId = item.taskId
     item.title = payload.title
     item.course = payload.course
     item.type = payload.type
     item.url = payload.url || undefined
     item.tags = payload.tags.join(', ')
-    item.description = payload.description
-    item.taskId = payload.taskId ?? undefined
+    // Keep the card in sync: drop the previous primary, keep the other links.
+    const nextTaskIds = linkedTaskIds(item).filter(tid => tid !== prevTaskId)
+    if (payload.taskId)
+      nextTaskIds.push(payload.taskId)
+    setMaterialTasks(id, nextTaskIds, true)
     if (prevTags !== item.tags)
       pushMaterialActivity(id, 'Tag added', 'Tag added', item.tags || undefined)
     else
       pushMaterialActivity(id, 'Edited', 'Edited')
     if (prevUrl !== item.url && item.url)
       pushMaterialActivity(id, 'File replaced', 'File replaced', item.url)
-    if (prevNote !== item.description)
-      pushMaterialActivity(id, 'Note updated', 'Note updated')
   }
 
-  function updateMaterialNote(id: number, text: string) {
+  /** All tasks pointing at this material, merged from both link sources. */
+  function linkedTaskIds(material: Material): number[] {
+    const ids = new Set<number>()
+    if (material.taskId)
+      ids.add(material.taskId)
+    for (const t of tasks.value) {
+      if (t.materialIds?.includes(material.id))
+        ids.add(t.id)
+    }
+    return [...ids]
+  }
+
+  /** Single source of truth: material.taskId (primary) and task.materialIds stay in sync. */
+  function setMaterialTasks(id: number, taskIds: number[], silent = false) {
     const item = materials.value.find(m => m.id === id)
-    if (!item || item.description === text)
+    if (!item)
       return
-    item.description = text
+    const next = new Set(taskIds)
+    const prev = linkedTaskIds(item)
+    for (const t of tasks.value) {
+      const has = t.materialIds?.includes(id) ?? false
+      const should = next.has(t.id)
+      if (has === should)
+        continue
+      const list = t.materialIds ?? []
+      t.materialIds = should ? [...list, id] : list.filter(mid => mid !== id)
+      if (!t.materialIds.length)
+        t.materialIds = undefined
+    }
+    // Primary link survives unless it was removed.
+    const primary = item.taskId && next.has(item.taskId) ? item.taskId : next.values().next().value
+    item.taskId = primary ?? undefined
+    if (silent)
+      return
+    for (const taskId of next) {
+      if (prev.includes(taskId))
+        continue
+      const t = tasks.value.find(x => x.id === taskId)
+      pushMaterialActivity(id, 'Task linked', 'Task linked', t?.task)
+    }
+    for (const taskId of prev) {
+      if (next.has(taskId))
+        continue
+      const t = tasks.value.find(x => x.id === taskId)
+      pushMaterialActivity(id, 'Task unlinked', 'Task unlinked', t?.task)
+    }
+  }
+
+  function linkMaterialTask(id: number, taskId: number) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    const current = linkedTaskIds(item)
+    if (current.includes(taskId))
+      return
+    setMaterialTasks(id, [...current, taskId])
+  }
+
+  function unlinkMaterialTask(id: number, taskId: number) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    setMaterialTasks(id, linkedTaskIds(item).filter(tid => tid !== taskId))
+  }
+
+  function sameNote(a: MaterialNote | undefined, b: MaterialNote | undefined) {
+    if (typeof a === 'string' || typeof b === 'string' || a === undefined || b === undefined)
+      return (a ?? '') === (b ?? '')
+    return JSON.stringify(a) === JSON.stringify(b)
+  }
+
+  function updateMaterialNote(id: number, note: MaterialNote) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item || sameNote(item.description, note))
+      return
+    item.description = note
     pushMaterialActivity(id, 'Note updated', 'Note updated')
   }
 
@@ -306,7 +377,6 @@
     if (!item)
       return
     item.url = url || undefined
-    item.reviewed = 'Just now'
     pushMaterialActivity(id, 'File replaced', 'File replaced', url || undefined)
   }
 
@@ -316,6 +386,13 @@
       return
     item.reviewed = 'Just now'
     pushMaterialActivity(id, 'Marked reviewed', 'Marked reviewed')
+  }
+
+  function markMaterialOpened(id: number) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item)
+      return
+    item.lastOpened = 'Just now'
   }
 
   function removeMaterial(id: number) {
@@ -350,7 +427,10 @@
     updateMaterial,
     updateMaterialNote,
     updateMaterialUrl,
+    linkMaterialTask,
+    unlinkMaterialTask,
     markMaterialReviewed,
+    markMaterialOpened,
     removeMaterial,
     pushMaterialActivity,
     getMaterialActivities,

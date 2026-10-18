@@ -1,6 +1,11 @@
 export type Status = 'In progress' | 'To do' | 'Done'
 export type Priority = 'High' | 'Medium' | 'Low'
+import type { JSONContent } from '@tiptap/core'
+
 export type MaterialType = 'Notes' | 'Book' | 'Slides' | 'Collection' | 'Link' | 'PDF' | 'Video'
+
+/** Rich-note content: a TipTap JSON document, or a plain string (legacy/seed data). */
+export type MaterialNote = string | JSONContent
 
 export interface Workspace {
   id: number
@@ -48,8 +53,9 @@ export interface Material {
   type: MaterialType
   tags: string
   reviewed: string
+  lastOpened?: string
   url?: string
-  description?: string
+  description?: MaterialNote
   taskId?: number
 }
 
@@ -86,11 +92,10 @@ export interface MaterialPayload {
   type: MaterialType
   url: string
   tags: string[]
-  description: string
   taskId: number | null
 }
 
-export type MaterialActivityKind = 'Created' | 'Note updated' | 'File replaced' | 'Marked reviewed' | 'Tag added' | 'Edited'
+export type MaterialActivityKind = 'Created' | 'Note updated' | 'File replaced' | 'Marked reviewed' | 'Tag added' | 'Task linked' | 'Task unlinked' | 'Edited'
 
 export interface MaterialActivity {
   id: number

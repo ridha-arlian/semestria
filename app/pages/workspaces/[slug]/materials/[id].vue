@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, CheckCircle2, Pencil, Trash2 } from '@lucide/vue'
+import { Check, Pencil, Trash2 } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import MaterialForm from '~/components/workspaces/modal/MaterialForm.vue'
 import type { BreadcrumbEntry, MaterialPayload } from '~/types'
@@ -49,7 +49,6 @@ const editInitial = computed<MaterialPayload | null>(() => {
     type: m.type,
     url: m.url ?? '',
     tags: m.tags.split(',').map(t => t.trim()).filter(Boolean),
-    description: m.description ?? '',
     taskId: m.taskId ?? null,
   }
 })
@@ -64,6 +63,36 @@ function handleEditSubmit(payload: MaterialPayload) {
 const justReviewed = ref(false)
 let justReviewedTimer: ReturnType<typeof setTimeout> | undefined
 
+type ReviewState = 'none' | 'stale' | 'fresh'
+
+function reviewedAgeDays(reviewed: string): number | null {
+  const v = reviewed.trim().toLowerCase()
+  if (!v)
+    return null
+  if (v === 'just now')
+    return 0
+  if (v === 'yesterday')
+    return 1
+  const match = v.match(/^([a-z]{3,9})\s+(\d{1,2})(?:,?\s+(\d{4}))?$/)
+  if (!match)
+    return 0
+  const now = new Date()
+  const year = match[3] ? Number(match[3]) : now.getFullYear()
+  const parsed = new Date(`${match[1]} ${match[2]}, ${year}`)
+  if (Number.isNaN(parsed.getTime()))
+    return 0
+  if (!match[3] && parsed.getTime() > now.getTime())
+    parsed.setFullYear(year - 1)
+  return Math.floor((now.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+const reviewState = computed<ReviewState>(() => {
+  const age = reviewedAgeDays(material.value?.reviewed ?? '')
+  if (age === null)
+    return 'none'
+  return age > 7 ? 'stale' : 'fresh'
+})
+
 function handleMarkReviewed() {
   if (!material.value)
     return
@@ -77,7 +106,6 @@ function handleMarkReviewed() {
 }
 
 const deleteOpen = ref(false)
-const deleteFromDrive = ref(false)
 
 function handleDelete() {
   if (!material.value)
@@ -99,9 +127,13 @@ function handleDelete() {
           <p class="mt-1.5 truncate text-sm text-subline">
             {{ material.course }}
           </p>
-          <p class="mt-1 flex items-center gap-1.5 text-xs text-subline">
-            <CheckCircle2 class="size-3.5 text-status-done" />
-            Reviewed {{ material.reviewed }}
+          <p v-if="reviewState === 'none'" class="mt-1 flex items-center gap-1.5 text-xs text-subline">
+            <span class="size-1.5 shrink-0 rounded-full bg-text-muted" />
+            Not reviewed yet
+          </p>
+          <p v-else-if="reviewState === 'stale'" class="mt-1 flex items-center gap-1.5 text-xs text-subline">
+            <span class="size-1.5 shrink-0 rounded-full bg-urgency-due" />
+            Need review
           </p>
         </div>
         <div class="flex shrink-0 items-center gap-1.5">
@@ -205,18 +237,9 @@ function handleDelete() {
       title="Delete this material?"
       confirm-label="Delete material"
       @confirm="handleDelete"
-      @close="deleteFromDrive = false"
     >
       <template #description>
         Are you sure you want to delete <strong class="font-semibold text-destructive">"{{ material?.title }}"</strong>? This action can't be undone. Linked tasks will be kept, but the link to this material will be removed.
-      </template>
-      <template #extra>
-        <label v-if="material?.url" class="flex cursor-pointer items-start gap-2.5 rounded-md border border-line px-3 py-2.5 text-left">
-          <Checkbox v-model="deleteFromDrive" />
-          <span class="text-xs leading-relaxed text-text-strong">
-            Also delete the file from Google Drive
-          </span>
-        </label>
       </template>
     </DeleteConfirmDialog>
   </main>
