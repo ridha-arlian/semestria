@@ -36,6 +36,8 @@ Open `http://localhost:3000`.
 | `pnpm build`     | Build for production (node-server)   |
 | `pnpm generate`  | Pre-render a static site             |
 | `pnpm preview`   | Preview the production build locally |
+| `pnpm typecheck` | Type-check with `vue-tsc`            |
+| `pnpm lint`      | Lint with ESLint                     |
 
 ## Project Structure
 

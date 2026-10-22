@@ -40,9 +40,9 @@
     <Button
       variant="ghost"
       size="icon"
-      @click="toggleDarkMode"
       class="h-8 w-8 text-ink bg-transparent! hover:opacity-70 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer select-none"
       title="Toggle theme"
+      @click="toggleDarkMode"
     >
       <Sun v-if="colorMode.value === 'dark'" class="h-4 w-4" />
       <Moon v-else class="h-4 w-4" />

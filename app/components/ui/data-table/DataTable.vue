@@ -1,12 +1,12 @@
 <script setup lang="ts" generic="TData extends RowData">
   import { computed, provide, ref, watchEffect, useSlots } from 'vue'
   import { FlexRender, useTable } from '@tanstack/vue-table'
-  import type { ColumnDef, RowData, TableMeta, ColumnVisibilityState } from '@tanstack/vue-table'
+  import type { ColumnVisibilityState, RowData, TableMeta } from '@tanstack/vue-table'
   import { useMediaQuery } from '@vueuse/core'
-  import { features, type DataTableFeatures } from '~/components/ui/data-table/features'
+  import { features, type DataTableColumnDef, type DataTableFeatures } from '~/components/ui/data-table/features'
 
   const props = defineProps<{
-    columns: ColumnDef<DataTableFeatures, TData, any>[]
+    columns: DataTableColumnDef<TData>[]
     data: TData[]
     meta?: TableMeta<DataTableFeatures, TData>
     emptyText?: string

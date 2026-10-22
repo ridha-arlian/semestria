@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-10-22',
   devtools: { enabled: true },
   css: ['~/assets/css/tailwind.css'],
   app: {
@@ -22,6 +22,7 @@ export default defineNuxtConfig({
     ],
   },
   modules: [
+    '@nuxt/eslint',
     'shadcn-nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',

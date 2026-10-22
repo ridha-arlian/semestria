@@ -1,6 +1,6 @@
+import type { JSONContent } from '@tiptap/core'
 export type Status = 'In progress' | 'To do' | 'Done'
 export type Priority = 'High' | 'Medium' | 'Low'
-import type { JSONContent } from '@tiptap/core'
 
 export type MaterialType = 'Notes' | 'Book' | 'Slides' | 'Collection' | 'Link' | 'PDF' | 'Video'
 
@@ -21,6 +21,13 @@ export interface Workspace {
   nextDue: string
   startDate?: string
   endDate?: string
+}
+
+export interface WorkspaceFormPayload {
+  name: string
+  startDate: string
+  endDate: string
+  isActive: boolean
 }
 
 export interface Subtask {

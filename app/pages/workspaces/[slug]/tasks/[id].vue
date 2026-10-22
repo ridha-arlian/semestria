@@ -4,7 +4,7 @@
   import type { DateValue } from '@internationalized/date'
   import { useMediaQuery } from '@vueuse/core'
   import { statusStyles, getUrgency } from '~/components/workspaces/tasks/tasks-page-columns.ts'
-  import type { BreadcrumbEntry, Task, TaskPriority } from '~/types'
+  import type { BreadcrumbEntry, TaskPriority } from '~/types'
   import type { Ref } from 'vue'
   import type { TaskDetailContext } from '~/components/workspaces/task-detail/taskDetailContext.ts'
   import { displayToISO, editPriorities, priorityDotColor, taskPriorityToForm } from '~/components/workspaces/task-detail/taskDetailUtils.ts'

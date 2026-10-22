@@ -53,8 +53,7 @@
   }
 
   function clearQueryFilter(key: 'course' | 'tag') {
-    const query = { ...route.query }
-    delete query[key]
+    const { [key]: _removed, ...query } = route.query
     router.replace({ query })
   }
 

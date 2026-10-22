@@ -402,7 +402,8 @@
       if (t.materialIds?.includes(id))
         t.materialIds = t.materialIds.filter(mid => mid !== id)
     }
-    delete materialActivities.value[id]
+    const { [id]: _removed, ...rest } = materialActivities.value
+    materialActivities.value = rest
   }
 
   provide('workspace', {

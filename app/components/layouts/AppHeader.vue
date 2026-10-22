@@ -4,7 +4,7 @@
   import { useSidebar } from '~/components/ui/sidebar'
   import type { BreadcrumbEntry, View } from '~/types'
 
-  const { view, breadcrumbs } = defineProps<{
+  const { view, breadcrumbs = [] } = defineProps<{
     view: View
     breadcrumbs?: BreadcrumbEntry[]
   }>()

@@ -11,7 +11,10 @@
     nextDeadline?: { title: string, dueIn: string }
   }>(), {
     inProgress: 0,
+    currentWeek: 0,
+    totalWeeks: 0,
     focus: '',
+    nextDeadline: undefined,
   })
 
   const emit = defineEmits<{

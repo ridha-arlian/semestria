@@ -3,7 +3,7 @@
   import type { TaskPayload } from '~/types'
   import TaskForm from './TaskForm.vue'
 
-  const props = defineProps<{
+  defineProps<{
     open: boolean
     courses?: string[]
   }>()

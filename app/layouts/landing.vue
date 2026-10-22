@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ArrowUpRight } from '@lucide/vue'
+  import { ArrowUpRight, Copyright } from '@lucide/vue'
 </script>
 
 <template>

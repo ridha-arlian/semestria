@@ -6,7 +6,7 @@
   import { Plus, FolderOpen, CheckCircle2, Pencil, Trash2 } from '@lucide/vue'
   import DataTable from '@/components/ui/data-table/DataTable.vue'
   import { columns } from '~/components/dashboard/workspaceColumns'
-  import type { StatItem, Workspace } from '~/types'
+  import type { StatItem, Workspace, WorkspaceFormPayload } from '~/types'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
   import NewWorkspaceDialog from '~/components/dashboard/NewWorkspaceDialog.vue'
   import DeleteConfirmDialog from '~/components/DeleteConfirmDialog.vue'
@@ -42,7 +42,7 @@
     console.log('Proses hapus workspace:', workspace)
   }
 
-  function handleWorkspaceSuccess(data: any) {
+  function handleWorkspaceSuccess(data: WorkspaceFormPayload) {
     if (selectedWorkspace.value) {
       console.log('Update workspace:', data)
     } else {

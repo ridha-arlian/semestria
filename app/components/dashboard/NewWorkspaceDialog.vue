@@ -1,7 +1,8 @@
 <script setup lang="ts">
   import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
   import { CalendarIcon } from '@lucide/vue'
-  import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
+  import type { DateRange } from 'reka-ui'
+  import type { Workspace, WorkspaceFormPayload } from '~/types'
 
   const props = defineProps<{
     workspaceToEdit?: Workspace | null
@@ -10,7 +11,7 @@
   const isOpen = defineModel<boolean>('open', { default: false })
 
   const emit = defineEmits<{
-    (e: 'success', data: { name: string; startDate: string; endDate: string; isActive: boolean }): void
+    (e: 'success', data: WorkspaceFormPayload): void
     (e: 'close'): void
   }>()
 
@@ -23,7 +24,9 @@
     isActive: true,
   })
 
-  const dateRange = ref<{ start: any; end: any }>({
+  // `shallowRef` keeps the `DateValue` instances intact — a deep `ref()` would
+  // unwrap their readonly members and lose the nominal type.
+  const dateRange = shallowRef<DateRange>({
     start: undefined,
     end: undefined,
   })
@@ -49,7 +52,7 @@
     return 'Pick a date range'
   })
 
-  function toIsoString(date: { toDate: (tz: string) => Date } | undefined) {
+  function toIsoString(date: DateRange['start']) {
     if (!date) return ''
     return date.toDate(getLocalTimeZone()).toISOString().substring(0, 10)
   }
@@ -88,7 +91,7 @@
         </DialogDescription>
       </DialogHeader>
 
-      <form @submit.prevent="handleSubmit" class="space-y-4 py-2">
+      <form class="space-y-4 py-2" @submit.prevent="handleSubmit">
         <div class="space-y-2">
           <Label for="name">
             Workspace name

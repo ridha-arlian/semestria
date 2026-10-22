@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { MoreHorizontal, Pencil, Trash2 } from '@lucide/vue'
-  import type { Workspace } from '~/components/dashboard/workspaceColumns.ts'
+  import type { Workspace } from '~/types'
 
   interface MenuBarrier {
     registerMenuOpen: (open: boolean) => void
