@@ -158,14 +158,14 @@ function handleDelete() {
             Need review
           </p>
         </div>
-        <div class="flex shrink-0 items-center gap-1.5">
-          <Button size="sm" variant="outline" aria-label="Edit material" @click="editOpen = true">
-            <Pencil class="size-3.5 sm:mr-2" />
-            <span class="max-sm:hidden">Edit</span>
+        <div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-1.5">
+          <Button size="sm" variant="outline" class="w-full sm:w-auto" @click="editOpen = true">
+            <Pencil class="mr-2 size-3.5" />
+            <span>Edit</span>
           </Button>
-          <Button size="sm" :disabled="justReviewed" @click="handleMarkReviewed">
-            <Check class="size-3.5 sm:mr-2" />
-            <span class="max-sm:hidden">{{ justReviewed ? 'Reviewed' : 'Mark reviewed' }}</span>
+          <Button size="sm" class="w-full sm:w-auto" :disabled="justReviewed" @click="handleMarkReviewed">
+            <Check class="mr-2 size-3.5" />
+            <span>{{ justReviewed ? 'Reviewed' : 'Mark reviewed' }}</span>
           </Button>
         </div>
       </div>
@@ -181,18 +181,14 @@ function handleDelete() {
       </div>
 
       <!-- Footer -->
-      <Separator />
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-subline">
-          Delete this material. This can't be undone.
-        </p>
+      <div class="flex border-t border-line pt-5 sm:justify-end">
         <Button
-          variant="outline"
+          variant="ghost"
           class="w-full text-destructive hover:text-destructive sm:w-auto"
           @click="deleteOpen = true"
         >
           <Trash2 class="mr-2 size-3.5" />
-          Delete material
+          Delete
         </Button>
       </div>
     </div>
