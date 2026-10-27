@@ -41,24 +41,31 @@ const tasks: Task[] = [
 const materials: Material[] = [
   { id: 1, workspaceId: 1, title: 'The Design of Everyday Things', course: 'Interaction Design', type: 'Book', tags: 'reading, theory', reviewed: '' },
   { id: 2, workspaceId: 1, title: 'Week 03 — Research methods', course: 'Design Research', type: 'Slides', tags: 'methods, week 03', reviewed: 'Sep 08', taskId: 1 },
-  { id: 3, workspaceId: 1, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05' },
+  { id: 3, workspaceId: 1, title: 'Studio references / 2026', course: 'Studio Practice', type: 'Collection', tags: 'references', reviewed: 'Sep 05', links: [
+    { id: 1, url: 'https://www.are.na/', label: 'Are.na channels' },
+    { id: 2, url: 'https://www.designspiration.com/', label: 'Designspiration' },
+    { id: 3, url: 'https://www.behance.net/', label: 'Behance portfolios' },
+  ] },
   { id: 4, workspaceId: 1, title: 'Cultural identity notes', course: 'Cultural Studies', type: 'Notes', tags: 'identity, key terms', reviewed: 'Aug 29', taskId: 2 },
   { id: 5, workspaceId: 1, title: 'Nielsen: 10 usability heuristics', course: 'Interaction Design', type: 'Link', tags: 'usability, heuristics', reviewed: 'Oct 03', lastOpened: 'Oct 04', url: 'https://www.nngroup.com/articles/ten-usability-heuristics/', taskId: 9 },
   { id: 6, workspaceId: 1, title: 'Ethnography field guide', course: 'Cultural Studies', type: 'PDF', tags: 'ethnography, method', reviewed: 'Oct 01', lastOpened: 'Oct 02', url: '/files/ethnography-field-guide.pdf', taskId: 12, description: 'Focus on chapters 2-3 for Thursday\'s discussion.' },
-  { id: 7, workspaceId: 1, title: 'Prototyping in Figma — walkthrough', course: 'Interaction Design', type: 'Video', tags: 'figma, prototype', reviewed: 'Sep 27', url: 'https://example.com/figma-walkthrough', taskId: 3 },
+  { id: 7, workspaceId: 1, title: 'Prototyping in Figma — walkthrough', course: 'Interaction Design', type: 'Video', tags: 'figma, prototype', reviewed: 'Sep 27', url: 'https://example.com/figma-walkthrough', contentSource: 'link', taskId: 3 },
   { id: 8, workspaceId: 1, title: 'Literature matrix template', course: 'Design Research', type: 'Notes', tags: 'template, bibliography', reviewed: 'Just now', taskId: 10 },
   { id: 18, workspaceId: 1, title: 'Prototyping handbook', course: 'Interaction Design', type: 'PDF', tags: 'figma, prototype', reviewed: 'Just now', url: '/files/prototyping-handbook.pdf', taskId: 4 },
 
   { id: 9, workspaceId: 2, title: 'Thinking with Type', course: 'Visual Design', type: 'Book', tags: 'typography, reading', reviewed: 'Feb 12' },
   { id: 10, workspaceId: 2, title: 'WCAG 2.2 quick reference', course: 'Interaction Design', type: 'Link', tags: 'accessibility, wcag', reviewed: 'Apr 10', url: 'https://www.w3.org/WAI/WCAG22/quickref/' },
   { id: 11, workspaceId: 2, title: 'Interview synthesis workshop', course: 'Design Research', type: 'Slides', tags: 'interviews, synthesis', reviewed: 'Mar 30' },
-  { id: 12, workspaceId: 2, title: 'Portfolio inspiration', course: 'Studio Practice', type: 'Collection', tags: 'portfolio, references', reviewed: 'May 01' },
+  { id: 12, workspaceId: 2, title: 'Portfolio inspiration', course: 'Studio Practice', type: 'Collection', tags: 'portfolio, references', reviewed: 'May 01', links: [
+    { id: 1, url: 'https://www.awwwards.com/', label: 'Awwwards' },
+    { id: 2, url: 'https://www.siteinspire.com/', label: 'SiteInspire' },
+  ] },
 
   { id: 13, workspaceId: 3, title: 'Interaction of Color', course: 'Design Foundations', type: 'Book', tags: 'color, reading', reviewed: 'Oct 12' },
   { id: 14, workspaceId: 3, title: 'Design thinking lecture notes', course: 'Design Foundations', type: 'Notes', tags: 'lecture, week 01', reviewed: 'Sep 10' },
 
   { id: 15, workspaceId: 6, title: 'Refactoring UI', course: 'Self Study', type: 'Book', tags: 'ui, design', reviewed: 'Oct 04' },
-  { id: 16, workspaceId: 6, title: 'Vue 3 reactivity deep dive', course: 'Self Study', type: 'Video', tags: 'vue, frontend', reviewed: 'Sep 30', url: 'https://example.com/vue-reactivity' },
+  { id: 16, workspaceId: 6, title: 'Vue 3 reactivity deep dive', course: 'Self Study', type: 'Video', tags: 'vue, frontend', reviewed: 'Sep 30', url: 'https://example.com/vue-reactivity', contentSource: 'link' },
   { id: 17, workspaceId: 6, title: 'Nuxt 4 migration notes', course: 'Self Study', type: 'Notes', tags: 'nuxt, migration', reviewed: 'Yesterday' },
 ]
 

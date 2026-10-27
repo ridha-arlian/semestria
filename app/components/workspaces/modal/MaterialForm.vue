@@ -2,6 +2,7 @@
   import { ChevronDown, X } from '@lucide/vue'
   import { Input } from '@/components/ui/input'
   import type { MaterialPayload, MaterialType } from '~/types'
+  import { MATERIAL_TYPE_DESCRIPTIONS, normalizeUrl } from '~/utils/materialContent'
 
   const props = defineProps<{
     courses?: string[]
@@ -26,8 +27,8 @@
   const course = ref('')
   const addingCourse = ref(false)
   const type = ref<MaterialType>(DEFAULT_TYPE)
-  const typeTouched = ref(false)
   const url = ref('')
+  const urlError = ref<string | null>(null)
   const tags = ref<string[]>([])
   const tagInput = ref('')
   const linkedTask = ref<number | null>(null)
@@ -35,6 +36,7 @@
   const titleEl = ref<InstanceType<typeof Input> | null>(null)
 
   const showCourseInput = computed(() => !props.courses?.length || addingCourse.value)
+  const showUrl = computed(() => !props.initial && (type.value === 'Link' || type.value === 'Video'))
   const canSubmit = computed(() => !!title.value.trim() && !!course.value.trim())
 
   const taskOptions = computed(() =>
@@ -48,8 +50,8 @@
     title.value = init.title
     course.value = init.course
     type.value = init.type
-    typeTouched.value = true
     url.value = init.url
+    urlError.value = null
     tags.value = [...init.tags]
     tagInput.value = ''
     linkedTask.value = init.taskId
@@ -67,46 +69,20 @@
       focusTitle()
   })
 
-  function parseUrl(raw: string): URL | null {
-    const value = raw.trim()
-    if (!value)
-      return null
-    try {
-      return new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(value) ? value : `https://${value}`)
-    }
-    catch {
-      return null
-    }
-  }
-
-  function detectType(parsed: URL): MaterialType {
-    const host = parsed.hostname.replace(/^www\./, '')
-    const path = parsed.pathname.toLowerCase()
-    if (/(^|\.)(youtube\.com|youtu\.be|vimeo\.com)$/.test(host))
-      return 'Video'
-    if (path.endsWith('.pdf'))
-      return 'PDF'
-    if (path.endsWith('.ppt') || path.endsWith('.pptx') || (host === 'docs.google.com' && path.startsWith('/presentation')))
-      return 'Slides'
-    return 'Link'
-  }
-
-  watch(url, (value) => {
-    if (typeTouched.value)
-      return
-    const parsed = parseUrl(value)
-    if (parsed)
-      type.value = detectType(parsed)
-    else if (!value.trim())
-      type.value = DEFAULT_TYPE
-  })
-
   function onUrlBlur() {
+    urlError.value = null
+    const raw = url.value.trim()
+    if (!raw)
+      return
+    const result = normalizeUrl(raw)
+    if ('error' in result) {
+      urlError.value = result.error
+      return
+    }
+    url.value = result.url
     if (title.value.trim())
       return
-    const parsed = parseUrl(url.value)
-    if (!parsed)
-      return
+    const parsed = new URL(result.url)
     const file = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() ?? '')
     const fromFile = file.replace(/\.[a-z\d]{2,4}$/i, '').replace(/[-_]+/g, ' ').trim()
     title.value = fromFile || parsed.hostname.replace(/^www\./, '')
@@ -116,7 +92,10 @@
     if (!value)
       return
     type.value = value as MaterialType
-    typeTouched.value = true
+    if (type.value !== 'Link' && type.value !== 'Video') {
+      url.value = ''
+      urlError.value = null
+    }
   }
 
   function onCourseSelect(value: unknown) {
@@ -161,20 +140,28 @@
     if (!canSubmit.value)
       return
     commitTag()
-    const parsed = parseUrl(url.value)
+    let nextUrl = ''
+    if (showUrl.value && url.value.trim()) {
+      const result = normalizeUrl(url.value)
+      if ('error' in result) {
+        urlError.value = result.error
+        return
+      }
+      nextUrl = result.url
+    }
     emit('submit', {
       title: title.value.trim(),
       course: course.value.trim(),
       type: type.value,
-      url: parsed ? parsed.toString() : '',
+      url: nextUrl,
       tags: [...tags.value],
       taskId: linkedTask.value,
     }, addAnother)
     if (addAnother) {
       title.value = ''
       type.value = DEFAULT_TYPE
-      typeTouched.value = false
       url.value = ''
+      urlError.value = null
       tags.value = []
       tagInput.value = ''
       linkedTask.value = null
@@ -225,19 +212,6 @@
         <Input v-if="showCourseInput" v-model="course" class="text-sm" placeholder="e.g. Design Research" />
       </div>
 
-      <div v-if="!props.initial" class="space-y-2">
-        <Label for="material-url" class="text-xs">Link <span class="font-normal text-muted-foreground">(optional)</span></Label>
-        <Input
-          id="material-url"
-          v-model="url"
-          type="url"
-          inputmode="url"
-          class="text-sm"
-          placeholder="https://…"
-          @blur="onUrlBlur"
-        />
-      </div>
-
       <div class="space-y-2">
         <Label class="text-xs">Type</Label>
         <Select :model-value="type" @update:model-value="onTypeChange">
@@ -250,6 +224,33 @@
             </SelectItem>
           </SelectContent>
         </Select>
+        <p class="text-xs text-muted-foreground">
+          {{ MATERIAL_TYPE_DESCRIPTIONS[type] }}
+        </p>
+      </div>
+
+      <div v-if="showUrl" class="space-y-2">
+        <Label for="material-url" class="text-xs">
+          {{ type === 'Video' ? 'Video link' : 'Link' }}
+          <span class="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="material-url"
+          v-model="url"
+          type="url"
+          inputmode="url"
+          class="text-sm"
+          placeholder="https://…"
+          :aria-invalid="!!urlError"
+          @input="urlError = null"
+          @blur="onUrlBlur"
+        />
+        <p v-if="urlError" class="text-xs text-destructive">
+          {{ urlError }}
+        </p>
+        <p v-else class="text-xs text-muted-foreground">
+          {{ type === 'Video' ? 'Opens in a new tab. You can upload a file instead.' : 'Opens in a new tab.' }}
+        </p>
       </div>
 
       <Collapsible v-model:open="showMore">

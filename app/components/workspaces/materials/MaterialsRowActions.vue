@@ -42,11 +42,11 @@ function onUpdateOpen(open: boolean) {
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-36">
       <DropdownMenuItem
-        v-if="material.url"
+        v-if="material.url || material.links?.length"
         class="cursor-pointer text-xs"
         @click="emit('open-link', material)"
       >
-        <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open link
+        <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open content
       </DropdownMenuItem>
       <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('mark-reviewed', material)">
         <Check class="mr-2 size-3.5 text-subline" /> Mark reviewed

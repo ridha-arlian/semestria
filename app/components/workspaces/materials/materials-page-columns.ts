@@ -55,6 +55,9 @@ export const materialsPageColumns = [
           h('div', { class: 'flex min-w-0 items-center gap-1.5' }, [
             h('p', { class: 'min-w-0 truncate text-sm font-semibold text-text-strong' }, item.title),
             h(Badge, { variant: 'outline', class: 'shrink-0 px-1.5 py-0 text-[10px] font-normal text-subline' }, () => item.type),
+            item.type === 'Collection' && (item.links?.length ?? 0) > 0
+              ? h('span', { class: 'shrink-0 font-mono text-[10px] text-text-muted' }, `${item.links!.length}`)
+              : null,
           ]),
           h('p', { class: 'mt-1 truncate text-[11px] text-subline' }, item.course),
           parseTags(item.tags).length > 0
@@ -72,10 +75,20 @@ export const materialsPageColumns = [
 
   columnHelper.accessor('type', {
     header: 'Type',
-    cell: ({ row }) => h(Badge, {
-      variant: 'outline',
-      class: 'px-2 py-0.5 text-[10px] font-normal text-subline',
-    }, () => row.original.type),
+    cell: ({ row }) => {
+      const item = row.original
+      const linkCount = item.type === 'Collection' ? item.links?.length ?? 0 : 0
+
+      return h('div', { class: 'flex min-w-0 items-center gap-1.5' }, [
+        h(Badge, {
+          variant: 'outline',
+          class: 'shrink-0 px-2 py-0.5 text-[10px] font-normal text-subline',
+        }, () => item.type),
+        linkCount > 0
+          ? h('span', { class: 'shrink-0 font-mono text-[10px] text-text-muted' }, `${linkCount} ${linkCount === 1 ? 'link' : 'links'}`)
+          : null,
+      ])
+    },
   }),
 
   columnHelper.accessor('tags', {

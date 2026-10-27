@@ -35,6 +35,10 @@
   }
 
   function handleOpenLink(item: Material) {
+    if (item.type === 'Collection') {
+      handleRowClick(item)
+      return
+    }
     if (item.url)
       window.open(item.url, '_blank', 'noopener,noreferrer')
   }
@@ -149,8 +153,8 @@
                 <FileText class="mr-2 size-3.5 text-subline" /> Open material
               </ContextMenuItem>
               <ContextMenuSeparator />
-              <ContextMenuItem v-if="row.url" class="cursor-pointer text-xs" @select="handleOpenLink(row)">
-                <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open link
+              <ContextMenuItem v-if="row.url || row.links?.length" class="cursor-pointer text-xs" @select="handleOpenLink(row)">
+                <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open content
               </ContextMenuItem>
               <ContextMenuItem class="cursor-pointer text-xs" @select="markMaterialReviewed(row.id)">
                 <Check class="mr-2 size-3.5 text-subline" /> Mark reviewed

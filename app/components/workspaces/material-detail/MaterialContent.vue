@@ -1,140 +1,13 @@
 <script setup lang="ts">
-import { ArrowUpRight, CloudUpload, FileText, RefreshCw, X } from '@lucide/vue'
 import type { Material } from '~/types'
-import type { MaterialDetailContext } from './materialDetailContext.ts'
+import { MATERIAL_TYPE_DESCRIPTIONS } from '~/utils/materialContent'
 
 const props = defineProps<{
   material: Material
 }>()
 
-const ctx = inject<MaterialDetailContext>('workspace')!
-
-// --- File upload state (all in-memory) ---
-const MAX_MB = 20
-const ALLOWED_EXT = ['pdf', 'pptx', 'ppt']
-
-const fileInput = ref<HTMLInputElement | null>(null)
-const isDragging = ref(false)
-const progress = ref<number | null>(null)
-const uploadError = ref<string | null>(null)
-const uploadedSize = ref<string | null>(null)
-const uploadedObjectUrl = ref<string | null>(null)
-let pendingFile: File | null = null
-let progressTimer: ReturnType<typeof setInterval> | undefined
-
-const hasFile = computed(() => !!props.material.url)
-
-const fileName = computed(() => {
-  if (pendingFile)
-    return pendingFile.name
-  const url = props.material.url ?? ''
-  try {
-    const parsed = new URL(url)
-    const last = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() ?? '')
-    if (last)
-      return last
-  }
-  catch {
-    // fall through to title
-  }
-  return props.material.title
-})
-
-function openFile() {
-  const target = uploadedObjectUrl.value ?? props.material.url
-  if (!target)
-    return
-  ctx.markMaterialOpened(props.material.id)
-  window.open(target, '_blank', 'noopener,noreferrer')
-}
-
-function pickFile() {
-  uploadError.value = null
-  fileInput.value?.click()
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024)
-    return `${bytes} B`
-  if (bytes < 1024 * 1024)
-    return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function startUpload(file: File) {
-  pendingFile = file
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  if (!ALLOWED_EXT.includes(ext)) {
-    uploadError.value = `“${file.name}” isn't supported. Please choose a PDF or PPTX file.`
-    progress.value = null
-    return
-  }
-  if (file.size > MAX_MB * 1024 * 1024) {
-    uploadError.value = `“${file.name}” is larger than ${MAX_MB} MB.`
-    progress.value = null
-    return
-  }
-  uploadError.value = null
-  progress.value = 0
-  uploadedSize.value = formatSize(file.size)
-  if (progressTimer)
-    clearInterval(progressTimer)
-  progressTimer = setInterval(() => {
-    if (progress.value === null)
-      return
-    progress.value = Math.min(100, progress.value + Math.ceil(Math.random() * 18))
-    if (progress.value >= 100) {
-      if (progressTimer)
-        clearInterval(progressTimer)
-      progressTimer = undefined
-      finishUpload(file)
-    }
-  }, 160)
-}
-
-function finishUpload(file: File) {
-  progress.value = null
-  if (uploadedObjectUrl.value)
-    URL.revokeObjectURL(uploadedObjectUrl.value)
-  uploadedObjectUrl.value = URL.createObjectURL(file)
-  ctx.updateMaterialUrl(props.material.id, uploadedObjectUrl.value)
-  pendingFile = null
-}
-
-function cancelUpload() {
-  if (progressTimer)
-    clearInterval(progressTimer)
-  progressTimer = undefined
-  progress.value = null
-}
-
-function retryUpload() {
-  if (pendingFile)
-    startUpload(pendingFile)
-}
-
-function onInputChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (file)
-    startUpload(file)
-  if (fileInput.value)
-    fileInput.value.value = ''
-}
-
-function onDrop(e: DragEvent) {
-  isDragging.value = false
-  const file = e.dataTransfer?.files?.[0]
-  if (file)
-    startUpload(file)
-}
-
-onUnmounted(() => {
-  if (progressTimer)
-    clearInterval(progressTimer)
-  if (uploadedObjectUrl.value)
-    URL.revokeObjectURL(uploadedObjectUrl.value)
-})
-
+const description = computed(() => MATERIAL_TYPE_DESCRIPTIONS[props.material.type])
+const hasContent = computed(() => props.material.type !== 'Notes')
 </script>
 
 <template>
@@ -144,103 +17,31 @@ onUnmounted(() => {
         Content
       </CardTitle>
       <CardDescription class="mt-0.5 text-xs text-subline">
-        File and notes for this material.
+        {{ description }}
       </CardDescription>
     </CardHeader>
     <CardContent class="space-y-5 p-4 sm:p-5">
-      <!-- Uploading -->
-        <div v-if="progress !== null" class="space-y-2">
-          <div class="flex items-center justify-between gap-2 text-xs">
-            <p class="min-w-0 truncate font-medium text-text-strong">
-              Uploading {{ fileName }}…
-            </p>
-            <span class="shrink-0 font-mono text-subline">{{ progress }}%</span>
-          </div>
-          <Progress :model-value="progress" class="h-1.5" />
-          <div>
-            <Button size="sm" variant="outline" @click="cancelUpload">
-              <X class="mr-1.5 size-3.5" />
-              Cancel
-            </Button>
-          </div>
-        </div>
+      <template v-if="hasContent">
+        <WorkspacesMaterialDetailMaterialFileContent
+          v-if="material.type === 'PDF' || material.type === 'Slides' || material.type === 'Book'"
+          :material="material"
+          :type="material.type === 'Slides' ? 'Slides' : material.type === 'Book' ? 'Book' : 'PDF'"
+        />
+        <WorkspacesMaterialDetailMaterialVideoContent
+          v-else-if="material.type === 'Video'"
+          :material="material"
+        />
+        <WorkspacesMaterialDetailMaterialLinkContent
+          v-else-if="material.type === 'Link'"
+          :material="material"
+        />
+        <WorkspacesMaterialDetailMaterialCollectionContent
+          v-else-if="material.type === 'Collection'"
+          :material="material"
+        />
 
-        <!-- Upload error -->
-        <div v-else-if="uploadError" class="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-5 text-center">
-          <p class="text-sm font-medium text-text-strong">
-            Upload failed
-          </p>
-          <p class="mt-1 text-xs text-subline">
-            {{ uploadError }}
-          </p>
-          <div class="mt-3 flex justify-center gap-2">
-            <Button size="sm" variant="outline" @click="retryUpload">
-              <RefreshCw class="mr-1.5 size-3.5" />
-              Retry
-            </Button>
-            <Button size="sm" variant="ghost" @click="uploadError = null">
-              Dismiss
-            </Button>
-          </div>
-        </div>
-
-        <!-- With file -->
-        <div v-else-if="hasFile" class="flex flex-wrap items-center gap-3 rounded-lg border border-line px-3 py-3">
-          <div class="grid size-10 shrink-0 place-items-center rounded bg-soft text-subline">
-            <FileText class="size-4" />
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-text-strong">
-              {{ fileName }}
-            </p>
-            <p class="mt-0.5 truncate text-xs text-subline">
-              {{ uploadedSize ?? 'Attached file' }}
-            </p>
-          </div>
-          <div class="flex shrink-0 items-center gap-1.5">
-            <Button size="sm" variant="outline" @click="openFile">
-              Open file
-              <ArrowUpRight class="ml-1 size-3.5" />
-            </Button>
-            <Button size="sm" variant="ghost" @click="pickFile">
-              Replace
-            </Button>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div v-else>
-          <button
-            type="button"
-            class="flex w-full flex-col items-center rounded-lg border border-dashed border-line px-4 py-8 text-center transition-colors hover:border-ink/30 hover:bg-soft/50"
-            :class="isDragging && 'border-ink/40 bg-soft/60'"
-            @click="pickFile"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="onDrop"
-            @keydown.enter.prevent="pickFile"
-            @keydown.space.prevent="pickFile"
-          >
-            <CloudUpload class="size-5 text-subline" />
-            <p class="mt-2 text-sm font-medium text-text-strong">
-              Drag a file here or <span class="underline underline-offset-2">Choose file</span>
-            </p>
-            <p class="mt-1 text-xs text-subline">
-              PDF, PPTX · max 20 MB
-            </p>
-          </button>
-        </div>
-
-        <input
-          ref="fileInput"
-          type="file"
-          accept=".pdf,.pptx,.ppt"
-          class="sr-only"
-          tabindex="-1"
-          @change="onInputChange"
-        >
-
-      <Separator />
+        <Separator />
+      </template>
 
       <WorkspacesMaterialDetailMaterialNotes :material="material" />
     </CardContent>

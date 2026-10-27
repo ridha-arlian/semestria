@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { Material, MaterialActivity, MaterialNote, MaterialPayload, ModalType, Task } from '~/types'
+import type { Material, MaterialActivity, MaterialContentInput, MaterialNote, MaterialPayload, ModalType, Task } from '~/types'
 
 /** Workspace-provided operations consumed by the material detail page and its cards. */
 export interface MaterialDetailContext {
@@ -9,7 +9,10 @@ export interface MaterialDetailContext {
   openAdd: (type: ModalType) => void
   updateMaterial: (id: number, payload: MaterialPayload) => void
   updateMaterialNote: (id: number, note: MaterialNote) => void
-  updateMaterialUrl: (id: number, url: string) => void
+  setMaterialContent: (id: number, content: MaterialContentInput | null) => void
+  addMaterialLink: (id: number, link: { url: string, label?: string }) => void
+  updateMaterialLink: (id: number, linkId: number, patch: { url?: string, label?: string }) => void
+  removeMaterialLink: (id: number, linkId: number) => void
   linkMaterialTask: (id: number, taskId: number) => void
   unlinkMaterialTask: (id: number, taskId: number) => void
   markMaterialReviewed: (id: number) => void

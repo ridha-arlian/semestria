@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialContentInput, MaterialLink, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import { planTypeChange } from '~/utils/materialContent'
 
   const route = useRoute()
   const api = useApi()
@@ -255,6 +256,7 @@
 
   const materialActivities = ref<Record<number, MaterialActivity[]>>({})
   let activitySeq = 1
+  let linkSeq = 1000
 
   function pushMaterialActivity(materialId: number, kind: MaterialActivityKind, label: string, detail?: string) {
     const entry: MaterialActivity = { id: activitySeq++, kind, label, detail, at: 'Just now' }
@@ -268,18 +270,49 @@
     return [session, [created]].flat()
   }
 
+  function revokeBlobUrl(url?: string) {
+    if (import.meta.client && url?.startsWith('blob:'))
+      URL.revokeObjectURL(url)
+  }
+
+  function nextLinkId() {
+    linkSeq++
+    return linkSeq
+  }
+
+  function applyContentPlan(item: Material, plan: ReturnType<typeof planTypeChange>) {
+    const prevUrl = item.url
+    const links = plan.links.map(link => link.id === 0 ? { ...link, id: nextLinkId() } : link)
+    item.url = plan.url
+    item.contentSource = plan.source
+    item.links = links.length ? links : undefined
+    item.fileName = plan.fileName
+    item.fileSize = plan.fileSize
+    if (prevUrl && prevUrl !== plan.url)
+      revokeBlobUrl(prevUrl)
+  }
+
   function updateMaterial(id: number, payload: MaterialPayload) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
     const prevTags = item.tags
-    const prevUrl = item.url
     const prevTaskId = item.taskId
+    const prevType = item.type
+    const plan = prevType !== payload.type ? planTypeChange(item, payload.type) : null
+    const hadContent = !!item.url || (item.links?.length ?? 0) > 0
+
     item.title = payload.title
     item.course = payload.course
     item.type = payload.type
-    item.url = payload.url || undefined
     item.tags = payload.tags.join(', ')
+
+    if (plan) {
+      applyContentPlan(item, plan)
+      if (plan.lost && hadContent)
+        pushMaterialActivity(id, 'Content removed', 'Content removed')
+    }
+
     // Keep the card in sync: drop the previous primary, keep the other links.
     const nextTaskIds = linkedTaskIds(item).filter(tid => tid !== prevTaskId)
     if (payload.taskId)
@@ -289,8 +322,6 @@
       pushMaterialActivity(id, 'Tag added', 'Tag added', item.tags || undefined)
     else
       pushMaterialActivity(id, 'Edited', 'Edited')
-    if (prevUrl !== item.url && item.url)
-      pushMaterialActivity(id, 'File replaced', 'File replaced', item.url)
   }
 
   /** All tasks pointing at this material, merged from both link sources. */
@@ -372,12 +403,65 @@
     pushMaterialActivity(id, 'Note updated', 'Note updated')
   }
 
-  function updateMaterialUrl(id: number, url: string) {
+  function setMaterialContent(id: number, content: MaterialContentInput | null) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
-    item.url = url || undefined
-    pushMaterialActivity(id, 'File replaced', 'File replaced', url || undefined)
+    const prevUrl = item.url
+    const prevFileName = item.fileName
+    const prevSource = item.contentSource ?? (prevUrl && /^https?:\/\//i.test(prevUrl) ? 'link' : 'file')
+    const nextUrl = content?.url || undefined
+    item.url = nextUrl
+    item.contentSource = content?.source
+    item.fileName = nextUrl ? content?.fileName : undefined
+    item.fileSize = nextUrl ? content?.fileSize : undefined
+    if (prevUrl && prevUrl !== nextUrl)
+      revokeBlobUrl(prevUrl)
+    if (nextUrl) {
+      if (content?.source === 'file')
+        pushMaterialActivity(id, 'File replaced', 'File replaced', content.fileName ?? nextUrl)
+      else
+        pushMaterialActivity(id, 'Link updated', 'Link updated', nextUrl)
+    }
+    else if (prevUrl) {
+      const label = prevSource === 'file' ? 'File removed' : 'Link removed'
+      pushMaterialActivity(id, label, label, prevFileName ?? prevUrl)
+    }
+  }
+
+  function addMaterialLink(id: number, link: { url: string, label?: string }) {
+    const item = materials.value.find(m => m.id === id)
+    if (!item || !link.url.trim())
+      return
+    const entry: MaterialLink = { id: nextLinkId(), url: link.url, label: link.label?.trim() || undefined }
+    item.links = [...(item.links ?? []), entry]
+    pushMaterialActivity(id, 'Link added', 'Link added', entry.label || entry.url)
+  }
+
+  function updateMaterialLink(id: number, linkId: number, patch: { url?: string, label?: string }) {
+    const item = materials.value.find(m => m.id === id)
+    const link = item?.links?.find(l => l.id === linkId)
+    if (!link)
+      return
+    const prevUrl = link.url
+    const prevLabel = link.label
+    if (patch.url !== undefined)
+      link.url = patch.url
+    if (patch.label !== undefined)
+      link.label = patch.label.trim() || undefined
+    if (prevUrl !== link.url || prevLabel !== link.label)
+      pushMaterialActivity(id, 'Link updated', 'Link updated', link.label || link.url)
+  }
+
+  function removeMaterialLink(id: number, linkId: number) {
+    const item = materials.value.find(m => m.id === id)
+    const link = item?.links?.find(l => l.id === linkId)
+    if (!item || !link)
+      return
+    item.links = item.links?.filter(l => l.id !== linkId)
+    if (!item.links?.length)
+      item.links = undefined
+    pushMaterialActivity(id, 'Link removed', 'Link removed', link.label || link.url)
   }
 
   function markMaterialReviewed(id: number) {
@@ -396,6 +480,9 @@
   }
 
   function removeMaterial(id: number) {
+    const item = materials.value.find(m => m.id === id)
+    if (item)
+      revokeBlobUrl(item.url)
     materials.value = materials.value.filter(m => m.id !== id)
     // Linked tasks are kept; only the link is removed.
     for (const t of tasks.value) {
@@ -427,7 +514,10 @@
     updateNote,
     updateMaterial,
     updateMaterialNote,
-    updateMaterialUrl,
+    setMaterialContent,
+    addMaterialLink,
+    updateMaterialLink,
+    removeMaterialLink,
     linkMaterialTask,
     unlinkMaterialTask,
     markMaterialReviewed,

@@ -5,6 +5,7 @@ import MaterialForm from '~/components/workspaces/modal/MaterialForm.vue'
 import type { BreadcrumbEntry, MaterialPayload } from '~/types'
 import type { Ref } from 'vue'
 import type { MaterialDetailContext } from '~/components/workspaces/material-detail/materialDetailContext.ts'
+import { planTypeChange } from '~/utils/materialContent'
 
 definePageMeta({
   layout: 'workspaces',
@@ -53,11 +54,32 @@ const editInitial = computed<MaterialPayload | null>(() => {
   }
 })
 
+const typeChangeOpen = ref(false)
+const pendingEdit = ref<MaterialPayload | null>(null)
+
 function handleEditSubmit(payload: MaterialPayload) {
+  const item = material.value
+  if (!item)
+    return
+  if (payload.type !== item.type && planTypeChange(item, payload.type).lost) {
+    pendingEdit.value = payload
+    typeChangeOpen.value = true
+    return
+  }
+  applyEdit(payload)
+}
+
+function applyEdit(payload: MaterialPayload) {
   if (!material.value)
     return
   ctx.updateMaterial(material.value.id, payload)
   editOpen.value = false
+  pendingEdit.value = null
+}
+
+function confirmTypeChange() {
+  if (pendingEdit.value)
+    applyEdit(pendingEdit.value)
 }
 
 const justReviewed = ref(false)
@@ -230,6 +252,18 @@ function handleDelete() {
         </div>
       </DrawerContent>
     </Drawer>
+
+    <ConfirmDialog
+      v-model:open="typeChangeOpen"
+      title="Change material type?"
+      confirm-label="Change type"
+      @confirm="confirmTypeChange"
+      @close="pendingEdit = null"
+    >
+      <template #description>
+        Switching to {{ pendingEdit?.type }} will remove content that doesn't fit the new type. Notes, tags, and linked tasks are kept.
+      </template>
+    </ConfirmDialog>
 
     <!-- Delete confirm -->
     <DeleteConfirmDialog

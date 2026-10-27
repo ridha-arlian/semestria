@@ -52,6 +52,12 @@ export interface Task {
   materialIds?: number[]
 }
 
+export interface MaterialLink {
+  id: number
+  url: string
+  label?: string
+}
+
 export interface Material {
   id: number
   workspaceId: number
@@ -62,8 +68,22 @@ export interface Material {
   reviewed: string
   lastOpened?: string
   url?: string
+  /** Which kind of content `url` holds. Only Video can be either. */
+  contentSource?: 'file' | 'link'
+  /** Uploaded-file metadata; survives navigation for the session. */
+  fileName?: string
+  fileSize?: number
+  /** Collection links. */
+  links?: MaterialLink[]
   description?: MaterialNote
   taskId?: number
+}
+
+export interface MaterialContentInput {
+  url: string
+  source: 'file' | 'link'
+  fileName?: string
+  fileSize?: number
 }
 
 export interface StatItem {
@@ -102,7 +122,7 @@ export interface MaterialPayload {
   taskId: number | null
 }
 
-export type MaterialActivityKind = 'Created' | 'Note updated' | 'File replaced' | 'Marked reviewed' | 'Tag added' | 'Task linked' | 'Task unlinked' | 'Edited'
+export type MaterialActivityKind = 'Created' | 'Note updated' | 'File replaced' | 'File removed' | 'Link added' | 'Link updated' | 'Link removed' | 'Content removed' | 'Marked reviewed' | 'Tag added' | 'Task linked' | 'Task unlinked' | 'Edited'
 
 export interface MaterialActivity {
   id: number
