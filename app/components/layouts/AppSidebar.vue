@@ -1,9 +1,11 @@
 <script setup lang="ts">
-  import { Settings } from '@lucide/vue'
+  import { Settings, UserRound } from '@lucide/vue'
   import { useSidebar } from '~/components/ui/sidebar'
+  import { useSettings } from '~/composables/useSettings'
 
   const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
   const route = useRoute()
+  const { settings, avatarUrl, openSettings } = useSettings()
 
   // Auto-close mobile drawer (Sheet) on navigation.
   // Desktop uses collapsible="icon" and must not be affected.
@@ -24,6 +26,8 @@
   }
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
+
+  // const { isOpen, closeSettings } = useSettings()
 </script>
 
 <template>
@@ -82,15 +86,15 @@
       <div class="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center whitespace-nowrap">
         <div class="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
           <Avatar class="size-8 shrink-0">
-            <AvatarImage src="" alt="Ari Rahman" />
-            <AvatarFallback class="bg-ink text-[11px] font-semibold text-paper">
-              AR
+            <AvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="settings.profile.name" />
+            <AvatarFallback class="bg-ink text-paper">
+              <UserRound />
             </AvatarFallback>
           </Avatar>
 
           <div :class="collapseWrap">
-            <span class="text-xs font-medium text-strong truncate">
-              Ari Rahman
+            <span class="text-xs font-medium text-text-strong truncate">
+              {{ settings.profile.name }}
             </span>
           </div>
         </div>
@@ -103,6 +107,7 @@
                 variant="ghost"
                 size="icon"
                 class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 group-data-[collapsible=icon]:hidden transition-colors duration-200 ease-linear"
+                @click="openSettings()"
               >
                 <Settings class="size-5" />
               </Button>

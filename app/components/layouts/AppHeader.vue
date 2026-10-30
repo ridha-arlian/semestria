@@ -1,7 +1,8 @@
 <script setup lang="ts">
-  import { Plus, SearchIcon } from '@lucide/vue'
+  import { Plus, SearchIcon, Settings as SettingsIcon } from '@lucide/vue'
   import { useDateFormat, useMagicKeys, useMounted, whenever } from '@vueuse/core'
   import { useSidebar } from '~/components/ui/sidebar'
+  import { useSettings } from '~/composables/useSettings'
   import type { BreadcrumbEntry, View } from '~/types'
 
   const { view, breadcrumbs = [] } = defineProps<{
@@ -17,6 +18,7 @@
 
   const { toggleSidebar } = useSidebar()
   const open = ref(false)
+  const { settings, openSettings } = useSettings()
 
   const { meta_q, ctrl_q } = useMagicKeys()
   whenever(() => meta_q?.value || ctrl_q?.value, () => {
@@ -26,13 +28,27 @@
   const isMounted = useMounted()
   const formattedDate = useDateFormat(computed(() => (isMounted.value ? new Date() : undefined)), 'dddd, MMMM D, YYYY', { locales: 'en-US' })
 
-  const headingDesktop = computed(() => 'Good morning, Ari.')
+  const headingDesktop = computed(() => {
+    // Rendered on the server too, so keep the fallback neutral and swap in the
+    // time-based greeting once mounted to avoid a hydration mismatch.
+    if (!isMounted.value)
+      return 'Welcome back.'
+    const hour = new Date().getHours()
+    const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
+    const name = settings.value.profile.name || 'you'
+    return `Good ${part}, ${name.split(' ')[0]}.`
+  })
   const headingMobile = computed(() => view)
-  const isOverview = computed(() => !breadcrumbs || breadcrumbs.length === 0)
+  const isOverview = computed(() => view === 'Overview')
 
   function handleSelectAction(action: () => void) {
     open.value = false
     action()
+  }
+
+  function handleSettings() {
+    open.value = false
+    openSettings()
   }
 </script>
 
@@ -130,6 +146,10 @@
             <CommandItem value="add material" @select="handleSelectAction(() => emit('add-material'))">
               <Plus class="mr-2 size-4" />
               <span>Add material</span>
+            </CommandItem>
+            <CommandItem value="settings" @select="handleSettings">
+              <SettingsIcon class="mr-2 size-4" />
+              <span>Settings</span>
             </CommandItem>
           </CommandGroup>
 

@@ -2,6 +2,7 @@
 
 @import 'tailwindcss';
 @import "tw-animate-css";
+@import "@vuelor/picker/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -68,6 +69,18 @@
 
 @theme inline {
   --font-heading: var(--font-sans);
+  --vuelor-primary: var(--primary);
+  --vuelor-surface: var(--popover);
+  --vuelor-border: var(--line);
+  --vuelor-input: var(--soft);
+  --shadow-vuelor-card: 0 2px 5px 0 #00000026, 0 10px 16px 0 #0000001f, 0 0 .5px 0 #0000001f;
+  --shadow-vuelor-thumb: 0px 0px .5px #0000002e, 0px 3px 8px #0000001a, 0px 1px 3px #0000001a;
+  --shadow-vuelor-inner: inset 0 0 0 1px #0000001a;
+  --drop-shadow-vuelor-thumb: 0px 0px .5px #00000054, 0px 1px 3px #00000026;
+  --color-vuelor-input: var(--vuelor-input);
+  --color-vuelor-border: var(--vuelor-border);
+  --color-vuelor-surface: var(--vuelor-surface);
+  --color-vuelor-primary: var(--vuelor-primary);
 }
 
 :root {

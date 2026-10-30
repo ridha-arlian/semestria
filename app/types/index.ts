@@ -131,3 +131,43 @@ export interface MaterialActivity {
   detail?: string
   at: string
 }
+
+export type SettingsSection = 'profile' | 'appearance' | 'notifications' | 'preferences'
+
+export type ThemePresetId = 'mono' | 'ocean' | 'forest' | 'rose' | 'amber' | 'violet' | 'custom'
+
+export type WeekStart = 'monday' | 'sunday'
+
+export type DefaultLanding = 'dashboard' | 'last-active'
+
+export type ReminderLeadTime = '1' | '3' | '7'
+
+export interface SettingsProfile {
+  name: string
+  email: string
+}
+
+export interface SettingsAppearance {
+  preset: ThemePresetId
+  customColor: string
+}
+
+export interface SettingsNotifications {
+  deadlineReminders: boolean
+  leadTime: ReminderLeadTime
+  weeklyDigest: boolean
+  materialUpdates: boolean
+}
+
+export interface SettingsPreferences {
+  weekStartsOn: WeekStart
+  activeWorkspaceSlug: string | null
+  defaultLanding: DefaultLanding
+}
+
+export interface AppSettings {
+  profile: SettingsProfile
+  appearance: SettingsAppearance
+  notifications: SettingsNotifications
+  preferences: SettingsPreferences
+}
