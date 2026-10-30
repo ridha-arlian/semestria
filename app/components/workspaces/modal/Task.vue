@@ -36,7 +36,7 @@
           Make it part of the plan.
         </DialogTitle>
         <DialogDescription class="sr-only">
-          Tambahkan task baru ke timeline semester aktif.
+          Add this task to your active semester timeline.
         </DialogDescription>
       </DialogHeader>
 
@@ -62,7 +62,7 @@
           Make it part of the plan.
         </DrawerTitle>
         <DrawerDescription class="sr-only">
-          Tambahkan task baru ke timeline semester aktif.
+          Add this task to your active semester timeline.
         </DrawerDescription>
       </DrawerHeader>
 

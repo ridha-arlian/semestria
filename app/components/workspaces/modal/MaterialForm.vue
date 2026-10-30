@@ -283,7 +283,7 @@
           </div>
 
           <div class="space-y-2">
-            <Label for="material-tags" class="text-xs">Tags <span class="font-normal text-muted-foreground">(Enter atau koma)</span></Label>
+            <Label for="material-tags" class="text-xs">Tags <span class="font-normal text-muted-foreground">(Enter or comma)</span></Label>
             <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-input px-2 py-1.5 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
               <Badge v-for="t in tags" :key="t" variant="secondary" class="gap-1 pr-1">
                 {{ t }}

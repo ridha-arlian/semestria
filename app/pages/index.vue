@@ -79,7 +79,7 @@
         <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-subline">
           The workspace
         </span>
-        <p class="my-4 max-w-none text-sm leading-[1.65] text-strong sm:max-w-55">
+        <p class="my-4 max-w-none text-sm leading-[1.65] text-text-strong sm:max-w-55">
           Sign in with Google, add what matters, and keep going. No template building, no setup. Just a workspace that's ready when you are.
         </p>
         <Button variant="outline" size="lg" class="w-full bg-soft text-ink hover:bg-hover sm:w-auto">
@@ -128,10 +128,10 @@
                 <div class="flex items-center gap-3">
                   <input type="checkbox" :checked="row.completed" class="h-4 w-4 cursor-pointer rounded border-line-strong text-ink accent-ink focus:ring-0" disabled>
                   <div>
-                    <div class="text-[11px] font-bold" :class="row.completed ? 'text-muted line-through' : 'text-strong'">
+                    <div class="text-[11px] font-bold" :class="row.completed ? 'text-text-muted line-through' : 'text-text-strong'">
                       {{ row.title }}
                     </div>
-                    <div class="text-[9px] text-muted">
+                    <div class="text-[9px] text-text-muted">
                       {{ row.priority }}
                     </div>
                   </div>
@@ -157,7 +157,7 @@
                   <div class="h-1.5 w-16 overflow-hidden rounded-full bg-soft">
                     <div class="h-full bg-ink" :style="{ width: `${row.progress}%` }"/>
                   </div>
-                  <span class="font-mono text-[9px] text-muted">
+                  <span class="font-mono text-[9px] text-text-muted">
                     {{ row.progress }}%
                   </span>
                 </div>
@@ -166,7 +166,7 @@
           </TableBody>
         </Table>
 
-        <div class="flex items-center gap-2 border-t border-line bg-soft px-5 py-4 font-mono text-[10px] text-muted">
+        <div class="flex items-center gap-2 border-t border-line bg-soft px-5 py-4 font-mono text-[10px] text-text-muted">
           <Plus class="h-3.5 w-3.5" />
           Add an assignment
         </div>
@@ -211,13 +211,9 @@
 
       <div class="mt-6 flex flex-col items-start gap-2.5 shrink-0 sm:flex-row sm:items-center md:mt-0 md:flex-col md:items-end">
         <Button as-child size="lg" class="w-full sm:w-auto">
-          <!-- <NuxtLink to="/workspaces" class="flex items-center justify-center gap-1.5">
+          <NuxtLink to="/dashboard" class="flex items-center justify-center gap-1.5">
             Try the demo
-            <ArrowUpRight class="h-3.5 w-3.5" />
-          </NuxtLink> -->
-          <NuxtLink to="/" class="flex items-center justify-center gap-1.5">
-            Try the demo
-            <ArrowUpRight class="h-3.5 w-3.5" />
+            <ArrowUpRight class="size-3.5" />
           </NuxtLink>
         </Button>
         <span class="font-mono text-[10px] text-subline">

@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (!workspace) {
     return abortNavigation(
-      createError({ statusCode: 404, statusMessage: 'Workspace tidak ditemukan' }),
+      createError({ statusCode: 404, statusMessage: 'Workspace not found' }),
     )
   }
 })

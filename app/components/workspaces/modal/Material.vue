@@ -33,7 +33,7 @@
           Add it to your library.
         </DialogTitle>
         <DialogDescription class="sr-only">
-          Tambahkan materi kuliah baru ke workspace aktif.
+          Add this material to your active workspace library.
         </DialogDescription>
       </DialogHeader>
 
@@ -59,7 +59,7 @@
           Add it to your library.
         </DrawerTitle>
         <DrawerDescription class="sr-only">
-          Tambahkan materi kuliah baru ke workspace aktif.
+          Add this material to your active workspace library.
         </DrawerDescription>
       </DrawerHeader>
 

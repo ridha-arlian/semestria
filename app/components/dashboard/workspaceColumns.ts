@@ -74,9 +74,9 @@ export const columns = [
     id: 'assignments',
     header: 'Assignments',
     cell: ({ row }) => h('div', { class: 'space-y-1' }, [
-      h('div', { class: 'flex items-center text-xs font-medium text-strong' }, [
+      h('div', { class: 'flex items-center text-xs font-medium text-text-strong' }, [
         h('span', {}, `${row.original.assignments} assignments`),
-        h(Dot, { class: 'size-4 text-muted -mx-0.5' }),
+        h(Dot, { class: 'size-4 text-text-muted -mx-0.5' }),
         h('span', { class: 'text-subline font-normal' }, `${row.original.courses} courses`),
       ]),
 
