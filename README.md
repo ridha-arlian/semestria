@@ -4,9 +4,9 @@ Semestria is a student workspace manager for organizing semesters, deadlines, ta
 
 ## Features
 
-- **Dashboard** — workspace stats, sortable workspace table with row actions (open, set active, edit, delete), and create/edit dialogs.
+- **Dashboard** — workspace stats, workspace table with row actions (open, set active, edit, delete), and create/edit dialogs.
 - **Workspace overview** — stat cards, tasks preview with sorting, study progress (time elapsed, tasks done, status segments), and a weekly focus note.
-- **Tasks** — full-page TanStack-powered data table with search, status filter, sortable columns, per-row actions (change status, delete), contextual empty states, and tooltips.
+- **Tasks** — full-page TanStack-powered data table with search, status filter, column visibility, per-row actions (change status, delete), contextual empty states, and tooltips.
 - **Materials** — searchable shelf table for notes, books, slides, links, PDFs, and videos.
 - **App shell** — collapsible icon sidebar (desktop), auto-closing drawer (mobile), breadcrumbs, global search command palette (`Ctrl`/`Cmd` + `Q`), and color mode toggle.
 
