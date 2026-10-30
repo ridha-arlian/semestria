@@ -15,7 +15,10 @@
     layout: 'dashboard',
   })
 
-  const workspaces = useApi().getWorkspaces()
+  const api = useApi()
+  // Read through a computed: TanStack Table memoizes on the data array
+  // reference, so add/delete must produce a new array for the rows to refresh.
+  const workspaces = computed(() => api.getWorkspaces())
 
   const isModalOpen = ref(false)
   const selectedWorkspace = ref<Workspace | null>(null)
@@ -39,15 +42,19 @@
   }
 
   function handleConfirmDelete(workspace: Workspace) {
-    console.log('Proses hapus workspace:', workspace)
+    api.removeWorkspace(workspace.id)
+    workspaceToDelete.value = null
+    isDeleteModalOpen.value = false
   }
 
   function handleWorkspaceSuccess(data: WorkspaceFormPayload) {
     if (selectedWorkspace.value) {
-      console.log('Update workspace:', data)
+      api.updateWorkspace(selectedWorkspace.value.id, data)
     } else {
-      console.log('Data workspace baru:', data)
+      api.addWorkspace(data)
     }
+    selectedWorkspace.value = null
+    isModalOpen.value = false
   }
 
   function handleRowClick(workspace: Workspace) {
@@ -55,17 +62,35 @@
   }
 
   function handleSetActive(workspace: Workspace) {
-    console.log('Set aktif:', workspace)
+    api.setActiveWorkspace(workspace.id)
   }
 
-  const totalAssignments = workspaces.reduce((sum, w) => sum + w.assignments, 0)
-  const completedAssignments = workspaces.reduce((sum, w) => sum + w.completed, 0)
-  const activeWorkspace = workspaces.find(w => w.active)
+  const totalAssignments = computed(() => workspaces.value.reduce((sum, w) => sum + w.assignments, 0))
+  const completedAssignments = computed(() => workspaces.value.reduce((sum, w) => sum + w.completed, 0))
+  const activeWorkspace = computed(() => workspaces.value.find(w => w.active))
+
+  const activeWeek = computed(() => {
+    const w = activeWorkspace.value
+    if (!w?.startDate || !w?.endDate)
+      return null
+    const WEEK = 7 * 24 * 60 * 60 * 1000
+    const start = new Date(`${w.startDate}T00:00:00`).getTime()
+    const end = new Date(`${w.endDate}T00:00:00`).getTime()
+    const total = Math.ceil((end - start) / WEEK)
+    if (total <= 0)
+      return null
+    const current = Math.min(Math.max(Math.floor((Date.now() - start) / WEEK) + 1, 1), total)
+    return { current, total }
+  })
 
   const homeStats = computed<StatItem[]>(() => [
-    { label: 'Workspaces', value: String(workspaces.length), note: 'workspaces in your space' },
-    { label: 'Assignments', value: String(totalAssignments), note: `${completedAssignments} completed overall` },
-    { label: 'Active semester', value: activeWorkspace?.name ?? '—', note: 'Week 3 of 16' },
+    { label: 'Workspaces', value: String(workspaces.value.length), note: 'workspaces in your space' },
+    { label: 'Assignments', value: String(totalAssignments.value), note: `${completedAssignments.value} completed overall` },
+    {
+      label: 'Active semester',
+      value: activeWorkspace.value?.name ?? '—',
+      note: activeWeek.value ? `Week ${activeWeek.value.current} of ${activeWeek.value.total}` : 'No active semester',
+    },
   ])
 </script>
 
