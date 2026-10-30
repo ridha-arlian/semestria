@@ -41,12 +41,27 @@
   }
 
   const search = ref('')
-  const statusFilter = ref<'All' | Status>('All')
+  const statusFilter = ref<'All' | 'Active' | Status>('All')
+
+  // Overview stat cards link here with ?status=active|completed
+  const statusFromQuery = computed(() => {
+    const value = route.query.status
+    if (value === 'active')
+      return 'Active' as const
+    if (value === 'completed')
+      return 'Done' as const
+    return null
+  })
+
+  watch(statusFromQuery, (status) => {
+    statusFilter.value = status ?? 'All'
+  }, { immediate: true })
 
   const filtered = computed(() =>
     tasks.value.filter(t =>
       [t.task, t.course, t.status, t.priority].join(' ').toLowerCase().includes(search.value.toLowerCase())
-      && (statusFilter.value === 'All' || t.status === statusFilter.value),
+      && (statusFilter.value === 'All'
+        || (statusFilter.value === 'Active' ? t.status !== 'Done' : t.status === statusFilter.value)),
     ),
   )
 
@@ -81,6 +96,7 @@
           </SelectTrigger>
           <SelectContent align="end">
             <SelectItem value="All" class="cursor-pointer text-xs">All statuses</SelectItem>
+            <SelectItem value="Active" class="cursor-pointer text-xs">Active</SelectItem>
             <SelectItem value="To do" class="cursor-pointer text-xs">To do</SelectItem>
             <SelectItem value="In progress" class="cursor-pointer text-xs">In progress</SelectItem>
             <SelectItem value="Done" class="cursor-pointer text-xs">Done</SelectItem>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
+  import { DateFormatter, getLocalTimeZone, parseDate } from '@internationalized/date'
   import { CalendarIcon } from '@lucide/vue'
   import type { DateRange } from 'reka-ui'
   import type { Workspace, WorkspaceFormPayload } from '~/types'
@@ -36,7 +36,12 @@
       if (workspace) {
         form.value.name = workspace.name
         form.value.isActive = workspace.active
-      } else {
+        dateRange.value = {
+          start: workspace.startDate ? parseDate(workspace.startDate) : undefined,
+          end: workspace.endDate ? parseDate(workspace.endDate) : undefined,
+        }
+      }
+      else {
         resetForm()
       }
     }
@@ -54,7 +59,12 @@
 
   function toIsoString(date: DateRange['start']) {
     if (!date) return ''
-    return date.toDate(getLocalTimeZone()).toISOString().substring(0, 10)
+    // `toDate()` converts to the local timezone; `toISOString()` would shift the
+    // day backwards for positive UTC offsets, so read the local parts instead.
+    const d = date.toDate(getLocalTimeZone())
+    const month = `${d.getMonth() + 1}`.padStart(2, '0')
+    const day = `${d.getDate()}`.padStart(2, '0')
+    return `${d.getFullYear()}-${month}-${day}`
   }
 
   function resetForm() {
@@ -111,6 +121,7 @@
           <Popover>
             <PopoverTrigger as-child>
               <Button
+                type="button"
                 variant="outline"
                 class="w-full justify-start text-left font-normal"
                 :class="!dateRange.start && 'text-subline'"
@@ -138,7 +149,7 @@
         </div>
 
         <DialogFooter class="pt-2">
-          <Button type="button" variant="outline" @click="isOpen = false">
+          <Button type="button" variant="outline" @click="handleOpenChange(false)">
             Cancel
           </Button>
           <Button type="submit">

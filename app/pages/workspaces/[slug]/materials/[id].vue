@@ -22,8 +22,10 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
 
 const material = computed(() => ctx.materials.value.find(m => m.id === Number(route.params.id)))
 
-if (!material.value)
-  throw createError({ statusCode: 404, statusMessage: 'Material not found' })
+if (!material.value) {
+  // Fatal only on the client: a fatal SSR error tears down the dev server.
+  throw createError({ statusCode: 404, statusMessage: 'Material not found', fatal: import.meta.client })
+}
 
 watch(() => material.value?.title, (title) => {
   if (breadcrumbExtra)

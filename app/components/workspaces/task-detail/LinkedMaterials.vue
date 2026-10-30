@@ -8,7 +8,11 @@ const props = defineProps<{
 }>()
 
 const ctx = inject<TaskDetailContext>('workspace')!
-const linkedMaterials = computed(() => ctx.materials.value.filter(m => m.taskId === props.task.id))
+// A material can point at one primary task (`taskId`) while other tasks keep
+// the link in their own `materialIds`; both directions must be included.
+const linkedMaterials = computed(() => ctx.materials.value.filter(m =>
+  m.taskId === props.task.id || props.task.materialIds?.includes(m.id),
+))
 
 function openMaterial(m: Material) {
   if (m.url)

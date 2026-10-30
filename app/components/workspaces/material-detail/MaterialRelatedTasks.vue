@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check, Plus, X } from '@lucide/vue'
+import { onUnmounted } from 'vue'
 import type { Material, Task } from '~/types'
 import type { MaterialDetailContext } from './materialDetailContext.ts'
 
@@ -57,13 +58,23 @@ const selectedTasks = computed({
   },
 })
 
+const pendingCommitTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const mounted = ref(true)
+
+function cancelPendingCommit() {
+  if (!pendingCommitTimer.value)
+    return
+  clearTimeout(pendingCommitTimer.value)
+  pendingCommitTimer.value = null
+}
+
 /** Writes the given snapshot to the material and records the activity. */
-function commitDraft(drafted: Set<number>, saved: Set<number>) {
+function commitDraft(materialId: number, drafted: Set<number>, saved: Set<number>) {
   for (const t of ctx.tasks.value) {
     if (drafted.has(t.id) && !saved.has(t.id))
-      ctx.linkMaterialTask(props.material.id, t.id)
+      ctx.linkMaterialTask(materialId, t.id)
     else if (!drafted.has(t.id) && saved.has(t.id))
-      ctx.unlinkMaterialTask(props.material.id, t.id)
+      ctx.unlinkMaterialTask(materialId, t.id)
   }
 }
 
@@ -73,11 +84,25 @@ function commitDraft(drafted: Set<number>, saved: Set<number>) {
  * moves the popper anchor — visible as a flick if the panel is still fading out.
  */
 function applyDraft() {
+  const materialId = props.material.id
   const drafted = new Set(draftIds.value)
   const saved = new Set(savedIds.value)
   closePicker()
-  setTimeout(() => commitDraft(drafted, saved), 200)
+  // Commit after the popper finishes its close animation. Capture the material
+  // id now so a fast navigation cannot apply this draft to another material.
+  cancelPendingCommit()
+  pendingCommitTimer.value = setTimeout(() => {
+    pendingCommitTimer.value = null
+    if (!mounted.value)
+      return
+    commitDraft(materialId, drafted, saved)
+  }, 200)
 }
+
+onUnmounted(() => {
+  mounted.value = false
+  cancelPendingCommit()
+})
 
 /** Dismiss without writing anything. */
 function closePicker() {
@@ -96,7 +121,10 @@ watch(pickerOpen, (open) => {
   }
 })
 
-watch(() => props.material.id, closePicker)
+watch(() => props.material.id, () => {
+  cancelPendingCommit()
+  closePicker()
+})
 </script>
 
 <template>

@@ -48,7 +48,7 @@ const emptyHint = computed(() =>
         : 'MP4, WEBM, MOV · max 200 MB',
 )
 
-const upload = useMaterialFile(materialRef, ctx, rules.value)
+const upload = useMaterialFile(materialRef, ctx, rules)
 const { fileInput, isDragging, progress, uploadError, hasFile, fileName, fileSize, uploadingName, accept } = upload
 
 const meta = computed(() => {

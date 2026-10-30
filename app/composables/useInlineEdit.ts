@@ -17,8 +17,12 @@ export function useInlineEdit(
 
   function focusInput() {
     nextTick(() => {
-      const el = inputRef.value as unknown as { $el?: HTMLInputElement } | null
-      el?.$el?.focus()
+      const value = inputRef.value
+      // When the ref lives inside a `v-for`, Vue exposes an array of instances.
+      // Only one row is in edit mode at a time, so grab the first entry.
+      const el = Array.isArray(value) ? value[0] : value
+      const node = (el as { $el?: HTMLInputElement } | null)?.$el
+      node?.focus?.()
     })
   }
 

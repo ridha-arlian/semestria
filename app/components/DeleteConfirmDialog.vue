@@ -45,7 +45,7 @@ function handleOpenChange(val: boolean) {
       <slot name="extra" />
 
       <DialogFooter class="pt-3 sm:justify-center">
-        <Button type="button" variant="outline" @click="open = false">
+        <Button type="button" variant="outline" @click="handleOpenChange(false)">
           Cancel
         </Button>
         <Button

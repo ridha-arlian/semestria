@@ -1,5 +1,5 @@
-import { computed, onUnmounted, ref } from 'vue'
-import type { Ref } from 'vue'
+import { computed, onUnmounted, ref, toValue } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { Material } from '~/types'
 import type { MaterialDetailContext } from '~/components/workspaces/material-detail/materialDetailContext'
 import { fileExtension, fileNameFromUrl } from '~/utils/materialContent'
@@ -18,7 +18,7 @@ export interface MaterialFileRules {
 export function useMaterialFile(
   material: Ref<Material>,
   ctx: MaterialDetailContext,
-  rules: MaterialFileRules,
+  rules: MaybeRefOrGetter<MaterialFileRules>,
 ) {
   const fileInput = ref<HTMLInputElement | null>(null)
   const isDragging = ref(false)
@@ -36,7 +36,7 @@ export function useMaterialFile(
   )
   const fileSize = computed(() => material.value.fileSize)
   const uploadingName = computed(() => pendingFileName.value ?? fileName.value)
-  const accept = computed(() => rules.extensions.map(ext => `.${ext}`).join(','))
+  const accept = computed(() => toValue(rules).extensions.map(ext => `.${ext}`).join(','))
 
   function pickFile() {
     uploadError.value = null
@@ -52,10 +52,11 @@ export function useMaterialFile(
   }
 
   function validate(file: File): string | null {
-    if (!rules.extensions.includes(fileExtension(file.name)))
-      return `“${file.name}” isn't supported. Choose a ${rules.label} file.`
-    if (file.size > rules.maxMb * 1024 * 1024)
-      return `“${file.name}” is larger than ${rules.maxMb} MB.`
+    const r = toValue(rules)
+    if (!r.extensions.includes(fileExtension(file.name)))
+      return `\u201c${file.name}\u201d isn't supported. Choose a ${r.label} file.`
+    if (file.size > r.maxMb * 1024 * 1024)
+      return `\u201c${file.name}\u201d is larger than ${r.maxMb} MB.`
     return null
   }
 
