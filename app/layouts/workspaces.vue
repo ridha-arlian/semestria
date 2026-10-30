@@ -19,6 +19,8 @@
     const end = new Date(`${w.endDate}T00:00:00`).getTime()
 
     const total = Math.ceil((end - start) / WEEK)
+    if (!Number.isFinite(total) || total <= 0)
+      return null
     const current = Math.min(Math.max(Math.floor((Date.now() - start) / WEEK) + 1, 1), total)
 
     return { current, total }
@@ -65,18 +67,18 @@
     return [...base, ...breadcrumbExtra.value]
   })
 
-  const tasks = ref<Task[]>([])
-  const materials = ref<Material[]>([])
+  const tasksState = api.getTaskState()
+  const materialsState = api.getMaterialState()
+  const tasks = computed(() => tasksState.value.filter(t => t.workspaceId === workspace.value?.id))
+  const materials = computed(() => materialsState.value.filter(m => m.workspaceId === workspace.value?.id))
 
-  function loadData() {
-    const id = workspace.value?.id
-    tasks.value = id ? api.getTasks(id) : []
-    tasks.value.forEach(recalcTask)
-    materials.value = id ? api.getMaterials(id) : []
-  }
+  // Persisted activity history across navigation (session scope)
+  const materialActivities = useState<Record<number, MaterialActivity[]>>('material-activities', () => ({}))
+  const activitySeq = useState<number>('material-activity-seq', () => 1)
+  const linkSeq = useState<number>('material-link-seq', () => 1000)
 
-  loadData()
-  watch(slug, loadData)
+  // Recompute derived progress whenever the live task collection changes.
+  watch(tasks, (list) => list.forEach(recalcTask), { immediate: true })
 
   const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
 
@@ -97,34 +99,13 @@
   }
 
   function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
-    tasks.value.unshift({
-      id: Date.now(),
-      workspaceId: workspace.value!.id,
-      task: payload.title,
-      course: payload.course,
-      due: formatDue(payload.due),
-      status: 'To do',
-      priority: priorityMap[payload.priority],
-      progress: 0,
-      description: payload.description,
-      submissionUrls: payload.submissionUrl.trim() ? [payload.submissionUrl.trim()] : undefined,
-    })
+    api.addTask(workspace.value!.id, payload)
     if (!addAnother)
       showModal.value = false
   }
 
   function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
-    materials.value.unshift({
-      id: Date.now(),
-      workspaceId: workspace.value!.id,
-      title: payload.title,
-      course: payload.course,
-      type: payload.type,
-      tags: payload.tags.join(', '),
-      url: payload.url,
-      taskId: payload.taskId ?? undefined,
-      reviewed: '',
-    })
+    api.addMaterial(workspace.value!.id, payload)
     if (!addAnother)
       showModal.value = false
   }
@@ -240,7 +221,8 @@
   }
 
   function removeTask(id: number) {
-    tasks.value = tasks.value.filter(t => t.id !== id)
+    // Removes the task and unlinks any material that pointed at it.
+    api.removeTask(id)
   }
 
   function updateTask(id: number, payload: TaskPayload) {
@@ -254,12 +236,8 @@
     item.description = payload.description
   }
 
-  const materialActivities = ref<Record<number, MaterialActivity[]>>({})
-  let activitySeq = 1
-  let linkSeq = 1000
-
   function pushMaterialActivity(materialId: number, kind: MaterialActivityKind, label: string, detail?: string) {
-    const entry: MaterialActivity = { id: activitySeq++, kind, label, detail, at: 'Just now' }
+    const entry: MaterialActivity = { id: activitySeq.value++, kind, label, detail, at: 'Just now' }
     const list = materialActivities.value[materialId] ??= []
     list.unshift(entry)
   }
@@ -276,8 +254,8 @@
   }
 
   function nextLinkId() {
-    linkSeq++
-    return linkSeq
+    linkSeq.value++
+    return linkSeq.value
   }
 
   function applyContentPlan(item: Material, plan: ReturnType<typeof planTypeChange>) {
@@ -483,12 +461,7 @@
     const item = materials.value.find(m => m.id === id)
     if (item)
       revokeBlobUrl(item.url)
-    materials.value = materials.value.filter(m => m.id !== id)
-    // Linked tasks are kept; only the link is removed.
-    for (const t of tasks.value) {
-      if (t.materialIds?.includes(id))
-        t.materialIds = t.materialIds.filter(mid => mid !== id)
-    }
+    api.removeMaterial(id)
     const { [id]: _removed, ...rest } = materialActivities.value
     materialActivities.value = rest
   }
@@ -571,13 +544,13 @@
                     </div>
 
                     <div v-if="item.name === 'Tasks'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
+                      <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ tasks.length }}
                       </SidebarMenuBadge>
                     </div>
 
                     <div v-if="item.name === 'Materials'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-strong">
+                      <SidebarMenuBadge class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ materials.length }}
                       </SidebarMenuBadge>
                     </div>
@@ -693,6 +666,8 @@
         @close="showModal = false"
         @submit="handleMaterialSubmit"
       />
+      
+      <SettingsDialog />
     </div>
   </SidebarProvider>
 </template>
