@@ -4,40 +4,12 @@ import { Dot } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import TasksDropdown from './TasksDropdown.vue'
+import { cn } from '~/lib/utils'
+import { getUrgency, initials, priorityDotColor, statusStyles } from '~/utils/taskDisplay'
 import type { Task } from '~/types'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
-type Urgency = { label: string, class: string } | null
 const columnHelper = createColumnHelper<DataTableFeatures, Task>()
-
-function initials(course: string) {
-  return course.split(' ').map(w => w[0]).join('').slice(0, 2)
-}
-
-const statusStyles: Record<string, string> = {
-  'Not started': 'bg-soft text-status-idle hover:bg-soft',
-  'In progress': 'border border-status-progress/30 bg-status-progress/10 text-status-progress hover:bg-status-progress/10',
-  'Done': 'border border-status-done/30 bg-status-done/10 text-status-done hover:bg-status-done/10',
-}
-
-const priorityDotColor: Record<string, string> = {
-  High: 'text-priority-high',
-  Medium: 'text-priority-medium',
-  Low: 'text-priority-low',
-}
-
-function getUrgency(due: string, status: string): Urgency {
-  if (status === 'Done') return null
-  const dueDate = new Date(due)
-  if (Number.isNaN(dueDate.getTime())) return null
-
-  const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-
-  if (diffDays < 0) return { label: 'Overdue', class: 'text-urgency-overdue font-medium' }
-  if (diffDays === 0) return { label: 'Due today', class: 'text-urgency-due font-medium' }
-  if (diffDays <= 2) return { label: 'Due soon', class: 'text-urgency-due font-medium' }
-  return { label: 'Later', class: 'text-urgency-later' }
-}
 
 export const overviewTasksColumns = [
   columnHelper.display({
@@ -46,7 +18,7 @@ export const overviewTasksColumns = [
     cell: ({ row }) => h('div', { class: 'grid place-items-center' }, [
       h(Tooltip, {}, () => [
         h(TooltipTrigger, { asChild: true }, () => h(Dot, {
-          class: `ml-3 size-4 shrink-0 ${priorityDotColor[row.original.priority] ?? priorityDotColor.Low}`,
+          class: cn('ml-3 size-4 shrink-0', priorityDotColor[row.original.priority] ?? priorityDotColor.Low),
           strokeWidth: 8,
         })),
         h(TooltipContent, { side: 'top' }, () => `${row.original.priority} priority`),
@@ -64,26 +36,26 @@ export const overviewTasksColumns = [
           h('div', { class: 'flex min-w-0 items-center gap-2.5' }, [
             h('div', { class: 'grid size-8 shrink-0 place-items-center rounded bg-soft text-[10px] font-bold text-subline' }, initials(row.original.course)),
             h('div', { class: 'min-w-0' }, [
-              h('p', { class: 'truncate text-xs font-semibold text-strong' }, row.original.task),
+              h('p', { class: 'truncate text-xs font-semibold text-text-strong' }, row.original.task),
               h('p', { class: 'truncate text-[11px] text-subline' }, row.original.course),
             ]),
           ]),
           h('div', { class: 'flex min-h-8 min-w-0 flex-col justify-center gap-0.5' }, [
-            h('p', { class: 'truncate text-[11px] font-medium text-strong' }, row.original.due),
+            h('p', { class: 'truncate text-[11px] font-medium text-text-strong' }, row.original.due),
             urgency
-              ? h('p', { class: `truncate text-[10px] ${urgency.class}` }, urgency.label)
+              ? h('p', { class: cn('truncate text-[10px]', urgency.class) }, urgency.label)
               : null,
           ]),
           h(Badge, {
-            class: `w-fit rounded-full px-2 py-0.5 text-[9px] font-medium ${statusStyles[row.original.status] ?? statusStyles['Not started']}`,
+            class: cn('w-fit rounded-full px-2 py-0.5 text-[9px] font-medium', statusStyles[row.original.status] ?? statusStyles['To do']),
           }, () => row.original.status),
         ]),
 
-        h('div', { class: 'min-w-0 space-y-1 sm:hidden' }, [
+        h('div', { class: 'flex min-w-0 flex-col gap-1 sm:hidden' }, [
           h('div', { class: 'flex items-start justify-start gap-2' }, [
-            h('p', { class: 'min-w-0 truncate text-xs font-semibold text-strong' }, row.original.task),
+            h('p', { class: 'min-w-0 truncate text-xs font-semibold text-text-strong' }, row.original.task),
             h(Badge, {
-              class: `shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${statusStyles[row.original.status] ?? statusStyles['Not started']}`,
+              class: cn('shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium', statusStyles[row.original.status] ?? statusStyles['To do']),
             }, () => row.original.status),
           ]),
           h('p', { class: 'truncate text-[11px] text-subline' }, row.original.course),

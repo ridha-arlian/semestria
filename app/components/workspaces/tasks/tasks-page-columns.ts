@@ -5,45 +5,12 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import TasksRowActions from './TasksRowActions.vue'
+import { cn } from '~/lib/utils'
+import { getUrgency, priorityDotColor, statusStyles } from '~/utils/taskDisplay'
 import type { Task } from '~/types'
 import type { DataTableFeatures } from '@/components/ui/data-table/features'
 
-type Urgency = { label: string, class: string } | null
 const columnHelper = createColumnHelper<DataTableFeatures, Task>()
-
-function initials(course: string) {
-  return course.split(' ').map(w => w[0]).join('').slice(0, 2)
-}
-
-export const statusStyles: Record<string, string> = {
-  'To do': 'bg-soft text-status-idle hover:bg-soft',
-  'In progress': 'border border-status-progress/30 bg-status-progress/10 text-status-progress hover:bg-status-progress/10',
-  'Done': 'border border-status-done/30 bg-status-done/10 text-status-done hover:bg-status-done/10',
-}
-
-const priorityDotColor: Record<string, string> = {
-  High: 'text-priority-high',
-  Medium: 'text-priority-medium',
-  Low: 'text-priority-low',
-}
-
-export function getUrgency(due: string, status: string): Urgency {
-  if (status === 'Done')
-    return null
-  const dueDate = new Date(due)
-  if (Number.isNaN(dueDate.getTime()))
-    return null
-
-  const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-
-  if (diffDays < 0)
-    return { label: 'Overdue', class: 'text-urgency-overdue font-medium' }
-  if (diffDays === 0)
-    return { label: 'Due today', class: 'text-urgency-due font-medium' }
-  if (diffDays <= 2)
-    return { label: 'Due soon', class: 'text-urgency-due font-medium' }
-  return { label: 'Later', class: 'text-urgency-later' }
-}
 
 export const tasksPageColumns = [
   columnHelper.display({
@@ -52,7 +19,7 @@ export const tasksPageColumns = [
     cell: ({ row }) => h('div', { class: 'grid place-items-center' }, [
       h(Tooltip, {}, () => [
         h(TooltipTrigger, { asChild: true }, () => h(Dot, {
-          class: `ml-3 size-4 shrink-0 ${priorityDotColor[row.original.priority] ?? priorityDotColor.Low}`,
+          class: cn('ml-3 size-4 shrink-0', priorityDotColor[row.original.priority] ?? priorityDotColor.Low),
           strokeWidth: 8,
         })),
         h(TooltipContent, { side: 'top' }, () => `${row.original.priority} priority`),
@@ -83,7 +50,7 @@ export const tasksPageColumns = [
           h('div', { class: 'mt-2 flex min-w-0 items-center gap-1.5' }, [
             h('p', { class: 'min-w-0 flex-1 truncate text-[11px] text-subline' }, row.original.course),
             h(Badge, {
-              class: `shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${statusStyles[row.original.status] ?? statusStyles['To do']}`,
+              class: cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium', statusStyles[row.original.status] ?? statusStyles['To do']),
             }, () => row.original.status),
           ]),
           h('div', { class: 'mt-1 flex items-center gap-0.5 text-[11px] text-subline' }, [
@@ -112,7 +79,7 @@ export const tasksPageColumns = [
       return h('div', { class: 'flex min-h-8 flex-col justify-center gap-0.5' }, [
         h('p', { class: 'text-xs font-medium text-text-strong' }, row.original.due),
         urgency
-          ? h('p', { class: `text-[11px] ${urgency.class}` }, urgency.label)
+          ? h('p', { class: cn('text-[11px]', urgency.class) }, urgency.label)
           : null,
       ])
     },
@@ -121,7 +88,7 @@ export const tasksPageColumns = [
   columnHelper.accessor('status', {
     header: 'Status',
     cell: ({ row }) => h(Badge, {
-      class: `rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyles[row.original.status] ?? statusStyles['To do']}`,
+      class: cn('rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[row.original.status] ?? statusStyles['To do']),
     }, () => row.original.status),
   }),
 

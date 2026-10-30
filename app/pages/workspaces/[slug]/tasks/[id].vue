@@ -3,11 +3,12 @@
   import { getLocalTimeZone, parseDate, today } from '@internationalized/date'
   import type { DateValue } from '@internationalized/date'
   import { useMediaQuery } from '@vueuse/core'
-  import { statusStyles, getUrgency } from '~/components/workspaces/tasks/tasks-page-columns.ts'
+  import { displayToISO, taskPriorityToForm } from '~/components/workspaces/task-detail/taskDetailUtils.ts'
+  import { cn } from '~/lib/utils'
+  import { editPriorities, getUrgency, priorityDotColor, statusStyles } from '~/utils/taskDisplay'
   import type { BreadcrumbEntry, TaskPriority } from '~/types'
   import type { Ref } from 'vue'
   import type { TaskDetailContext } from '~/components/workspaces/task-detail/taskDetailContext.ts'
-  import { displayToISO, editPriorities, priorityDotColor, taskPriorityToForm } from '~/components/workspaces/task-detail/taskDetailUtils.ts'
 
   definePageMeta({
     layout: 'workspaces',
@@ -24,8 +25,10 @@
 
   const task = computed(() => ctx.tasks.value.find(t => t.id === Number(route.params.id)))
 
-  if (!task.value)
-    throw createError({ statusCode: 404, statusMessage: 'Task not found' })
+  if (!task.value) {
+    // Fatal only on the client: a fatal SSR error tears down the dev server.
+    throw createError({ statusCode: 404, statusMessage: 'Task not found', fatal: import.meta.client })
+  }
 
   watch(() => task.value?.task, (name) => {
     if (breadcrumbExtra)
@@ -202,7 +205,7 @@
             <Tooltip>
               <TooltipTrigger as-child>
                 <Dot
-                  :class="`size-4 shrink-0 ${priorityDotColor[task.priority] ?? priorityDotColor.Low}`"
+                  :class="cn('size-4 shrink-0', priorityDotColor[task.priority] ?? priorityDotColor.Low)"
                   :stroke-width="8"
                 />
               </TooltipTrigger>
@@ -210,13 +213,13 @@
                 {{ task.priority }} priority
               </TooltipContent>
             </Tooltip>
-            <span v-if="urgency" :class="`font-medium ${urgency.class}`">
+            <span v-if="urgency" :class="cn('font-medium', urgency.class)">
               {{ urgency.label }}
             </span>
             <span class="text-subline">·</span>
             <span class="font-medium text-text-strong">{{ task.due }}</span>
             <span class="text-text-muted">|</span>
-            <Badge :class="`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyles[task.status] ?? statusStyles['To do']}`">
+            <Badge :class="cn('rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[task.status] ?? statusStyles['To do'])">
               {{ task.status }}
             </Badge>
           </div>
@@ -265,12 +268,12 @@
                 {{ p.label }}
               </ToggleGroupItem>
             </ToggleGroup>
-            <Badge :class="`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyles[task.status] ?? statusStyles['To do']}`">
+            <Badge :class="cn('rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[task.status] ?? statusStyles['To do'])">
               {{ task.status }}
             </Badge>
           </div>
-          <p v-if="isPastDue" class="mt-1 text-[11px] text-amber-600">
-            Tanggal ini sudah lewat, task akan langsung tampil overdue.
+          <p v-if="isPastDue" class="mt-1 text-[11px] text-urgency-overdue">
+            This date is in the past — the task will show as overdue right away.
           </p>
         </div>
         </div>
@@ -365,8 +368,8 @@
                   </PopoverContent>
                 </Popover>
               </div>
-              <p v-if="isPastDue" class="text-[11px] text-amber-600">
-                Tanggal ini sudah lewat, task akan langsung tampil overdue.
+              <p v-if="isPastDue" class="text-[11px] text-urgency-overdue">
+                This date is in the past — the task will show as overdue right away.
               </p>
             </div>
             <div class="space-y-2">

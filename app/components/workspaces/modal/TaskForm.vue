@@ -3,6 +3,7 @@
   import type { DateValue } from '@internationalized/date'
   import { CalendarIcon, ChevronDown } from '@lucide/vue'
   import { Input } from '@/components/ui/input'
+  import { editPriorities } from '~/utils/taskDisplay'
   import type { TaskPayload, TaskPriority } from '~/types'
 
   const props = defineProps<{
@@ -16,12 +17,6 @@
   }>()
 
   const NEW_COURSE = '__new__'
-
-  const priorities: { value: TaskPriority, label: string, dot: string }[] = [
-    { value: 'low', label: 'Low', dot: 'bg-neutral-400' },
-    { value: 'medium', label: 'Medium', dot: 'bg-amber-500' },
-    { value: 'high', label: 'High', dot: 'bg-red-500' },
-  ]
 
   const quickDates = [
     { label: 'Today', days: 0 },
@@ -169,8 +164,8 @@
             {{ q.label }}
           </Button>
         </div>
-        <p v-if="isPast" class="text-[11px] text-amber-600">
-          Tanggal ini sudah lewat, task akan langsung tampil overdue.
+        <p v-if="isPast" class="text-[11px] text-urgency-overdue">
+          This date is in the past — the task will show as overdue right away.
         </p>
       </div>
 
@@ -183,7 +178,7 @@
           :model-value="priority"
           @update:model-value="onPriorityChange"
         >
-          <ToggleGroupItem v-for="p in priorities" :key="p.value" :value="p.value" class="gap-2 text-xs">
+          <ToggleGroupItem v-for="p in editPriorities" :key="p.value" :value="p.value" class="gap-2 text-xs">
             <span class="size-1.5 rounded-full" :class="p.dot" />
             {{ p.label }}
           </ToggleGroupItem>
@@ -205,7 +200,7 @@
               v-model="description"
               rows="3"
               class="resize-none text-sm"
-              placeholder="Detail singkat, link, atau catatan dosen"
+              placeholder="Short details, links, or notes from your lecturer"
             />
           </div>
           <div class="space-y-2">
