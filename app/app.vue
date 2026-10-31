@@ -2,4 +2,5 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <SettingsDialog />
 </template>

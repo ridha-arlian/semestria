@@ -666,8 +666,6 @@
         @close="showModal = false"
         @submit="handleMaterialSubmit"
       />
-      
-      <SettingsDialog />
     </div>
   </SidebarProvider>
 </template>
