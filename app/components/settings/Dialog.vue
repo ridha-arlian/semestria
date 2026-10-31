@@ -56,7 +56,7 @@ watch([isOpen, activeSection], async () => {
       :is="Modal.Content"
       :show-close-button="isDesktop ? false : undefined"
       class="flex h-[min(80vh,640px)] sm:max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
-      :class="{ 'z-[60]! h-dvh! max-h-dvh! rounded-none border-0': !isDesktop }"
+      :class="{ 'z-[60]!': !isDesktop }"
     >
       <div
         class="flex h-14 shrink-0 items-center justify-between px-5"
