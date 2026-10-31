@@ -94,7 +94,7 @@ async function handleSave() {
 
 <template>
   <Dialog v-model:open="openState">
-    <DialogContent class="gap-0 p-0 sm:max-w-md">
+    <DialogContent class="z-[70]! gap-0 p-0 sm:max-w-md">
       <div class="flex flex-col gap-4 p-5">
         <div class="flex flex-col gap-1">
           <DialogTitle class="text-base font-semibold text-headline">

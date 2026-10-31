@@ -25,14 +25,6 @@
       setOpenMobile(false)
   }
 
-  // Settings opens a drawer/sheet; on mobile the sidebar drawer must close first
-  // or two overlays stack on top of each other.
-  function handleOpenSettings() {
-    openSettings()
-    if (isMobile.value)
-      setOpenMobile(false)
-  }
-
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
 
   // const { isOpen, closeSettings } = useSettings()
@@ -115,7 +107,7 @@
                 variant="ghost"
                 size="icon"
                 class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 group-data-[collapsible=icon]:hidden transition-colors duration-200 ease-linear"
-                @click="handleOpenSettings"
+                @click="openSettings()"
               >
                 <Settings class="size-5" />
               </Button>
