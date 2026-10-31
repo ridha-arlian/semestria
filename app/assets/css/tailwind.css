@@ -265,6 +265,17 @@ tbody:has([data-state="open"]) tr button:hover {
   color: var(--color-subline);
 }
 
+/* The mobile sidebar sheet lands after dialog portals and shares z-50, so its
+   overlay stacks a second dim layer over the page. Raise dialog overlays above
+   the sheet panel and drop the sheet overlay while a dialog is open, so the
+   page is dimmed exactly once and the sheet panel is dimmed too. */
+[data-slot="dialog-overlay"] {
+  z-index: 55;
+}
+body:has([data-slot="dialog-overlay"]) [data-slot="sheet-overlay"] {
+  display: none;
+}
+
 /* Material notes editor (TipTap/ProseMirror). ProseMirror owns the DOM inside
    the editor, so Vue scoped styles cannot reach it - keep it global here. */
 .notes-editor .ProseMirror {

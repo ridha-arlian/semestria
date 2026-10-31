@@ -5,7 +5,7 @@
 
   const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
   const route = useRoute()
-  const { settings, avatarUrl, openSettings, isOpen } = useSettings()
+  const { settings, avatarUrl, openSettings } = useSettings()
 
   // Auto-close mobile drawer (Sheet) on navigation.
   // Desktop uses collapsible="icon" and must not be affected.
@@ -32,14 +32,6 @@
 
 <template>
   <Sidebar collapsible="icon" class="bg-sidebar border-r border-line overflow-x-hidden">
-    <!-- The settings panel is shorter than the viewport, so the sidebar stays
-         visible around it. Dim this panel so the exposed strip matches the
-         overlay instead of showing a bright sidebar. -->
-    <div
-      v-if="isMobile && isOpen"
-      class="pointer-events-none absolute inset-0 z-20 bg-black/80"
-    />
-
     <SidebarHeader v-if="!isMobile" class="h-19 justify-center border-b border-line px-3 group-data-[collapsible=icon]:p-0 overflow-x-hidden">
       <TooltipProvider :delay-duration="0">
         <template v-if="state === 'expanded'">
