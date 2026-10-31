@@ -3,7 +3,6 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { Bell, Palette, SlidersHorizontal, UserRound, X } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import { Dialog, DialogContent, DialogClose, DialogDescription, DialogTitle } from '~/components/ui/dialog'
-import { Drawer, DrawerContent, DrawerClose, DrawerDescription, DrawerTitle } from '~/components/ui/drawer'
 import type { SettingsSection } from '~/types'
 
 const { isOpen, openSettings, closeSettings, activeSection, toastMessage } = useSettings()
@@ -15,14 +14,6 @@ const sections: { id: SettingsSection, label: string, description: string, icon:
   { id: 'notifications', label: 'Notifications', description: 'Reminders and digests', icon: Bell },
   { id: 'preferences', label: 'Preferences', description: 'Week start, landing, workspace', icon: SlidersHorizontal },
 ]
-
-const Modal = computed(() => ({
-  Root: isDesktop.value ? Dialog : Drawer,
-  Content: isDesktop.value ? DialogContent : DrawerContent,
-  Close: isDesktop.value ? DialogClose : DrawerClose,
-  Title: isDesktop.value ? DialogTitle : DrawerTitle,
-  Description: isDesktop.value ? DialogDescription : DrawerDescription,
-}))
 
 const openState = computed({
   get: () => isOpen.value,
@@ -36,7 +27,7 @@ function selectSection(id: SettingsSection) {
 const mobileNav = ref<HTMLElement | null>(null)
 
 // The mobile section pills scroll with the content, so keep the active pill in
-// view when the section changes or the drawer opens on a later section.
+// view when the section changes or the dialog opens on a later section.
 watch([isOpen, activeSection], async () => {
   if (isDesktop.value || !isOpen.value)
     return
@@ -48,13 +39,9 @@ watch([isOpen, activeSection], async () => {
 </script>
 
 <template>
-  <component
-    :is="Modal.Root"
-    v-model:open="openState"
-  >
-    <component
-      :is="Modal.Content"
-      :show-close-button="isDesktop ? false : undefined"
+  <Dialog v-model:open="openState">
+    <DialogContent
+      :show-close-button="false"
       class="flex h-[min(80vh,640px)] sm:max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
       :class="{ 'z-[60]!': !isDesktop }"
     >
@@ -62,14 +49,14 @@ watch([isOpen, activeSection], async () => {
         class="flex h-14 shrink-0 items-center justify-between px-5"
       >
         <div class="flex flex-col gap-0.5">
-          <component :is="Modal.Title" class="text-base font-semibold text-headline">
+          <DialogTitle class="text-base font-semibold text-headline">
             Settings
-          </component>
-          <component :is="Modal.Description" class="sr-only">
+          </DialogTitle>
+          <DialogDescription class="sr-only">
             Manage your profile, appearance, notifications, and preferences.
-          </component>
+          </DialogDescription>
         </div>
-        <component :is="Modal.Close" as-child>
+        <DialogClose as-child>
           <Button
             data-settings-focus
             variant="ghost"
@@ -79,7 +66,7 @@ watch([isOpen, activeSection], async () => {
             <X class="size-4" />
             <span class="sr-only">Close</span>
           </Button>
-        </component>
+        </DialogClose>
       </div>
 
       <div
@@ -159,8 +146,8 @@ watch([isOpen, activeSection], async () => {
           </div>
         </Transition>
       </Teleport>
-    </component>
-  </component>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <style scoped>

@@ -32,9 +32,9 @@
 
 <template>
   <Sidebar collapsible="icon" class="bg-sidebar border-r border-line overflow-x-hidden">
-    <!-- The settings drawer is shorter than the viewport, so the sidebar stays
-         visible above it. Dim this panel so the exposed strip matches the
-         drawer overlay instead of showing a bright sidebar. -->
+    <!-- The settings panel is shorter than the viewport, so the sidebar stays
+         visible around it. Dim this panel so the exposed strip matches the
+         overlay instead of showing a bright sidebar. -->
     <div
       v-if="isMobile && isOpen"
       class="pointer-events-none absolute inset-0 z-20 bg-black/80"
