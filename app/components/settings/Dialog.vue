@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-import { Bell, Palette, SlidersHorizontal, UserRound, X } from '@lucide/vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Bell, ChevronLeft, ChevronRight, Palette, SlidersHorizontal, UserRound, X } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import { Dialog, DialogContent, DialogClose, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import type { SettingsSection } from '~/types'
@@ -25,6 +25,48 @@ function selectSection(id: SettingsSection) {
 }
 
 const mobileNav = ref<HTMLElement | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+let navResizeObserver: ResizeObserver | null = null
+
+function updateNavScroll() {
+  const nav = mobileNav.value
+  if (!nav) {
+    canScrollLeft.value = false
+    canScrollRight.value = false
+    return
+  }
+  canScrollLeft.value = nav.scrollLeft > 1
+  canScrollRight.value = nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1
+}
+
+function scrollNav(direction: 1 | -1) {
+  const nav = mobileNav.value
+  if (!nav)
+    return
+  nav.scrollBy({ left: direction * nav.clientWidth * 0.7, behavior: 'smooth' })
+}
+
+function observeNav() {
+  navResizeObserver?.disconnect()
+  if (mobileNav.value)
+    navResizeObserver?.observe(mobileNav.value)
+  updateNavScroll()
+}
+
+onMounted(() => {
+  navResizeObserver = new ResizeObserver(updateNavScroll)
+  window.addEventListener('resize', updateNavScroll)
+  observeNav()
+})
+
+onBeforeUnmount(() => {
+  navResizeObserver?.disconnect()
+  window.removeEventListener('resize', updateNavScroll)
+})
+
+// The nav mounts with the portal, so observe it when the ref resolves.
+watch(mobileNav, observeNav)
 
 // The mobile section pills scroll with the content, so keep the active pill in
 // view when the section changes or the dialog opens on a later section.
@@ -35,6 +77,7 @@ watch([isOpen, activeSection], async () => {
   mobileNav.value
     ?.querySelector<HTMLElement>('[aria-current="page"]')
     ?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  updateNavScroll()
 })
 </script>
 
@@ -98,27 +141,49 @@ watch([isOpen, activeSection], async () => {
           class="flex-1 overflow-y-auto"
           :class="{ 'p-6': isDesktop, 'p-4': !isDesktop }"
         >
-          <nav
-            v-if="!isDesktop"
-            ref="mobileNav"
-            aria-label="Settings sections"
-            class="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4"
-          >
-            <button
-              v-for="section in sections"
-              :key="section.id"
-              type="button"
-              class="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors"
-              :class="activeSection === section.id
-                ? 'bg-ink text-paper'
-                : 'bg-soft text-subline hover:text-ink'"
-              :aria-current="activeSection === section.id ? 'page' : undefined"
-              @click="selectSection(section.id)"
+          <div v-if="!isDesktop" class="mb-4 flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 shrink-0 rounded-full text-subline"
+              :disabled="!canScrollLeft"
+              aria-label="Scroll settings sections left"
+              @click="scrollNav(-1)"
             >
-              <component :is="section.icon" class="size-3.5" />
-              <span>{{ section.label }}</span>
-            </button>
-          </nav>
+              <ChevronLeft />
+            </Button>
+            <nav
+              ref="mobileNav"
+              aria-label="Settings sections"
+              class="flex min-w-0 flex-1 gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              @scroll="updateNavScroll"
+            >
+              <button
+                v-for="section in sections"
+                :key="section.id"
+                type="button"
+                class="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors"
+                :class="activeSection === section.id
+                  ? 'bg-ink text-paper'
+                  : 'bg-soft text-subline hover:text-ink'"
+                :aria-current="activeSection === section.id ? 'page' : undefined"
+                @click="selectSection(section.id)"
+              >
+                <component :is="section.icon" class="size-3.5" />
+                <span>{{ section.label }}</span>
+              </button>
+            </nav>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 shrink-0 rounded-full text-subline"
+              :disabled="!canScrollRight"
+              aria-label="Scroll settings sections right"
+              @click="scrollNav(1)"
+            >
+              <ChevronRight />
+            </Button>
+          </div>
 
           <div class="mb-5">
             <h2 class="text-base font-semibold text-headline">
