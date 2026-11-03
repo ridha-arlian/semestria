@@ -25,6 +25,14 @@
       setOpenMobile(false)
   }
 
+  // Settings is a modal with its own scrim. Close the drawer first so the two
+  // layers never stack and the dialog transition runs on its own.
+  function handleOpenSettings() {
+    if (isMobile.value)
+      setOpenMobile(false)
+    openSettings()
+  }
+
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
 
   // const { isOpen, closeSettings } = useSettings()
@@ -107,7 +115,7 @@
                 variant="ghost"
                 size="icon"
                 class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 group-data-[collapsible=icon]:hidden transition-colors duration-200 ease-linear"
-                @click="openSettings()"
+                @click="handleOpenSettings"
               >
                 <Settings class="size-5" />
               </Button>
