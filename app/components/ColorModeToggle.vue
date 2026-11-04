@@ -12,20 +12,6 @@
       colorMode.preference = next
     }, { x: e.clientX, y: e.clientY })
   }
-
-  onMounted(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      colorMode.preference = e.matches ? 'dark' : 'light'
-    }
-
-    mediaQuery.addEventListener('change', handleThemeChange)
-
-    onUnmounted(() => {
-      mediaQuery.removeEventListener('change', handleThemeChange)
-    })
-  })
 </script>
 
 <template>
