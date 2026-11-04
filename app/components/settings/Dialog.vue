@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Bell, ChevronLeft, ChevronRight, Palette, SlidersHorizontal, UserRound, X } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import { Dialog, DialogContent, DialogClose, DialogDescription, DialogTitle } from '~/components/ui/dialog'
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from '~/components/ui/drawer'
 import type { SettingsSection } from '~/types'
 
 const { isOpen, openSettings, closeSettings, activeSection, toastMessage } = useSettings()
@@ -19,6 +20,22 @@ const openState = computed({
   get: () => isOpen.value,
   set: (v) => v ? openSettings() : closeSettings(),
 })
+
+// Desktop keeps the two-column dialog; mobile uses a bottom drawer so the
+// settings feel reachable with a thumb and can be swiped away.
+const Modal = computed(() => ({
+  Root: isDesktop.value ? Dialog : Drawer,
+  Content: isDesktop.value ? DialogContent : DrawerContent,
+  Close: isDesktop.value ? DialogClose : DrawerClose,
+  Title: isDesktop.value ? DialogTitle : DrawerTitle,
+  Description: isDesktop.value ? DialogDescription : DrawerDescription,
+}))
+
+const contentProps = computed(() => isDesktop.value ? { showCloseButton: false } : {})
+
+const contentClass = computed(() => isDesktop.value
+  ? 'flex h-[min(80vh,640px)] flex-col gap-0 overflow-hidden p-0 sm:rounded-xl sm:max-w-3xl'
+  : 'flex flex-col gap-0 overflow-hidden p-0 data-[swipe-direction=down]:mt-0 data-[swipe-direction=down]:h-[80vh] data-[swipe-direction=down]:max-h-[80vh]')
 
 function selectSection(id: SettingsSection) {
   activeSection.value = id
@@ -69,36 +86,46 @@ onBeforeUnmount(() => {
 watch(mobileNav, observeNav)
 
 // The mobile section pills scroll with the content, so keep the active pill in
-// view when the section changes or the dialog opens on a later section.
+// view when the section changes or the dialog opens on a later section. Scroll
+// the nav horizontally only: scrollIntoView can also move the drawer body,
+// which reads as a flicker on tap.
 watch([isOpen, activeSection], async () => {
   if (isDesktop.value || !isOpen.value)
     return
   await nextTick()
-  mobileNav.value
-    ?.querySelector<HTMLElement>('[aria-current="page"]')
-    ?.scrollIntoView({ inline: 'center', block: 'nearest' })
+  const nav = mobileNav.value
+  const pill = nav?.querySelector<HTMLElement>('[aria-current="page"]')
+  if (nav && pill) {
+    const navRect = nav.getBoundingClientRect()
+    const pillRect = pill.getBoundingClientRect()
+    nav.scrollTo({
+      left: nav.scrollLeft + pillRect.left - navRect.left - (nav.clientWidth - pillRect.width) / 2,
+      behavior: 'smooth',
+    })
+  }
   updateNavScroll()
 })
 </script>
 
 <template>
-  <Dialog v-model:open="openState">
-    <DialogContent
-      :show-close-button="false"
-      class="flex h-[min(80vh,640px)] sm:max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
+  <component :is="Modal.Root" v-model:open="openState">
+    <component
+      :is="Modal.Content"
+      v-bind="contentProps"
+      :class="contentClass"
     >
       <div
         class="flex h-14 shrink-0 items-center justify-between px-5"
       >
         <div class="flex flex-col gap-0.5">
-          <DialogTitle class="text-base font-semibold text-headline">
+          <component :is="Modal.Title" class="text-base font-semibold text-headline">
             Settings
-          </DialogTitle>
-          <DialogDescription class="sr-only">
+          </component>
+          <component :is="Modal.Description" class="sr-only">
             Manage your profile, appearance, notifications, and preferences.
-          </DialogDescription>
+          </component>
         </div>
-        <DialogClose as-child>
+        <component :is="Modal.Close" as-child>
           <Button
             data-settings-focus
             variant="ghost"
@@ -108,7 +135,7 @@ watch([isOpen, activeSection], async () => {
             <X class="size-4" />
             <span class="sr-only">Close</span>
           </Button>
-        </DialogClose>
+        </component>
       </div>
 
       <div
@@ -210,8 +237,8 @@ watch([isOpen, activeSection], async () => {
           </div>
         </Transition>
       </Teleport>
-    </DialogContent>
-  </Dialog>
+    </component>
+  </component>
 </template>
 
 <style scoped>
