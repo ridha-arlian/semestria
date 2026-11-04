@@ -2,22 +2,15 @@
   import { Sun, Moon } from '@lucide/vue'
 
   const colorMode = useColorMode()
+  const { run: runThemeTransition } = useThemeTransition()
 
   function toggleDarkMode(e: MouseEvent) {
     const isDark = colorMode.value === 'dark'
     const next = isDark ? 'light' : 'dark'
 
-    if (!document.startViewTransition) {
+    runThemeTransition(() => {
       colorMode.preference = next
-      return
-    }
-
-    document.documentElement.style.setProperty('--x', `${e.clientX}px`)
-    document.documentElement.style.setProperty('--y', `${e.clientY}px`)
-
-    document.startViewTransition(() => {
-      colorMode.preference = next
-    })
+    }, { x: e.clientX, y: e.clientY })
   }
 
   onMounted(() => {

@@ -246,6 +246,13 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    clip-path: none;
+    animation: none;
+  }
+}
+
 /* Freeze table visuals while any menu is open. Reka marks the open trigger
    (row for context menus, "..." button for dropdowns) with
    data-state="open". Pure CSS on purpose: no JS open-state involved. */

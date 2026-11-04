@@ -2,21 +2,36 @@
 import { Monitor, Moon, RotateCcw, Sun } from '@lucide/vue'
 import ColorPicker from '~/components/color-picker/ColorPicker.vue'
 import { useSettings } from '~/composables/useSettings'
+import { useThemeTransition } from '~/composables/useThemeTransition'
 import { themePresets, presetAccent, normalizeHex, buildThemePreview } from '~/utils/settingsTheme'
+import type { ThemeTransitionOrigin } from '~/composables/useThemeTransition'
 import type { ThemePresetId } from '~/types'
 
 const { settings } = useSettings()
 const colorMode = useColorMode()
+const { run: runThemeTransition } = useThemeTransition()
+
+let modeOrigin: ThemeTransitionOrigin | null = null
 
 // Single source of truth for the light/dark/system preference. The header
 // toggle only flips between light and dark; this one can also follow the OS.
 const modePreference = computed({
   get: () => colorMode.preference || 'system',
   set: (value: string) => {
-    if (value)
-      colorMode.preference = value as 'light' | 'dark' | 'system'
+    if (!value || value === colorMode.preference)
+      return
+    const next = value as 'light' | 'dark' | 'system'
+    const origin = modeOrigin ?? undefined
+    modeOrigin = null
+    runThemeTransition(() => {
+      colorMode.preference = next
+    }, origin)
   },
 })
+
+function rememberModeOrigin(event: MouseEvent) {
+  modeOrigin = { x: event.clientX, y: event.clientY }
+}
 
 const isCustom = computed(() => settings.value.appearance.preset === 'custom')
 const currentAccent = computed(() => presetAccent(settings.value.appearance.preset, settings.value.appearance.customColor))
@@ -88,26 +103,28 @@ function cancelCustomColor() {
   <div class="flex flex-col gap-6">
     <div class="flex flex-col gap-2">
       <Label class="text-sm">Mode</Label>
-      <ToggleGroup
-        v-model="modePreference"
-        type="single"
-        variant="outline"
-        size="sm"
-        class="w-fit"
-      >
-        <ToggleGroupItem value="light" class="gap-1.5">
-          <Sun />
-          <span class="text-xs">Light</span>
-        </ToggleGroupItem>
-        <ToggleGroupItem value="dark" class="gap-1.5">
-          <Moon />
-          <span class="text-xs">Dark</span>
-        </ToggleGroupItem>
-        <ToggleGroupItem value="system" class="gap-1.5">
-          <Monitor />
-          <span class="text-xs">System</span>
-        </ToggleGroupItem>
-      </ToggleGroup>
+      <div class="w-fit" @click.capture="rememberModeOrigin">
+        <ToggleGroup
+          v-model="modePreference"
+          type="single"
+          variant="outline"
+          size="sm"
+          class="w-fit"
+        >
+          <ToggleGroupItem value="light" class="gap-1.5">
+            <Sun />
+            <span class="text-xs">Light</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="dark" class="gap-1.5">
+            <Moon />
+            <span class="text-xs">Dark</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="system" class="gap-1.5">
+            <Monitor />
+            <span class="text-xs">System</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       <p class="text-[11px] text-subline">
         System follows your device appearance.
       </p>
