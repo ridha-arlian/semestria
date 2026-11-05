@@ -1,57 +1,27 @@
 <script setup lang="ts">
-  import { ArrowUpRight, Plus, Circle } from '@lucide/vue'
+  import { computed } from 'vue'
+  import { useElementSize } from '@vueuse/core'
+  import { ArrowUpRight } from '@lucide/vue'
 
   definePageMeta({
     layout: 'landing'
   })
 
-  const rows = [
-    {
-      title: 'Research proposal',
-      priority: 'High priority',
-      course: 'Design Research',
-      dueDate: 'Sep 12, 2026',
-      state: 'In progress',
-      progress: 65,
-      completed: false
-    },
-    {
-      title: 'Midterm reflection essay',
-      priority: 'Medium priority',
-      course: 'Cultural Studies',
-      dueDate: 'Sep 15, 2026',
-      state: 'Not started',
-      progress: 0,
-      completed: false
-    },
-    {
-      title: 'Prototype v2 presentation',
-      priority: 'High priority',
-      course: 'Interaction Design',
-      dueDate: 'Sep 18, 2026',
-      state: 'In progress',
-      progress: 40,
-      completed: false
-    },
-    {
-      title: 'Reading response #04',
-      priority: 'Low priority',
-      course: 'Design Research',
-      dueDate: 'Sep 20, 2026',
-      state: 'Not started',
-      progress: 0,
-      completed: false
-    },
-    {
-      title: 'Group critique notes',
-      priority: 'Medium priority',
-      course: 'Studio Practice',
-      dueDate: 'Sep 22, 2026',
-      state: 'Done',
-      progress: 100,
-      completed: true
-    }
-  ]
+  // The preview is laid out at the dashboard's desktop width, then scaled to
+  // fill the available column so its proportions stay identical everywhere.
+  const DESIGN_WIDTH = 1024
+  const PREVIEW_BUFFER = 64
+
+  const previewViewport = useTemplateRef<HTMLElement>('previewViewport')
+  const previewFrame = useTemplateRef<HTMLElement>('previewFrame')
+
+  const { width: viewportWidth } = useElementSize(previewViewport)
+  const { height: frameHeight } = useElementSize(previewFrame)
+
+  const previewScale = computed(() => viewportWidth.value > 0 ? viewportWidth.value / DESIGN_WIDTH : 1)
+  const previewHeight = computed(() => frameHeight.value > 0
+    ? Math.ceil((frameHeight.value + PREVIEW_BUFFER) * previewScale.value)
+    : 0)
 </script>
 
 <template>
@@ -88,87 +58,19 @@
         </Button>
       </div>
 
-      <div class="hidden self-start border border-line bg-card shadow-[10px_10px_0_var(--line-strong)] sm:block md:rotate-[1.2deg] md:shadow-[22px_22px_0_var(--line-strong)]">
-        <div class="flex items-center gap-1.5 border-b border-line px-4 py-3.5 font-mono text-[10px]">
-          <Circle class="h-2 w-2 text-subline" />
-          <Circle class="h-2 w-2 text-subline" />
-          <Circle class="h-2 w-2 text-subline" />
-
-          <strong class="ml-3.5 font-sans text-[13px] font-bold text-headline">
-            My semester
-          </strong>
-          <span class="ml-auto text-subline">
-            Fall 2026
-          </span>
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow class="border-t-0 hover:bg-transparent">
-              <TableHead class="h-auto px-4 py-3.5 font-mono text-[9px] uppercase tracking-wide text-subline">
-                Task
-              </TableHead>
-              <TableHead class="h-auto px-4 py-3.5 font-mono text-[9px] uppercase tracking-wide text-subline">
-                Course
-              </TableHead>
-              <TableHead class="h-auto px-4 py-3.5 font-mono text-[9px] uppercase tracking-wide text-subline">
-                Due Date
-              </TableHead>
-              <TableHead class="h-auto px-4 py-3.5 font-mono text-[9px] uppercase tracking-wide text-subline">
-                Status
-              </TableHead>
-              <TableHead class="h-auto px-4 py-3.5 font-mono text-[9px] uppercase tracking-wide text-subline">
-                Progress
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="row in rows" :key="row.title" class="border-t border-line hover:bg-transparent">
-              <TableCell class="px-4 py-3.5">
-                <div class="flex items-center gap-3">
-                  <input type="checkbox" :checked="row.completed" class="h-4 w-4 cursor-pointer rounded border-line-strong text-ink accent-ink focus:ring-0" disabled>
-                  <div>
-                    <div class="text-[11px] font-bold" :class="row.completed ? 'text-text-muted line-through' : 'text-text-strong'">
-                      {{ row.title }}
-                    </div>
-                    <div class="text-[9px] text-text-muted">
-                      {{ row.priority }}
-                    </div>
-                  </div>
-                </div>
-              </TableCell>
-
-              <TableCell class="px-4 py-3.5 text-[11px] text-subline">
-                {{ row.course }}
-              </TableCell>
-
-              <TableCell class="px-4 py-3.5 text-[11px] text-subline">
-                {{ row.dueDate }}
-              </TableCell>
-
-              <TableCell class="px-4 py-3.5">
-                <Badge :class="row.state === 'Done' ? 'border-ink bg-ink text-paper' : 'border-line bg-transparent text-subline'" class="rounded-none px-1.75 py-0.75 font-mono text-[9px] font-normal">
-                  {{ row.state }}
-                </Badge>
-              </TableCell>
-
-              <TableCell class="px-4 py-3.5">
-                <div class="flex items-center gap-2">
-                  <div class="h-1.5 w-16 overflow-hidden rounded-full bg-soft">
-                    <div class="h-full bg-ink" :style="{ width: `${row.progress}%` }"/>
-                  </div>
-                  <span class="font-mono text-[9px] text-text-muted">
-                    {{ row.progress }}%
-                  </span>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
-        <div class="flex items-center gap-2 border-t border-line bg-soft px-5 py-4 font-mono text-[10px] text-text-muted">
-          <Plus class="h-3.5 w-3.5" />
-          Add an assignment
+      <div
+        ref="previewViewport"
+        class="relative hidden w-full self-start sm:block"
+        :style="previewHeight ? { height: `${previewHeight}px` } : undefined"
+      >
+        <div
+          class="origin-top-left"
+          :class="previewHeight ? 'absolute left-0 top-0' : ''"
+          :style="{ width: `${DESIGN_WIDTH}px`, transform: `scale(${previewScale})` }"
+        >
+          <div ref="previewFrame">
+            <LandingWorkspacePreview />
+          </div>
         </div>
       </div>
     </section>
