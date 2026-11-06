@@ -1,0 +1,208 @@
+// Semestria - Supabase Postgres via Cloudflare Hyperdrive
+// Runtime: Prisma adapter-pg + HYPERDRIVE.connectionString (Cloudflare Worker)
+// CLI/migrations: DIRECT_URL (Supavisor, port 5432)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../server/generated/prisma"
+  runtime  = "workerd"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Identity ----------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatarKey String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaces    Workspace[]
+  settings      UserSettings?
+  activities    Activity[]    @relation("ActivityActor")
+
+  @@map("users")
+}
+
+model UserSettings {
+  id                    String @id @default(cuid())
+  userId                String @unique
+  user                  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  preset           String  @default("mono")
+  customColor      String  @default("#2563eb")
+  deadlineReminders Boolean @default(true)
+  leadTime         String  @default("3") // '1' | '3' | '7'
+  weeklyDigest     Boolean @default(false)
+  materialUpdates  Boolean @default(true)
+  weekStartsOn     String  @default("monday") // 'monday' | 'sunday'
+  defaultLanding   String  @default("dashboard") // 'dashboard' | 'last-active'
+  activeWorkspaceSlug String?
+
+  @@map("user_settings")
+}
+
+// ---------- Workspace ----------
+
+model Workspace {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  isActive  Boolean   @default(false)
+  tasks     Task[]
+  materials Material[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, slug])
+  @@index([userId, isActive])
+  @@map("workspaces")
+}
+
+// ---------- Task ----------
+
+model Task {
+  id            Int        @id @default(autoincrement())
+  workspaceId   Int
+  workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title         String
+  course        String
+  dueDate       DateTime?  @db.Date
+  status        String     @default("To do") // 'To do' | 'In progress' | 'Done'
+  priority      String     @default("Medium") // 'Low' | 'Medium' | 'High'
+  progress      Int        @default(0)
+  description   String?
+  note          String?
+
+  checklist   ChecklistItem[]
+  submissions SubmissionLink[]
+  materials   TaskMaterial[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, dueDate])
+  @@index([workspaceId, status])
+  @@map("tasks")
+}
+
+model ChecklistItem {
+  id       Int    @id @default(autoincrement())
+  taskId   Int
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title    String
+  done     Boolean @default(false)
+  position Int     @default(0)
+
+  @@index([taskId, position])
+  @@map("checklist_items")
+}
+
+model SubmissionLink {
+  id       Int    @id @default(autoincrement())
+  taskId   Int
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  url      String
+  position Int    @default(0)
+
+  @@index([taskId, position])
+  @@map("submission_links")
+}
+
+// ---------- Material ----------
+
+model Material {
+  id              Int        @id @default(autoincrement())
+  workspaceId     Int
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title           String
+  course          String
+  type            String     // 'Notes' | 'Book' | 'Slides' | 'Collection' | 'Link' | 'PDF' | 'Video'
+
+  // Rich note: TipTap JSON or legacy string. Prisma Json on Postgres.
+  note            Json?
+
+  // File storage: 'r2' | 'external'. Null = no primary content.
+  storageProvider String?    // 'r2' | 'external'
+  storageKey      String?    // R2 object key when provider = 'r2'
+  contentUrl      String?    // external URL when provider = 'external'
+  contentType     String?
+  fileName        String?
+  fileSize        Int?
+
+  reviewedAt   DateTime?
+  lastOpenedAt DateTime?
+
+  tags       MaterialTag[]
+  links      MaterialLink[]
+  tasks      TaskMaterial[]
+  activities Activity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, type])
+  @@map("materials")
+}
+
+model MaterialTag {
+  id         Int      @id @default(autoincrement())
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  tag        String
+
+  @@unique([materialId, tag])
+  @@index([materialId])
+  @@map("material_tags")
+}
+
+model MaterialLink {
+  id         Int      @id @default(autoincrement())
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  url        String
+  label      String?
+  position   Int      @default(0)
+
+  @@index([materialId, position])
+  @@map("material_links")
+}
+
+// Single source of truth for task-material relation.
+// Replaces Material.taskId + Task.materialIds dual links.
+model TaskMaterial {
+  taskId     Int
+  materialId Int
+
+  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, materialId])
+  @@index([materialId])
+  @@map("task_materials")
+}
+
+model Activity {
+  id         Int      @id @default(autoincrement())
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  actorId    String?
+  actor      User?    @relation("ActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+  kind       String   // 'Created' | 'Note updated' | 'File replaced' | 'File removed' | 'Link added' | 'Link updated' | 'Link removed' | 'Content removed' | 'Marked reviewed' | 'Tag added' | 'Task linked' | 'Task unlinked' | 'Edited'
+  label      String
+  detail     String?
+  at         DateTime @default(now())
+
+  @@index([materialId, at])
+  @@map("activities")
+}

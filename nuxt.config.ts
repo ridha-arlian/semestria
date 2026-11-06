@@ -44,5 +44,41 @@ export default defineNuxtConfig({
   },
   experimental: {
     viewTransition: true
-  }
+  },
+  runtimeConfig: {
+    // No defaults for secrets. Override via env vars in production:
+    // NUXT_DATABASE_URL, NUXT_SESSION_PASSWORD (32+ chars), NUXT_OAUTH_GOOGLE_*,
+    // NUXT_R2_*. Local dev: set in .env (gitignored) or .dev.vars for Wrangler.
+    // In Cloudflare, the Hyperdrive binding wins over databaseUrl (see cf.ts).
+    databaseUrl: '',
+    sessionPassword: '',
+    oauth: {
+      google: {
+        clientId: '',
+        clientSecret: '',
+      },
+    },
+    r2: {
+      accountId: '',
+      accessKeyId: '',
+      secretAccessKey: '',
+      bucket: 'semestria-files',
+    },
+  },
+  nitro: {
+    preset: 'cloudflare_module',
+    cloudflare: {
+      // wrangler.jsonc is managed manually; don't let Nitro regenerate it.
+      deployConfig: false,
+    },
+    // Prisma driver adapters ship wasm engines; Vite must handle them as assets.
+    experimental: { wasm: true },
+    alias: {
+      // `pg` optionally `require('pg-native')` (lib/native/client.js). The
+      // addon can't exist in workerd and Cloudflare forbids externals, so
+      // alias it to an empty stub so Rollup can bundle the graph.
+      // See `server/utils/pg-native-stub.ts`.
+      'pg-native': '../server/utils/pg-native-stub.ts',
+    },
+  },
 })
