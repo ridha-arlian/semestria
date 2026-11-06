@@ -1,13 +1,80 @@
 <script setup lang="ts">
   // Landing-only static copy of the dashboard table. Kept separate so the
   // dashboard page and its table behaviour stay untouched.
-  import { computed } from 'vue'
   import { Circle, Plus } from '@lucide/vue'
   import DataTable from '@/components/ui/data-table/DataTable.vue'
   import { columns } from '~/components/landing/workspaceColumns'
+  import type { Workspace } from '~/types'
 
-  const api = useApi()
-  const workspaces = computed(() => api.getWorkspaces())
+  // Fixed preview data: the landing page must never read the signed-in user's
+  // workspaces, and the real list is not fetched on `/`.
+  const workspaces: Workspace[] = [
+    {
+      id: 1,
+      name: 'Fall 2026',
+      slug: 'fall-2026',
+      dates: 'Sep 1 – Dec 20, 2026',
+      courses: 5,
+      assignments: 24,
+      completed: 15,
+      progress: 63,
+      active: true,
+      next: 'Problem Set 6',
+      nextDue: 'Nov 8',
+    },
+    {
+      id: 2,
+      name: 'Spring 2026',
+      slug: 'spring-2026',
+      dates: 'Feb 2 – May 29, 2026',
+      courses: 4,
+      assignments: 18,
+      completed: 18,
+      progress: 100,
+      active: false,
+      next: 'Semester complete',
+      nextDue: '—',
+    },
+    {
+      id: 3,
+      name: 'Fall 2025',
+      slug: 'fall-2025',
+      dates: 'Sep 1 – Dec 19, 2025',
+      courses: 6,
+      assignments: 30,
+      completed: 30,
+      progress: 100,
+      active: false,
+      next: 'Semester complete',
+      nextDue: '—',
+    },
+    {
+      id: 4,
+      name: 'Spring 2025',
+      slug: 'spring-2025',
+      dates: 'Feb 3 – May 30, 2025',
+      courses: 4,
+      assignments: 20,
+      completed: 20,
+      progress: 100,
+      active: false,
+      next: 'Semester complete',
+      nextDue: '—',
+    },
+    {
+      id: 5,
+      name: 'Fall 2024',
+      slug: 'fall-2024',
+      dates: 'Sep 2 – Dec 20, 2024',
+      courses: 5,
+      assignments: 26,
+      completed: 26,
+      progress: 100,
+      active: false,
+      next: 'Semester complete',
+      nextDue: '—',
+    },
+  ]
 </script>
 
 <template>
@@ -34,18 +101,7 @@
         progress: 'w-56 shrink-0',
         assignments: 'w-64 shrink-0',
       }"
-    >
-      <template #empty>
-        <div class="px-5 py-16 text-center">
-          <p class="text-sm font-medium text-text-strong">
-            No workspaces yet
-          </p>
-          <p class="mt-1 text-xs text-subline">
-            Create your first workspace to start organizing your semester.
-          </p>
-        </div>
-      </template>
-    </DataTable>
+    />
 
     <div class="flex items-center gap-2 border-t border-line bg-soft px-5 py-4 font-mono text-[10px] text-text-muted">
       <Plus class="h-3.5 w-3.5" />

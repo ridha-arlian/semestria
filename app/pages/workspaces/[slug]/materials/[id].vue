@@ -111,7 +111,13 @@ function reviewedAgeDays(reviewed: string): number | null {
 }
 
 const reviewState = computed<ReviewState>(() => {
-  const age = reviewedAgeDays(material.value?.reviewed ?? '')
+  const item = material.value
+  if (!item)
+    return 'none'
+  // Prefer the ISO timestamp: relative labels such as "3d ago" are display
+  // text and cannot be parsed back into an age.
+  const isoAge = item.reviewedAt ? Math.floor((Date.now() - new Date(item.reviewedAt).getTime()) / 86400000) : null
+  const age = isoAge !== null && Number.isFinite(isoAge) ? isoAge : reviewedAgeDays(item.reviewed ?? '')
   if (age === null)
     return 'none'
   return age > 7 ? 'stale' : 'fresh'

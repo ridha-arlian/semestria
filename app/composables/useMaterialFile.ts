@@ -1,4 +1,4 @@
-import { computed, onUnmounted, ref, toValue } from 'vue'
+import { computed, ref, toValue } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { Material } from '~/types'
 import type { MaterialDetailContext } from '~/components/workspaces/material-detail/materialDetailContext'
@@ -10,23 +10,55 @@ export interface MaterialFileRules {
   maxMb: number
 }
 
+interface UploadTicket {
+  url: string
+  method: 'PUT'
+  contentType: string
+  key: string
+}
+
+// Browsers report an empty `file.type` for some office documents and ebooks,
+// but the server validates MIME types, so derive one from the extension.
+const MIME_BY_EXT: Record<string, string> = {
+  pdf: 'application/pdf',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  key: 'application/x-iwork-keynote-sffkey',
+  epub: 'application/epub+zip',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+}
+
+function contentTypeFor(file: File) {
+  if (file.type)
+    return file.type
+  return MIME_BY_EXT[fileExtension(file.name)] ?? 'application/octet-stream'
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message)
+    return error.message
+  return fallback
+}
+
 /**
- * Shared upload state for material files. Uploads stay in memory: the object
- * URL is stored on the material and intentionally survives component unmount,
- * so it keeps working while the user moves around the workspace.
+ * Shared upload state for material files. The browser PUTs straight to R2 with
+ * a presigned ticket, then the server commits the object key to the material.
  */
 export function useMaterialFile(
   material: Ref<Material>,
   ctx: MaterialDetailContext,
   rules: MaybeRefOrGetter<MaterialFileRules>,
 ) {
+  const api = useApi()
   const fileInput = ref<HTMLInputElement | null>(null)
   const isDragging = ref(false)
   const progress = ref<number | null>(null)
   const uploadError = ref<string | null>(null)
   const pendingFileName = ref<string | null>(null)
   let pendingFile: File | null = null
-  let progressTimer: ReturnType<typeof setInterval> | undefined
+  let request: XMLHttpRequest | null = null
 
   const hasFile = computed(() => !!material.value.url)
   const fileName = computed(() =>
@@ -67,46 +99,108 @@ export function useMaterialFile(
     progress.value = null
   }
 
-  function startUpload(file: File) {
+  /** Resolves with the bucket response; `progress` null means the user cancelled. */
+  function putObject(ticket: UploadTicket, file: File): Promise<{ ok: true } | { ok: false, message: string }> {
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest()
+      request = xhr
+      xhr.open(ticket.method, ticket.url)
+      xhr.setRequestHeader('Content-Type', ticket.contentType)
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable)
+          progress.value = Math.round((event.loaded / event.total) * 100)
+      }
+      xhr.onload = () => {
+        request = null
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve({ ok: true })
+          return
+        }
+        resolve({ ok: false, message: `Upload failed (${xhr.status}). Check the storage bucket CORS settings.` })
+      }
+      xhr.onerror = () => {
+        request = null
+        resolve({ ok: false, message: 'Upload failed. Check your connection and the storage bucket CORS settings.' })
+      }
+      xhr.onabort = () => {
+        request = null
+        resolve({ ok: false, message: 'Upload cancelled.' })
+      }
+      xhr.send(file)
+    })
+  }
+
+  async function runUpload(file: File) {
+    const problem = validate(file)
+    if (problem) {
+      fail(file, problem)
+      return
+    }
+
     pendingFile = file
     pendingFileName.value = file.name
     uploadError.value = null
     progress.value = 0
-    if (progressTimer)
-      clearInterval(progressTimer)
-    progressTimer = setInterval(() => {
-      if (progress.value === null)
-        return
-      progress.value = Math.min(100, progress.value + Math.ceil(Math.random() * 18))
-      if (progress.value >= 100) {
-        if (progressTimer)
-          clearInterval(progressTimer)
-        progressTimer = undefined
-        finishUpload(file)
-      }
-    }, 160)
-  }
 
-  function finishUpload(file: File) {
+    const id = material.value.id
+    let ticket: UploadTicket
+    try {
+      ticket = await api.request<UploadTicket>(`/api/materials/${id}/upload-url`, {
+        method: 'POST',
+        body: JSON.stringify({
+          fileName: file.name,
+          fileSize: file.size,
+          contentType: contentTypeFor(file),
+        }),
+      })
+    }
+    catch (error) {
+      if (progress.value !== null)
+        fail(file, errorMessage(error, 'Could not start the upload.'))
+      return
+    }
+    if (progress.value === null)
+      return
+
+    const result = await putObject(ticket, file)
+    if (progress.value === null)
+      return
+    if (!result.ok) {
+      fail(file, result.message)
+      return
+    }
+
+    try {
+      await ctx.setMaterialContent(id, {
+        url: ticket.key,
+        source: 'file',
+        fileName: file.name,
+        fileSize: file.size,
+      })
+    }
+    catch (error) {
+      fail(file, errorMessage(error, 'Could not save the uploaded file.'))
+      return
+    }
+
     progress.value = null
     pendingFileName.value = null
-    const url = URL.createObjectURL(file)
-    ctx.setMaterialContent(material.value.id, {
-      url,
-      source: 'file',
-      fileName: file.name,
-      fileSize: file.size,
-    })
     pendingFile = null
+  }
+
+  function startUpload(file: File) {
+    if (progress.value !== null)
+      return
+    void runUpload(file)
   }
 
   function cancelUpload() {
-    if (progressTimer)
-      clearInterval(progressTimer)
-    progressTimer = undefined
     progress.value = null
     pendingFileName.value = null
     pendingFile = null
+    const active = request
+    request = null
+    active?.abort()
   }
 
   function clearError() {
@@ -134,11 +228,6 @@ export function useMaterialFile(
     }
     return true
   }
-
-  onUnmounted(() => {
-    if (progressTimer)
-      clearInterval(progressTimer)
-  })
 
   return {
     fileInput,

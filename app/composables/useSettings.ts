@@ -9,8 +9,8 @@ const SETTINGS_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'notifica
 export function defaultSettings(): AppSettings {
   return {
     profile: {
-      name: 'Ari Rahman',
-      email: 'ari.rahman@example.com',
+      name: '',
+      email: '',
     },
     appearance: {
       preset: 'mono',
@@ -40,8 +40,7 @@ export function useSettings() {
   const avatarUrl = useState<string | null>('app-settings-avatar', () => null)
   const hydrated = useState<boolean>('app-settings-hydrated', () => false)
 
-  // SSR renders the seeded identity; swap in stored settings after mount.
-  const displayName = computed(() => hydrated.value ? settings.value.profile.name : 'Ari Rahman')
+  const displayName = computed(() => settings.value.profile.name.trim() || 'there')
   const firstName = computed(() => displayName.value.trim().split(/\s+/)[0] || 'there')
   const weekStartsOnNumber = computed(() => settings.value.preferences.weekStartsOn === 'sunday' ? 0 : 1)
 
@@ -49,7 +48,11 @@ export function useSettings() {
     if (!import.meta.client)
       return
     try {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings.value))
+      // Profile/preferences live on the server. Cache only what must paint
+      // before hydration and must not leak between accounts on shared devices.
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
+        appearance: settings.value.appearance,
+      }))
     }
     catch (e) {
       console.error('Failed to persist settings:', e)
@@ -110,6 +113,20 @@ export function useSettings() {
     avatarUrl.value = blob ? URL.createObjectURL(blob) : null
   }
 
+  // The avatar route is private, so fetch it as a blob instead of pointing
+  // <img> at it: a shared cache must never retain another user's picture.
+  async function loadAvatar() {
+    if (!import.meta.client)
+      return
+    try {
+      const blob = await $fetch<Blob>('/api/me/avatar', { responseType: 'blob' })
+      setAvatarBlob(blob)
+    }
+    catch {
+      setAvatarBlob(null)
+    }
+  }
+
   return {
     settings,
     isOpen,
@@ -124,6 +141,7 @@ export function useSettings() {
     closeSettings,
     showToast,
     setAvatarBlob,
+    loadAvatar,
     persist,
     applyTheme,
     applyThemeWithTransition,

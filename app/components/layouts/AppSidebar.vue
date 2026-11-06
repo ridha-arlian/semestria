@@ -1,11 +1,12 @@
 <script setup lang="ts">
-  import { Settings, UserRound } from '@lucide/vue'
+  import { LogOut, Settings, UserRound } from '@lucide/vue'
   import { useSidebar } from '~/components/ui/sidebar'
-  import { useSettings } from '~/composables/useSettings'
+  import { useSettings, defaultSettings, SETTINGS_STORAGE_KEY, THEME_CSS_STORAGE_KEY } from '~/composables/useSettings'
 
   const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
   const route = useRoute()
-  const { settings, avatarUrl, openSettings } = useSettings()
+  const api = useApi()
+  const { settings, avatarUrl, openSettings, setAvatarBlob, applyTheme } = useSettings()
 
   // Auto-close mobile drawer (Sheet) on navigation.
   // Desktop uses collapsible="icon" and must not be affected.
@@ -31,6 +32,20 @@
     if (isMobile.value)
       setOpenMobile(false)
     openSettings()
+  }
+
+  async function handleLogout() {
+    if (isMobile.value)
+      setOpenMobile(false)
+    await api.logout()
+    settings.value = defaultSettings()
+    setAvatarBlob(null)
+    applyTheme()
+    if (import.meta.client) {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY)
+      localStorage.removeItem(THEME_CSS_STORAGE_KEY)
+    }
+    await navigateTo('/login')
   }
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
@@ -108,24 +123,45 @@
         </div>
 
         <TooltipProvider :delay-duration="0">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 group-data-[collapsible=icon]:hidden transition-colors duration-200 ease-linear"
-                @click="handleOpenSettings"
-              >
-                <Settings class="size-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>
-                Settings
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <div class="flex items-center gap-1 shrink-0 group-data-[collapsible=icon]:hidden">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 transition-colors duration-200 ease-linear"
+                  @click="handleLogout"
+                >
+                  <LogOut class="size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>
+                  Sign out
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 transition-colors duration-200 ease-linear"
+                  @click="handleOpenSettings"
+                >
+                  <Settings class="size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>
+                  Settings
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </TooltipProvider>
       </div>
     </SidebarFooter>

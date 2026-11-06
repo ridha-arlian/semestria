@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Camera, RotateCcw, UserRound } from '@lucide/vue'
 
+const api = useApi()
 const { settings, avatarUrl, setAvatarBlob, showToast } = useSettings()
 
 const nameInput = ref('')
@@ -8,6 +9,7 @@ const emailInput = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const nameError = ref(false)
+const avatarBusy = ref(false)
 
 const cropOpen = ref(false)
 const cropSrc = ref<string | null>(null)
@@ -47,14 +49,64 @@ function handleCropOpen(open: boolean) {
     clearCropSrc()
 }
 
-function handleCropSave(blob: Blob) {
-  setAvatarBlob(blob)
-  showToast('Avatar updated')
+interface AvatarTicket {
+  url: string
+  method: 'PUT'
+  contentType: string
+  key: string
 }
 
-function handleRemoveAvatar() {
-  setAvatarBlob(null)
-  showToast('Avatar removed')
+async function uploadAvatar(blob: Blob) {
+  const ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg'
+  const contentType = blob.type || 'image/jpeg'
+  avatarBusy.value = true
+  try {
+    const ticket = await api.request<AvatarTicket>('/api/me/avatar-url', {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName: `avatar.${ext}`,
+        fileSize: blob.size,
+        contentType,
+      }),
+    })
+    const response = await fetch(ticket.url, {
+      method: ticket.method,
+      headers: { 'Content-Type': ticket.contentType },
+      body: blob,
+    })
+    if (!response.ok)
+      throw new Error(`Upload failed (${response.status}).`)
+    await api.request('/api/me/avatar', { method: 'PATCH', body: JSON.stringify({ key: ticket.key }) })
+    setAvatarBlob(blob)
+    showToast('Avatar updated')
+  }
+  catch (error) {
+    showToast(error instanceof Error ? error.message : 'Could not update avatar')
+  }
+  finally {
+    avatarBusy.value = false
+  }
+}
+
+function handleCropSave(blob: Blob) {
+  void uploadAvatar(blob)
+}
+
+async function handleRemoveAvatar() {
+  if (avatarBusy.value)
+    return
+  avatarBusy.value = true
+  try {
+    await api.request('/api/me/avatar', { method: 'DELETE' })
+    setAvatarBlob(null)
+    showToast('Avatar removed')
+  }
+  catch (error) {
+    showToast(error instanceof Error ? error.message : 'Could not remove avatar')
+  }
+  finally {
+    avatarBusy.value = false
+  }
 }
 
 function validateEmail(email: string) {
@@ -107,6 +159,7 @@ onBeforeUnmount(clearCropSrc)
             variant="outline"
             size="sm"
             class="gap-1.5 text-xs"
+            :disabled="avatarBusy"
             @click="fileInput?.click()"
           >
             <Camera />
@@ -117,6 +170,7 @@ onBeforeUnmount(clearCropSrc)
             variant="ghost"
             size="sm"
             class="gap-1.5 text-xs"
+            :disabled="avatarBusy"
             @click="handleRemoveAvatar"
           >
             <RotateCcw />
@@ -124,7 +178,7 @@ onBeforeUnmount(clearCropSrc)
           </Button>
         </div>
         <p class="text-[11px] text-subline">
-          PNG, JPG, or WebP up to 10MB. Avatar is temporary and cleared on reload.
+          PNG, JPG, or WebP up to 10MB. The saved avatar is resized to 512 px.
         </p>
       </div>
       <input
@@ -165,7 +219,7 @@ onBeforeUnmount(clearCropSrc)
           @blur="handleEmailBlur"
         />
         <p class="text-[11px] text-subline">
-          Email is stored locally in this browser only.
+          Used to sign in to your account.
         </p>
       </div>
     </div>

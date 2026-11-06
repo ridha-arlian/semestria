@@ -9,7 +9,7 @@ export interface MaterialDetailContext {
   openAdd: (type: ModalType) => void
   updateMaterial: (id: number, payload: MaterialPayload) => void
   updateMaterialNote: (id: number, note: MaterialNote) => void
-  setMaterialContent: (id: number, content: MaterialContentInput | null) => void
+  setMaterialContent: (id: number, content: MaterialContentInput | null) => Promise<void>
   addMaterialLink: (id: number, link: { url: string, label?: string }) => void
   updateMaterialLink: (id: number, linkId: number, patch: { url?: string, label?: string }) => void
   removeMaterialLink: (id: number, linkId: number) => void
@@ -20,4 +20,5 @@ export interface MaterialDetailContext {
   removeMaterial: (id: number) => void
   pushMaterialActivity: (materialId: number, kind: MaterialActivity['kind'], label: string, detail?: string) => void
   getMaterialActivities: (material: Material) => MaterialActivity[]
+  ensureMaterialActivities: (materialId: number) => Promise<void>
 }

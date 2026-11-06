@@ -1,7 +1,8 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialContentInput, MaterialLink, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialContentInput, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
   import { planTypeChange } from '~/utils/materialContent'
+  import { useActivityCache } from '~/composables/apiCache'
 
   const route = useRoute()
   const api = useApi()
@@ -72,40 +73,27 @@
   const tasks = computed(() => tasksState.value.filter(t => t.workspaceId === workspace.value?.id))
   const materials = computed(() => materialsState.value.filter(m => m.workspaceId === workspace.value?.id))
 
-  // Persisted activity history across navigation (session scope)
-  const materialActivities = useState<Record<number, MaterialActivity[]>>('material-activities', () => ({}))
-  const activitySeq = useState<number>('material-activity-seq', () => 1)
-  const linkSeq = useState<number>('material-link-seq', () => 1000)
+  // Persisted activity history across navigation. Shared with `useApi`
+  // through the same `api-activities` cache key.
+  const materialActivities = useActivityCache()
+  const nextInt = useState<number>('material-local-seq', () => 1000)
 
   // Recompute derived progress whenever the live task collection changes.
   watch(tasks, (list) => list.forEach(recalcTask), { immediate: true })
 
   const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
 
-  const priorityMap: Record<TaskPriority, Task['priority']> = {
-    low: 'Low',
-    medium: 'Medium',
-    high: 'High',
-  }
+  // Keep for template parity; server owns priority mapping.
+  void (0 as unknown as TaskPriority)
 
-  function formatDue(iso: string) {
-    if (!iso)
-      return 'No due date'
-    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
-    api.addTask(workspace.value!.id, payload)
+  async function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
+    await api.addTask(workspace.value!.id, payload)
     if (!addAnother)
       showModal.value = false
   }
 
-  function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
-    api.addMaterial(workspace.value!.id, payload)
+  async function handleMaterialSubmit(payload: MaterialPayload, addAnother: boolean) {
+    await api.addMaterial(workspace.value!.id, payload)
     if (!addAnother)
       showModal.value = false
   }
@@ -134,8 +122,10 @@
       item.status = 'To do'
   }
 
-  function cycleStatus(item: Task) {
+  async function cycleStatus(item: Task) {
     const next = item.status === 'To do' ? 'In progress' : item.status === 'In progress' ? 'Done' : 'To do'
+    const prevStatus = item.status
+    const prevProgress = item.progress
     item.status = next
     const list = item.checklist
     if (list?.length) {
@@ -148,29 +138,54 @@
     else {
       item.progress = next === 'Done' ? 100 : next === 'In progress' ? 50 : 0
     }
+    try {
+      await api.request(`/api/tasks/${item.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: next }) })
+    }
+    catch {
+      item.status = prevStatus
+      item.progress = prevProgress
+      if (list?.length) recalcTask(item)
+    }
   }
 
-  function toggleSubtask(item: Task, subId: number) {
+  async function toggleSubtask(item: Task, subId: number) {
     const sub = item.checklist?.find(s => s.id === subId)
     if (!sub)
       return
     sub.done = !sub.done
     recalcTask(item)
     syncStatusFromChecklist(item)
+    try {
+      const updated = await api.request<{ done: boolean }>(`/api/checklist/${subId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ done: sub.done }),
+      })
+      sub.done = updated.done
+      recalcTask(item)
+      syncStatusFromChecklist(item)
+    }
+    catch {
+      sub.done = !sub.done
+      recalcTask(item)
+      syncStatusFromChecklist(item)
+    }
   }
 
-  function addSubtask(item: Task, title: string) {
+  async function addSubtask(item: Task, title: string) {
     const text = title.trim()
     if (!text)
       return
+    const created = await api.request<{ id: number, title: string, done: boolean }>(
+      `/api/tasks/${item.id}/checklist`,
+      { method: 'POST', body: JSON.stringify({ title: text }) },
+    )
     item.checklist ??= []
-    const ids = item.checklist.map(s => s.id)
-    item.checklist.push({ id: ids.length ? Math.max(...ids) + 1 : 1, title: text, done: false })
+    item.checklist.push({ ...created })
     recalcTask(item)
     syncStatusFromChecklist(item)
   }
 
-  function updateSubtask(item: Task, subId: number, title: string) {
+  async function updateSubtask(item: Task, subId: number, title: string) {
     const text = title.trim()
     if (!text)
       return
@@ -178,14 +193,19 @@
     if (!sub)
       return
     sub.title = text
+    await api.request(`/api/checklist/${subId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title: text }),
+    })
   }
 
-  function removeSubtask(item: Task, subId: number) {
+  async function removeSubtask(item: Task, subId: number) {
     if (!item.checklist)
       return
     item.checklist = item.checklist.filter(s => s.id !== subId)
     recalcTask(item)
     syncStatusFromChecklist(item)
+    await api.request(`/api/checklist/${subId}`, { method: 'DELETE' })
   }
 
   function normalizeUrl(raw: string) {
@@ -195,57 +215,80 @@
     return /:\/\//.test(text) ? text : `https://${text}`
   }
 
-  function addSubmissionUrl(item: Task, url: string) {
+  async function addSubmissionUrl(item: Task, url: string) {
     const value = normalizeUrl(url)
     if (!value)
       return
+    const created = await api.request<{ id: number, url: string }>(
+      `/api/tasks/${item.id}/submissions`,
+      { method: 'POST', body: JSON.stringify({ url: value }) },
+    )
     item.submissionUrls ??= []
-    item.submissionUrls.push(value)
+    item.submissionUrls.push(created.url)
   }
 
-  function updateSubmissionUrl(item: Task, index: number, url: string) {
+  async function updateSubmissionUrl(item: Task, index: number, url: string) {
     const value = normalizeUrl(url)
-    if (!value || !item.submissionUrls || !item.submissionUrls[index])
+    const old = item.submissionUrls?.[index]
+    if (!value || !old)
       return
-    item.submissionUrls[index] = value
+    item.submissionUrls![index] = value
+    const subs = await api.request<{ id: number, url: string }[]>(`/api/tasks/${item.id}/submissions`)
+    const target = subs[index]
+    if (!target) return
+    await api.request(`/api/submissions/${target.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ url: value }),
+    })
   }
 
-  function removeSubmissionUrl(item: Task, index: number) {
-    if (!item.submissionUrls)
+  async function removeSubmissionUrl(item: Task, index: number) {
+    if (!item.submissionUrls?.[index])
       return
+    const subs = await api.request<{ id: number, url: string }[]>(`/api/tasks/${item.id}/submissions`)
+    const target = subs[index]
     item.submissionUrls = item.submissionUrls.filter((_, i) => i !== index)
+    if (target) {
+      await api.request(`/api/submissions/${target.id}`, { method: 'DELETE' })
+    }
   }
 
-  function updateNote(item: Task, text: string) {
+  async function updateNote(item: Task, text: string) {
     item.note = text
+    await api.request(`/api/tasks/${item.id}`, { method: 'PATCH', body: JSON.stringify({ note: text }) })
   }
 
-  function removeTask(id: number) {
+  async function removeTask(id: number) {
     // Removes the task and unlinks any material that pointed at it.
-    api.removeTask(id)
+    await api.removeTask(id)
   }
 
-  function updateTask(id: number, payload: TaskPayload) {
-    const item = tasks.value.find(t => t.id === id)
-    if (!item)
-      return
-    item.task = payload.title
-    item.course = payload.course
-    item.due = formatDue(payload.due)
-    item.priority = priorityMap[payload.priority]
-    item.description = payload.description
+  async function updateTask(id: number, payload: TaskPayload) {
+    const updated = await api.patchTask(id, {
+      title: payload.title,
+      course: payload.course,
+      due: payload.due,
+      priority: payload.priority,
+      description: payload.description,
+    })
+    const item = tasks.value.find((t) => t.id === id)
+    if (item) Object.assign(item, updated)
   }
 
-  function pushMaterialActivity(materialId: number, kind: MaterialActivityKind, label: string, detail?: string) {
-    const entry: MaterialActivity = { id: activitySeq.value++, kind, label, detail, at: 'Just now' }
-    const list = materialActivities.value[materialId] ??= []
-    list.unshift(entry)
+  // Activities are now server-backed. pushMaterialActivity is kept as a no-op
+  // for compatibility with older calls; server handlers log activities.
+  function pushMaterialActivity(_materialId: number, _kind: MaterialActivityKind, _label: string, _detail?: string) {
+    // Intentionally empty: activity history comes from /api/materials/:id/activities
   }
 
   function getMaterialActivities(material: Material): MaterialActivity[] {
-    const session = materialActivities.value[material.id] ?? []
-    const created: MaterialActivity = { id: 0, kind: 'Created', label: 'Created', at: material.reviewed || '—' }
-    return [session, [created]].flat()
+    return materialActivities.value[material.id] ?? []
+  }
+
+  async function ensureMaterialActivities(materialId: number) {
+    if (materialActivities.value[materialId])
+      return
+    await api.fetchActivities(materialId)
   }
 
   function revokeBlobUrl(url?: string) {
@@ -254,31 +297,29 @@
   }
 
   function nextLinkId() {
-    linkSeq.value++
-    return linkSeq.value
+    return nextInt.value++
   }
 
   function applyContentPlan(item: Material, plan: ReturnType<typeof planTypeChange>) {
     const prevUrl = item.url
-    const links = plan.links.map(link => link.id === 0 ? { ...link, id: nextLinkId() } : link)
     item.url = plan.url
     item.contentSource = plan.source
-    item.links = links.length ? links : undefined
+    item.links = plan.links.length ? plan.links.map(l => (l.id === 0 ? { ...l, id: nextLinkId() } : l)) : undefined
     item.fileName = plan.fileName
     item.fileSize = plan.fileSize
     if (prevUrl && prevUrl !== plan.url)
       revokeBlobUrl(prevUrl)
   }
 
-  function updateMaterial(id: number, payload: MaterialPayload) {
+  async function updateMaterial(id: number, payload: MaterialPayload) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
-    const prevTags = item.tags
-    const prevTaskId = item.taskId
     const prevType = item.type
     const plan = prevType !== payload.type ? planTypeChange(item, payload.type) : null
     const hadContent = !!item.url || (item.links?.length ?? 0) > 0
+    const prevPrimary = item.taskId
+    const linkedBefore = linkedTaskIds(item)
 
     item.title = payload.title
     item.course = payload.course
@@ -287,22 +328,35 @@
 
     if (plan) {
       applyContentPlan(item, plan)
-      if (plan.lost && hadContent)
-        pushMaterialActivity(id, 'Content removed', 'Content removed')
     }
 
-    // Keep the card in sync: drop the previous primary, keep the other links.
-    const nextTaskIds = linkedTaskIds(item).filter(tid => tid !== prevTaskId)
-    if (payload.taskId)
-      nextTaskIds.push(payload.taskId)
-    setMaterialTasks(id, nextTaskIds, true)
-    if (prevTags !== item.tags)
-      pushMaterialActivity(id, 'Tag added', 'Tag added', item.tags || undefined)
-    else
-      pushMaterialActivity(id, 'Edited', 'Edited')
+    const updated = await api.patchMaterial(id, {
+      title: payload.title,
+      course: payload.course,
+      type: payload.type,
+      tags: payload.tags,
+    })
+    Object.assign(item, updated)
+
+    // The edit form picks one primary task. Diff only that link so the other
+    // task links made from the detail page survive the edit.
+    item.taskId = prevPrimary
+    const nextPrimary = payload.taskId ?? undefined
+    if (nextPrimary !== prevPrimary) {
+      const next = linkedBefore.filter(tid => tid !== prevPrimary)
+      if (nextPrimary !== undefined)
+        next.push(nextPrimary)
+      await setMaterialTasks(id, next)
+    }
+
+    // Server logs 'Tag added' / 'Edited' / 'Content removed' as needed.
+    void (async () => {
+      if (plan?.lost && hadContent) {
+        // Already handled server-side via type-change plan.
+      }
+    })()
   }
 
-  /** All tasks pointing at this material, merged from both link sources. */
   function linkedTaskIds(material: Material): number[] {
     const ids = new Set<number>()
     if (material.taskId)
@@ -314,13 +368,20 @@
     return [...ids]
   }
 
-  /** Single source of truth: material.taskId (primary) and task.materialIds stay in sync. */
-  function setMaterialTasks(id: number, taskIds: number[], silent = false) {
+  async function setMaterialTasks(id: number, taskIds: number[], _silent = false) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
-    const next = new Set(taskIds)
+
+    // Snapshot the current links BEFORE mutating local state, otherwise the
+    // diff below is empty and nothing is ever persisted.
     const prev = linkedTaskIds(item)
+    const prevPrimary = item.taskId
+    const next = new Set(taskIds)
+    const toAdd = [...next].filter(tid => !prev.includes(tid))
+    const toRemove = prev.filter(tid => !next.has(tid))
+
+    // Sync task.materialIds locally for UI.
     for (const t of tasks.value) {
       const has = t.materialIds?.includes(id) ?? false
       const should = next.has(t.id)
@@ -331,137 +392,134 @@
       if (!t.materialIds.length)
         t.materialIds = undefined
     }
-    // Primary link survives unless it was removed.
-    const primary = item.taskId && next.has(item.taskId) ? item.taskId : next.values().next().value
+    const primary = prevPrimary && next.has(prevPrimary) ? prevPrimary : next.values().next().value
     item.taskId = primary ?? undefined
-    if (silent)
-      return
-    for (const taskId of next) {
-      if (prev.includes(taskId))
-        continue
-      const t = tasks.value.find(x => x.id === taskId)
-      pushMaterialActivity(id, 'Task linked', 'Task linked', t?.task)
+
+    try {
+      for (const taskId of toAdd) {
+        await api.request(`/api/tasks/${taskId}/materials`, {
+          method: 'POST',
+          body: JSON.stringify({ materialId: id }),
+        })
+      }
+      for (const taskId of toRemove) {
+        await api.request(`/api/tasks/${taskId}/materials/${id}`, { method: 'DELETE' })
+      }
     }
-    for (const taskId of prev) {
-      if (next.has(taskId))
-        continue
-      const t = tasks.value.find(x => x.id === taskId)
-      pushMaterialActivity(id, 'Task unlinked', 'Task unlinked', t?.task)
+    catch (e) {
+      // Restore the pre-mutation links so the UI matches the server.
+      for (const t of tasks.value) {
+        const had = prev.includes(t.id)
+        const list = (t.materialIds ?? []).filter(mid => mid !== id)
+        t.materialIds = had ? [...list, id] : (list.length ? list : undefined)
+      }
+      item.taskId = prevPrimary
+      throw e
     }
   }
 
-  function linkMaterialTask(id: number, taskId: number) {
+  async function linkMaterialTask(id: number, taskId: number) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
     const current = linkedTaskIds(item)
     if (current.includes(taskId))
       return
-    setMaterialTasks(id, [...current, taskId])
+    await setMaterialTasks(id, [...current, taskId])
   }
 
-  function unlinkMaterialTask(id: number, taskId: number) {
+  async function unlinkMaterialTask(id: number, taskId: number) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
-    setMaterialTasks(id, linkedTaskIds(item).filter(tid => tid !== taskId))
+    await setMaterialTasks(id, linkedTaskIds(item).filter(tid => tid !== taskId))
   }
 
-  function sameNote(a: MaterialNote | undefined, b: MaterialNote | undefined) {
-    if (typeof a === 'string' || typeof b === 'string' || a === undefined || b === undefined)
-      return (a ?? '') === (b ?? '')
-    return JSON.stringify(a) === JSON.stringify(b)
-  }
-
-  function updateMaterialNote(id: number, note: MaterialNote) {
-    const item = materials.value.find(m => m.id === id)
-    if (!item || sameNote(item.description, note))
-      return
+  async function updateMaterialNote(id: number, note: MaterialNote) {
+    const item = materials.value.find((m) => m.id === id)
+    if (!item) return
+    const same = JSON.stringify(item.description ?? null) === JSON.stringify(note ?? null)
+    if (same) return
     item.description = note
-    pushMaterialActivity(id, 'Note updated', 'Note updated')
+    await api.request(`/api/materials/${id}/note`, { method: 'PATCH', body: JSON.stringify({ note }) })
   }
 
-  function setMaterialContent(id: number, content: MaterialContentInput | null) {
+  async function setMaterialContent(id: number, content: MaterialContentInput | null) {
     const item = materials.value.find(m => m.id === id)
     if (!item)
       return
     const prevUrl = item.url
-    const prevFileName = item.fileName
-    const prevSource = item.contentSource ?? (prevUrl && /^https?:\/\//i.test(prevUrl) ? 'link' : 'file')
-    const nextUrl = content?.url || undefined
-    item.url = nextUrl
-    item.contentSource = content?.source
-    item.fileName = nextUrl ? content?.fileName : undefined
-    item.fileSize = nextUrl ? content?.fileSize : undefined
-    if (prevUrl && prevUrl !== nextUrl)
+
+    let updated: Material
+    if (!content || !content.url) {
+      updated = await api.request<Material>(`/api/materials/${id}/content`, { method: 'DELETE' })
+    }
+    else {
+      const body = content.source === 'link'
+        ? { url: content.url, source: 'link' }
+        : { url: content.url, source: 'file', fileName: content.fileName, fileSize: content.fileSize }
+      updated = await api.request<Material>(`/api/materials/${id}/content`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+    }
+
+    if (prevUrl && prevUrl !== updated.url)
       revokeBlobUrl(prevUrl)
-    if (nextUrl) {
-      if (content?.source === 'file')
-        pushMaterialActivity(id, 'File replaced', 'File replaced', content.fileName ?? nextUrl)
-      else
-        pushMaterialActivity(id, 'Link updated', 'Link updated', nextUrl)
-    }
-    else if (prevUrl) {
-      const label = prevSource === 'file' ? 'File removed' : 'Link removed'
-      pushMaterialActivity(id, label, label, prevFileName ?? prevUrl)
-    }
+    Object.assign(item, updated)
   }
 
-  function addMaterialLink(id: number, link: { url: string, label?: string }) {
+  async function addMaterialLink(id: number, link: { url: string, label?: string }) {
     const item = materials.value.find(m => m.id === id)
     if (!item || !link.url.trim())
       return
-    const entry: MaterialLink = { id: nextLinkId(), url: link.url, label: link.label?.trim() || undefined }
-    item.links = [...(item.links ?? []), entry]
-    pushMaterialActivity(id, 'Link added', 'Link added', entry.label || entry.url)
+    const created = await api.request<{ id: number, url: string, label?: string }>(`/api/materials/${id}/links`, {
+      method: 'POST',
+      body: JSON.stringify(link),
+    })
+    item.links = [...(item.links ?? []), created]
   }
 
-  function updateMaterialLink(id: number, linkId: number, patch: { url?: string, label?: string }) {
+  async function updateMaterialLink(id: number, linkId: number, patch: { url?: string, label?: string }) {
     const item = materials.value.find(m => m.id === id)
     const link = item?.links?.find(l => l.id === linkId)
     if (!link)
       return
-    const prevUrl = link.url
-    const prevLabel = link.label
-    if (patch.url !== undefined)
-      link.url = patch.url
-    if (patch.label !== undefined)
-      link.label = patch.label.trim() || undefined
-    if (prevUrl !== link.url || prevLabel !== link.label)
-      pushMaterialActivity(id, 'Link updated', 'Link updated', link.label || link.url)
+    if (patch.url !== undefined) link.url = patch.url
+    if (patch.label !== undefined) link.label = patch.label.trim() || undefined
+    await api.request(`/api/material-links/${linkId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    })
   }
 
-  function removeMaterialLink(id: number, linkId: number) {
+  async function removeMaterialLink(id: number, linkId: number) {
     const item = materials.value.find(m => m.id === id)
-    const link = item?.links?.find(l => l.id === linkId)
-    if (!item || !link)
-      return
+    if (!item) return
     item.links = item.links?.filter(l => l.id !== linkId)
-    if (!item.links?.length)
-      item.links = undefined
-    pushMaterialActivity(id, 'Link removed', 'Link removed', link.label || link.url)
+    if (!item.links?.length) item.links = undefined
+    await api.request(`/api/material-links/${linkId}`, { method: 'DELETE' })
   }
 
-  function markMaterialReviewed(id: number) {
+  async function markMaterialReviewed(id: number) {
     const item = materials.value.find(m => m.id === id)
-    if (!item)
-      return
+    if (!item) return
     item.reviewed = 'Just now'
-    pushMaterialActivity(id, 'Marked reviewed', 'Marked reviewed')
+    item.reviewedAt = new Date().toISOString()
+    await api.request(`/api/materials/${id}/review`, { method: 'POST' })
   }
 
-  function markMaterialOpened(id: number) {
+  async function markMaterialOpened(id: number) {
     const item = materials.value.find(m => m.id === id)
-    if (!item)
-      return
+    if (!item) return
     item.lastOpened = 'Just now'
+    api.request(`/api/materials/${id}/open`, { method: 'POST' }).catch(() => {})
   }
 
-  function removeMaterial(id: number) {
+  async function removeMaterial(id: number) {
     const item = materials.value.find(m => m.id === id)
-    if (item)
-      revokeBlobUrl(item.url)
-    api.removeMaterial(id)
+    if (item) revokeBlobUrl(item.url)
+    await api.removeMaterial(id)
     const { [id]: _removed, ...rest } = materialActivities.value
     materialActivities.value = rest
   }
@@ -498,6 +556,7 @@
     removeMaterial,
     pushMaterialActivity,
     getMaterialActivities,
+    ensureMaterialActivities,
   })
 
   const mainNavItems = computed(() => [

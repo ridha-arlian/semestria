@@ -14,6 +14,11 @@ const PAGE_SIZE = 5
 
 const activities = computed(() => ctx.getMaterialActivities(props.material))
 const visible = computed(() => expanded.value ? activities.value : activities.value.slice(0, PAGE_SIZE))
+
+// Server-backed history: load once per material, never store a Promise in a
+// computed (it would render as an empty list forever).
+onMounted(() => { void ctx.ensureMaterialActivities(props.material.id) })
+watch(() => props.material.id, (id) => { void ctx.ensureMaterialActivities(id) })
 </script>
 
 <template>

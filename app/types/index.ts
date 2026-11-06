@@ -66,6 +66,8 @@ export interface Material {
   type: MaterialType
   tags: string
   reviewed: string
+  /** ISO timestamp; `reviewed` is only a display label. */
+  reviewedAt?: string
   lastOpened?: string
   url?: string
   /** Which kind of content `url` holds. Only Video can be either. */

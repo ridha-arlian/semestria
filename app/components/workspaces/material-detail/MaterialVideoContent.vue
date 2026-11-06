@@ -1,18 +1,30 @@
 <script setup lang="ts">
 import { FileVideo, Link2 } from '@lucide/vue'
 import type { Material } from '~/types'
-import type { MaterialDetailContext } from './materialDetailContext.ts'
 import { materialContentSource } from '~/utils/materialContent'
 
 const props = defineProps<{
   material: Material
 }>()
 
-const ctx = inject<MaterialDetailContext>('workspace')!
-
-const source = computed(() => materialContentSource(props.material))
+const actualSource = computed(() => materialContentSource(props.material))
+const source = computed(() => viewSource.value ?? actualSource.value)
 const switchOpen = ref(false)
 const pendingSource = ref<'file' | 'link' | null>(null)
+// A switch is only a view change until the replacement is saved. Material.url
+// still points at the old content, so pass a stripped copy to the new editor.
+const viewSource = ref<'file' | 'link' | null>(null)
+const viewMaterial = computed<Material>(() =>
+  viewSource.value && viewSource.value !== actualSource.value
+    ? { ...props.material, url: undefined, contentSource: viewSource.value }
+    : props.material,
+)
+
+watch(() => props.material.id, () => {
+  viewSource.value = null
+  pendingSource.value = null
+  switchOpen.value = false
+})
 
 function requestSource(next: 'file' | 'link') {
   if (next === source.value)
@@ -26,7 +38,7 @@ function requestSource(next: 'file' | 'link') {
 }
 
 function applySource(next: 'file' | 'link') {
-  ctx.setMaterialContent(props.material.id, { url: '', source: next })
+  viewSource.value = next
   pendingSource.value = null
 }
 
@@ -40,12 +52,12 @@ function confirmSwitch() {
   <div class="space-y-2">
     <WorkspacesMaterialDetailMaterialFileContent
       v-if="source === 'file'"
-      :material="material"
+      :material="viewMaterial"
       type="Video"
     />
     <WorkspacesMaterialDetailMaterialLinkContent
       v-else
-      :material="material"
+      :material="viewMaterial"
     />
 
     <div class="flex justify-start">
@@ -70,10 +82,10 @@ function confirmSwitch() {
     >
       <template #description>
         <template v-if="pendingSource === 'link'">
-          The uploaded file will be removed. You can upload it again later.
+          The uploaded file will be removed when you save the new link.
         </template>
         <template v-else>
-          The current link will be removed. You can add it again later.
+          The current link will be removed when you upload a new file.
         </template>
       </template>
     </ConfirmDialog>
