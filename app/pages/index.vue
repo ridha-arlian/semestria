@@ -52,9 +52,11 @@
         <p class="my-4 max-w-none text-sm leading-[1.65] text-text-strong sm:max-w-55">
           Sign in with Google, add what matters, and keep going. No template building, no setup. Just a workspace that's ready when you are.
         </p>
-        <Button variant="outline" size="lg" class="w-full bg-soft text-ink hover:bg-hover sm:w-auto">
-          <IconsGoogleIcon class="h-6! w-6! shrink-0" />
-          Continue with Google
+        <Button variant="outline" size="lg" class="w-full bg-soft text-ink hover:bg-hover sm:w-auto" as-child>
+          <a href="/api/auth/google">
+            <IconsGoogleIcon class="h-6! w-6! shrink-0" />
+            Continue with Google
+          </a>
         </Button>
       </div>
 
