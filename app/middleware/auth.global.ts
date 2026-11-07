@@ -4,7 +4,7 @@
 // fetch happens before the session is known.
 export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path.replace(/\/$/, '') || '/'
-  if (path === '/' || path === '/login' || path.startsWith('/api/')
+  if (path === '/' || path.startsWith('/api/')
     || path.startsWith('/_nuxt/') || path.startsWith('/assets/')) return
 
   const cache = useState<{ id: string } | null>('auth-user', () => null)
@@ -13,7 +13,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const request = useRequestFetch()
   const user = await request<{ id: string } | null>('/api/auth/me').catch(() => null)
   if (!user) {
-    return navigateTo(`/login?redirect=${encodeURIComponent(path)}`)
+    return navigateTo({ path: '/', query: { redirect: path } })
   }
   cache.value = user
 })

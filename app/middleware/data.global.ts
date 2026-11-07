@@ -4,7 +4,7 @@ import { fetchWorkspaceList, fetchWorkspaceData, fetchSettings } from '~/composa
 export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path.replace(/\/$/, '') || '/'
 
-  if (path === '/' || path === '/login') return
+  if (path === '/') return
 
   // Settings for identity-dependent render (sidebar, header).
   await fetchSettings()

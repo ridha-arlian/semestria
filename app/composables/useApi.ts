@@ -218,7 +218,7 @@ export const useApi = () => {
     return updated
   }
 
-  /** Clears session and every client cache; callers redirect to /login. */
+  /** Clears session and every client cache; callers redirect to the landing page. */
   async function logout(): Promise<void> {
     await request('/api/auth/logout', { method: 'POST' }).catch(() => {})
     workspacesState.value = []

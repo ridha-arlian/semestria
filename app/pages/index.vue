@@ -7,6 +7,20 @@
     layout: 'landing'
   })
 
+  const route = useRoute()
+
+  // Only allow same-origin relative paths; never a protocol-relative URL.
+  const loginHref = computed(() => {
+    const redirect = route.query.redirect
+    const target = typeof redirect === 'string'
+      && redirect.startsWith('/')
+      && !redirect.startsWith('//')
+      && !redirect.includes('\\')
+      ? redirect
+      : '/dashboard'
+    return `/api/auth/google?redirect=${encodeURIComponent(target)}`
+  })
+
   // The preview is laid out at the dashboard's desktop width, then scaled to
   // fill the available column so its proportions stay identical everywhere.
   const DESIGN_WIDTH = 1024
@@ -45,7 +59,7 @@
     </section>
 
     <section aria-label="Semestria workspace preview" class="block border-b border-line py-12 md:grid md:grid-cols-[1fr_2.15fr] md:gap-17.5 md:py-[100px_0_130px]">
-      <div class="mb-8 md:mb-0">
+      <div id="sign-in" class="mb-8 scroll-mt-8 md:mb-0">
         <span class="font-mono text-[10px] uppercase tracking-[0.08em] text-subline">
           The workspace
         </span>
@@ -53,7 +67,7 @@
           Sign in with Google, add what matters, and keep going. No template building, no setup. Just a workspace that's ready when you are.
         </p>
         <Button variant="outline" size="lg" class="w-full bg-soft text-ink hover:bg-hover sm:w-auto" as-child>
-          <a href="/api/auth/google">
+          <a :href="loginHref">
             <IconsGoogleIcon class="h-6! w-6! shrink-0" />
             Continue with Google
           </a>

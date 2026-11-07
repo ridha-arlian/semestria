@@ -5,7 +5,7 @@ import {
 } from './apiCache'
 import { defaultSettings } from './useSettings'
 
-const PUBLIC_ROUTES = new Set(['/', '/login'])
+const PUBLIC_ROUTES = new Set(['/'])
 
 /**
  * Fetches server data into the synchronous caches before any layout or page

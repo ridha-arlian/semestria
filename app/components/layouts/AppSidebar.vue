@@ -45,7 +45,7 @@
       localStorage.removeItem(SETTINGS_STORAGE_KEY)
       localStorage.removeItem(THEME_CSS_STORAGE_KEY)
     }
-    await navigateTo('/login')
+    await navigateTo('/')
   }
 
   const collapseWrap = 'grid grid-cols-[1fr] transition-[grid-template-columns] duration-200 ease-linear group-data-[collapsible=icon]:grid-cols-[0fr]'
