@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
   const db = useDb(event)
   const before = await db.user.findUnique({ where: { id: user.id }, select: { avatarKey: true } })
-  await db.user.update({ where: { id: user.id }, data: { avatarKey: key } })
+  await db.user.update({ where: { id: user.id }, data: { avatarKey: key, avatarHidden: false } })
 
   if (before?.avatarKey && before.avatarKey !== key)
     await deleteObject(event, before.avatarKey).catch(() => {})

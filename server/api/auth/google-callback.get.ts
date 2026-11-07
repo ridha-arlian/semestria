@@ -1,5 +1,6 @@
 import { setUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
+import { googleAvatarKey, importGoogleAvatar } from '../../utils/googleAvatar'
 import { safeRedirect } from '../../utils/redirect'
 
 interface GoogleTokenResponse {
@@ -72,6 +73,20 @@ export default defineEventHandler(async (event) => {
 
   if (!user.settings) {
     await db.userSettings.create({ data: { userId: user.id } })
+  }
+
+  // Import the Google photo only while the user has not chosen an avatar.
+  // A deterministic key marks imported photos, so a changed Google photo can
+  // refresh without overwriting a custom upload.
+  let avatarKey = user.avatarKey
+  const canImport = !user.avatarHidden
+    && (!avatarKey || avatarKey === googleAvatarKey(user.id))
+  if (canImport && info.picture) {
+    const imported = await importGoogleAvatar(event, user.id, info.picture)
+    if (imported && imported !== avatarKey) {
+      avatarKey = imported
+      await db.user.update({ where: { id: user.id }, data: { avatarKey } })
+    }
   }
 
   await setUser(event, {

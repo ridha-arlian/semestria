@@ -98,6 +98,42 @@ export async function deleteObject(event: H3Event, key: string): Promise<void> {
 }
 
 /**
+ * Server-side upload to R2. Used for images the server fetches itself, such
+ * as the Google profile photo. Prefer the binding; fall back to signed S3
+ * PUT when the Worker binding is absent in local dev.
+ */
+export async function putObject(
+  event: H3Event,
+  key: string,
+  body: Uint8Array,
+  contentType: string,
+): Promise<void> {
+  const files = event.context.cloudflare?.env?.FILES
+  if (files) {
+    await files.put(key, body, { httpMetadata: { contentType } })
+    return
+  }
+
+  const res = await r2Client(event).fetch(objectUrl(event, key), {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: body as unknown as BodyInit,
+  })
+  if (!res.ok) {
+    throw createError({ statusCode: 502, statusMessage: `R2 PUT failed: ${res.status}` })
+  }
+}
+
+/** Fetch responses have immutable headers in local dev; callers add headers. */
+function mutableResponse(response: Response): Response {
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers),
+  })
+}
+
+/**
  * Stream a stored object back through the Worker so ownership can be checked
  * before bytes leave R2. I/O wait does not consume Worker CPU.
  *
@@ -121,11 +157,11 @@ export async function getObject(event: H3Event, key: string, range?: string | nu
     if (range) headers.Range = range
     const res = await r2Client(event).fetch(objectUrl(event, key), { method: 'GET', headers })
     if (res.status === 404) return null
-    if (res.status === 416) return res
+    if (res.status === 416) return mutableResponse(res)
     if (!res.ok && res.status !== 206) {
       throw createError({ statusCode: 502, statusMessage: `R2 GET failed: ${res.status}` })
     }
-    return res
+    return mutableResponse(res)
   }
   if (!obj) return null
 
