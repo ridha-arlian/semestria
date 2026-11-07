@@ -145,7 +145,9 @@ function mutableResponse(response: Response): Response {
 export async function getObject(event: H3Event, key: string, range?: string | null): Promise<Response | null> {
   // R2 accepts a Headers object for `range`; a raw header string is not a
   // valid R2Range. The binding returns the slice in `obj.range`.
-  const options: Record<string, unknown> = { onlyIf: { etagDoesNotMatch: '*' } }
+  // Do not set `onlyIf`: a failed precondition returns an R2Object without a
+  // body, which would become an empty 200 response.
+  const options: Record<string, unknown> = {}
   if (range) options.range = new Headers({ range })
 
   let obj: Awaited<ReturnType<CfEnv['FILES']['get']>> | null
