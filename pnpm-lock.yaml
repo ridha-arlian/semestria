@@ -241,6 +241,9 @@ importers:
       vue-router:
         specifier: ^5.4.0
         version: 5.4.0(@vue/compiler-sfc@3.5.44)(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.63.1)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
+      vue-sonner:
+        specifier: ^2.0.9
+        version: 2.0.9(cc3c4d47f88ae0e0fcb90adab4383992)
     devDependencies:
       '@nuxt/eslint':
         specifier: ^1.17.0
@@ -5583,6 +5586,20 @@ packages:
       pinia:
         optional: true
       vite:
+        optional: true
+
+  vue-sonner@2.0.9:
+    resolution: {integrity: sha512-i6BokNlNDL93fpzNxN/LZSn6D6MzlO+i3qXt6iVZne3x1k7R46d5HlFB4P8tYydhgqOrRbIZEsnRd3kG7qGXyw==}
+    peerDependencies:
+      '@nuxt/kit': ^4.0.3
+      '@nuxt/schema': ^4.0.3
+      nuxt: ^4.0.3
+    peerDependenciesMeta:
+      '@nuxt/kit':
+        optional: true
+      '@nuxt/schema':
+        optional: true
+      nuxt:
         optional: true
 
   vue-tsc@3.3.13:
@@ -11461,6 +11478,12 @@ snapshots:
       - rollup
       - unloader
       - webpack
+
+  vue-sonner@2.0.9(cc3c4d47f88ae0e0fcb90adab4383992):
+    optionalDependencies:
+      '@nuxt/kit': 4.6.2(@nuxt/schema@4.6.2)(confbox@0.3.1)(dotenv@18.0.9)(giget@3.3.1)(jiti@2.7.0)(magic-string@1.4.3)(mlly@1.8.2)(rolldown@1.2.14)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.14)(rollup@4.63.1)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))
+      '@nuxt/schema': 4.6.2
+      nuxt: 4.6.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7(supports-color@10.2.2)))(@electric-sql/pglite@0.4.3)(@libsql/client@0.17.4)(@oxc-project/types@0.149.0)(@types/node@26.6.6)(@vue/compiler-sfc@3.5.44)(acorn@8.18.0)(aws4fetch@1.0.20)(confbox@0.3.1)(db0@0.3.4(@electric-sql/pglite@0.4.3)(@libsql/client@0.17.4)(mysql2@3.24.4(@types/node@26.6.6)))(dotenv@18.0.9)(esbuild@0.28.2)(eslint@10.13.0(jiti@2.7.0)(supports-color@10.2.2))(giget@3.3.1)(ioredis@5.11.1(supports-color@10.2.2))(lightningcss@1.33.0)(magicast@0.5.4)(mlly@1.8.2)(mysql2@3.24.4(@types/node@26.6.6))(optionator@0.9.4)(rolldown@1.2.14)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.14)(rollup@4.63.1))(rollup@4.63.1)(srvx@1.0.6)(supports-color@10.2.2)(terser@5.51.2)(typescript@6.0.3)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))(vue-tsc@3.3.13(typescript@6.0.3))(yaml@2.9.1)
 
   vue-tsc@3.3.13(typescript@6.0.3):
     dependencies:

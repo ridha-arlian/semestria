@@ -131,7 +131,7 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div v-if="task" class="space-y-6">
+    <div v-if="task" class="flex flex-col gap-6">
       <div class="grid items-start gap-x-6 gap-y-6 xl:relative xl:grid-cols-[1.6fr_1fr] xl:gap-y-0">
         <div class="flex flex-wrap items-center justify-between gap-2 xl:contents">
           <div class="min-w-0 xl:col-start-1 xl:row-start-1 xl:pr-56">
@@ -153,11 +153,11 @@
           >
             <template v-if="!isEditingHeader">
               <Button v-if="!(task.checklist?.length)" size="sm" variant="outline" class="max-sm:w-8 max-sm:px-0" :aria-label="`Mark as ${nextStatus}`" @click="ctx.cycleStatus(task)">
-                <RefreshCcw class="size-3.5 sm:mr-2" />
+                <RefreshCcw data-icon="inline-start" />
                 <span class="max-sm:hidden">Mark as {{ nextStatus }}</span>
               </Button>
               <Button size="sm" variant="outline" class="max-sm:w-8 max-sm:px-0" aria-label="Edit task" @click="startEditHeader">
-                <Pencil class="size-3.5 sm:mr-2" />
+                <Pencil data-icon="inline-start" />
                 <span class="max-sm:hidden">Edit</span>
               </Button>
             </template>
@@ -166,7 +166,7 @@
                 Cancel
               </Button>
               <Button size="sm" class="max-sm:hidden" :disabled="!canSaveHeader" @click="saveHeader">
-                <Check class="mr-2 size-3.5" />
+                <Check data-icon="inline-start" />
                 Save
             </Button>
           </template>
@@ -234,14 +234,15 @@
                   class="h-7 gap-1.5 px-2.5 text-[11px] font-normal"
                   :class="!editDue && 'text-text-muted'"
                 >
-                  <CalendarIcon class="size-3.5" />
+                  <CalendarIcon data-icon="inline-start" />
                   {{ dueLabel }}
                 </Button>
               </PopoverTrigger>
               <PopoverContent class="w-auto p-0" align="start">
                 <!-- @vue-ignore: false-positive nominal-identity mismatch on DateValue classes under Volar (single installed copy verified at runtime); values are structurally identical -->
                 <Calendar v-model="editDue" initial-focus @update:model-value="calendarOpen = false" />
-                <div class="flex flex-wrap gap-1.5 border-t border-line p-2">
+                <Separator />
+                <div class="flex flex-wrap gap-1.5 p-2">
                   <Button
                     v-for="q in quickDueDates"
                     :key="q.label"
@@ -280,7 +281,7 @@
 
           <WorkspacesTaskDetailChecklist :task="task" class="xl:col-start-1 xl:row-start-3 xl:mt-6" />
 
-        <div class="space-y-6 xl:col-start-2 xl:row-start-3 xl:mt-6">
+        <div class="flex flex-col gap-6 xl:col-start-2 xl:row-start-3 xl:mt-6">
           <WorkspacesTaskDetailSubmissionLinks :task="task" />
 
           <WorkspacesTaskDetailNotes :task="task" />
@@ -289,13 +290,15 @@
         </div>
       </div>
 
-      <div class="flex border-t border-line pt-5 sm:justify-end">
+      <Separator />
+
+      <div class="flex sm:justify-end">
         <Button
           variant="ghost"
           class="w-full text-destructive hover:text-destructive sm:w-auto"
           @click="deleteOpen = true"
         >
-          <Trash2 class="mr-2 size-3.5" />
+          <Trash2 data-icon="inline-start" />
           Delete
         </Button>
       </div>
@@ -321,21 +324,21 @@
               Edit task details.
             </DrawerDescription>
           </DrawerHeader>
-          <div class="max-h-[70vh] space-y-4 overflow-y-auto px-4 pb-4">
-            <div class="space-y-2">
-              <Label class="text-xs">Course</Label>
+          <FieldGroup class="max-h-[70vh] gap-4 overflow-y-auto px-4 pb-4">
+            <Field class="gap-2">
+              <FieldLabel class="text-xs">Course</FieldLabel>
               <Input v-model="editCourse" class="text-sm" placeholder="e.g. Design Research" />
-            </div>
-            <div class="space-y-2">
-              <Label class="text-xs">Title</Label>
+            </Field>
+            <Field class="gap-2">
+              <FieldLabel class="text-xs">Title</FieldLabel>
               <Input v-model="editTitle" class="text-sm font-semibold" placeholder="e.g. Read chapter 4" />
-            </div>
-            <div class="space-y-2">
-              <Label class="text-xs">Description</Label>
+            </Field>
+            <Field class="gap-2">
+              <FieldLabel class="text-xs">Description</FieldLabel>
               <Input v-model="editDescription" class="text-sm" placeholder="What needs to be done?" />
-            </div>
-            <div class="space-y-2">
-              <Label class="text-xs">Due date</Label>
+            </Field>
+            <Field class="gap-2">
+              <FieldLabel class="text-xs">Due date</FieldLabel>
               <div class="flex items-center gap-2">
                 <Popover v-model:open="calendarOpen">
                   <PopoverTrigger as-child>
@@ -345,14 +348,15 @@
                       class="h-9 flex-1 justify-start gap-2 text-sm font-normal"
                       :class="!editDue && 'text-text-muted'"
                     >
-                      <CalendarIcon class="size-4" />
+                      <CalendarIcon data-icon="inline-start" />
                       {{ dueLabel }}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent class="w-auto p-0" align="start">
                     <!-- @vue-ignore: false-positive nominal-identity mismatch on DateValue classes under Volar (single installed copy verified at runtime); values are structurally identical -->
                     <Calendar v-model="editDue" initial-focus @update:model-value="calendarOpen = false" />
-                    <div class="flex flex-wrap gap-1.5 border-t border-line p-2">
+                    <Separator />
+                    <div class="flex flex-wrap gap-1.5 p-2">
                       <Button
                         v-for="q in quickDueDates"
                         :key="q.label"
@@ -368,12 +372,12 @@
                   </PopoverContent>
                 </Popover>
               </div>
-              <p v-if="isPastDue" class="text-[11px] text-urgency-overdue">
+              <FieldError v-if="isPastDue" class="text-[11px]">
                 This date is in the past — the task will show as overdue right away.
-              </p>
-            </div>
-            <div class="space-y-2">
-              <Label class="text-xs">Priority</Label>
+              </FieldError>
+            </Field>
+            <Field class="gap-2">
+              <FieldLabel class="text-xs">Priority</FieldLabel>
               <ToggleGroup
                 type="single"
                 variant="outline"
@@ -386,8 +390,8 @@
                   {{ p.label }}
                 </ToggleGroupItem>
               </ToggleGroup>
-            </div>
-          </div>
+            </Field>
+          </FieldGroup>
           <DrawerFooter class="flex-row gap-2 pt-2">
             <Button variant="outline" class="flex-1" @click="cancelEditHeader">
               Cancel

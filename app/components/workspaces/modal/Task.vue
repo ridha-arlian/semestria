@@ -6,6 +6,8 @@
   defineProps<{
     open: boolean
     courses?: string[]
+    startDate?: string
+    endDate?: string
   }>()
 
   const emit = defineEmits<{
@@ -44,6 +46,8 @@
         <TaskForm
           key="new"
           :courses="courses"
+          :start-date="startDate"
+          :end-date="endDate"
           autofocus
           @cancel="emit('close')"
           @submit="handleSubmit"
@@ -70,6 +74,8 @@
         <TaskForm
           key="new"
           :courses="courses"
+          :start-date="startDate"
+          :end-date="endDate"
           @cancel="emit('close')"
           @submit="handleSubmit"
         />

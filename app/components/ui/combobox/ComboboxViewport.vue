@@ -2,7 +2,7 @@
 import type { ComboboxViewportProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { cn } from "cn"
+import { cn } from "@/lib/utils"
 import { ComboboxViewport, useForwardProps } from "reka-ui"
 
 const props = defineProps<ComboboxViewportProps & { class?: HTMLAttributes["class"] }>()

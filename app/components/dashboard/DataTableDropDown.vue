@@ -39,13 +39,17 @@
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-36">
-      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('edit', workspace)">
-        <Pencil class="mr-2 size-3.5 text-subline" /> Edit
-      </DropdownMenuItem>
+      <DropdownMenuGroup>
+        <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('edit', workspace)">
+          <Pencil class="mr-2 size-3.5 text-subline" /> Edit
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
       <DropdownMenuSeparator />
-      <DropdownMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @click="emit('delete', workspace)">
-        <Trash2 class="mr-2 size-3.5" /> Delete
-      </DropdownMenuItem>
+      <DropdownMenuGroup>
+        <DropdownMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @click="emit('delete', workspace)">
+          <Trash2 class="mr-2 size-3.5" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
     </DropdownMenuContent>
   </DropdownMenu>
   <Teleport to="body">

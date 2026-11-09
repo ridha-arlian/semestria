@@ -75,13 +75,13 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-subline">
           A flexible shelf for everything worth coming back to.
         </p>
         <Button class="w-full sm:w-auto" @click="openAdd('material')">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus data-icon="inline-start" />
           Add material
         </Button>
       </div>
@@ -100,14 +100,16 @@
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent align="end">
-            <SelectItem value="All" class="cursor-pointer text-xs">All types</SelectItem>
-            <SelectItem value="Notes" class="cursor-pointer text-xs">Notes</SelectItem>
-            <SelectItem value="Book" class="cursor-pointer text-xs">Book</SelectItem>
-            <SelectItem value="Slides" class="cursor-pointer text-xs">Slides</SelectItem>
-            <SelectItem value="Collection" class="cursor-pointer text-xs">Collection</SelectItem>
-            <SelectItem value="Link" class="cursor-pointer text-xs">Link</SelectItem>
-            <SelectItem value="PDF" class="cursor-pointer text-xs">PDF</SelectItem>
-            <SelectItem value="Video" class="cursor-pointer text-xs">Video</SelectItem>
+            <SelectGroup>
+              <SelectItem value="All" class="cursor-pointer text-xs">All types</SelectItem>
+              <SelectItem value="Notes" class="cursor-pointer text-xs">Notes</SelectItem>
+              <SelectItem value="Book" class="cursor-pointer text-xs">Book</SelectItem>
+              <SelectItem value="Slides" class="cursor-pointer text-xs">Slides</SelectItem>
+              <SelectItem value="Collection" class="cursor-pointer text-xs">Collection</SelectItem>
+              <SelectItem value="Link" class="cursor-pointer text-xs">Link</SelectItem>
+              <SelectItem value="PDF" class="cursor-pointer text-xs">PDF</SelectItem>
+              <SelectItem value="Video" class="cursor-pointer text-xs">Video</SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
@@ -115,15 +117,29 @@
       <div v-if="courseQuery || tagQuery" class="flex flex-wrap items-center gap-2">
         <Badge v-if="courseQuery" variant="secondary" class="gap-1 py-1 pl-2.5 pr-1 text-[11px]">
           Course: {{ courseQuery }}
-          <button type="button" class="rounded-sm p-0.5 hover:text-foreground" aria-label="Clear course filter" @click="clearQueryFilter('course')">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            class="size-4 rounded-sm p-0.5 hover:bg-transparent hover:text-foreground"
+            aria-label="Clear course filter"
+            @click="clearQueryFilter('course')"
+          >
             <X class="size-3" />
-          </button>
+          </Button>
         </Badge>
         <Badge v-if="tagQuery" variant="secondary" class="gap-1 py-1 pl-2.5 pr-1 font-mono text-[11px]">
           #{{ tagQuery }}
-          <button type="button" class="rounded-sm p-0.5 hover:text-foreground" aria-label="Clear tag filter" @click="clearQueryFilter('tag')">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            class="size-4 rounded-sm p-0.5 hover:bg-transparent hover:text-foreground"
+            aria-label="Clear tag filter"
+            @click="clearQueryFilter('tag')"
+          >
             <X class="size-3" />
-          </button>
+          </Button>
         </Badge>
       </div>
 
@@ -165,15 +181,19 @@
               </ContextMenuItem>
             </template>
             <template #empty>
-              <div class="px-5 py-16 text-center">
-                <Sparkles class="mx-auto size-5 text-subline/50" />
-                <p class="mt-3 text-sm font-medium text-text-strong">
-                  {{ isSearching ? 'No materials match your search' : 'No materials yet' }}
-                </p>
-                <p class="mt-1 text-xs text-subline">
-                  {{ isSearching ? 'Try a different keyword or type filter.' : 'Add your first material to start your shelf.' }}
-                </p>
-              </div>
+              <Empty class="px-5 py-16 md:py-16">
+                <EmptyHeader>
+                  <EmptyMedia>
+                    <Sparkles class="size-5 text-subline/50" />
+                  </EmptyMedia>
+                  <EmptyTitle class="text-sm font-medium">
+                    {{ isSearching ? 'No materials match your search' : 'No materials yet' }}
+                  </EmptyTitle>
+                  <EmptyDescription class="text-xs">
+                    {{ isSearching ? 'Try a different keyword or type filter.' : 'Add your first material to start your shelf.' }}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             </template>
           </DataTable>
         </CardContent>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-  import { Plus, SearchIcon, Settings as SettingsIcon } from '@lucide/vue'
+  import { BookOpen, Plus, SearchIcon, Settings as SettingsIcon, SquareCheck } from '@lucide/vue'
   import { useDateFormat, useMagicKeys, useMounted, whenever } from '@vueuse/core'
   import { useSidebar } from '~/components/ui/sidebar'
   import { useSettings } from '~/composables/useSettings'
-  import type { BreadcrumbEntry, View } from '~/types'
+  import type { BreadcrumbEntry, Material, Task, View } from '~/types'
 
   const { view, breadcrumbs = [] } = defineProps<{
     view: View
@@ -19,6 +19,26 @@
   const { toggleSidebar } = useSidebar()
   const open = ref(false)
   const { settings, openSettings } = useSettings()
+  const api = useApi()
+
+  // Search targets come from the caches hydrated by the global data middleware.
+  const workspaceById = computed(() => new Map(api.getWorkspaces().map(w => [w.id, w])))
+  const taskResults = computed(() => api.getTaskState().value.slice(0, 20))
+  const materialResults = computed(() => api.getMaterialState().value.slice(0, 20))
+
+  function openTask(task: Task) {
+    const workspace = workspaceById.value.get(task.workspaceId)
+    if (!workspace)
+      return
+    handleSelectAction(() => navigateTo(`/workspaces/${workspace.slug}/tasks/${task.id}`))
+  }
+
+  function openMaterial(material: Material) {
+    const workspace = workspaceById.value.get(material.workspaceId)
+    if (!workspace)
+      return
+    handleSelectAction(() => navigateTo(`/workspaces/${workspace.slug}/materials/${material.id}`))
+  }
 
   const { meta_q, ctrl_q } = useMagicKeys()
   whenever(() => meta_q?.value || ctrl_q?.value, () => {
@@ -150,6 +170,34 @@
             <CommandItem value="settings" @select="handleSettings">
               <SettingsIcon class="mr-2 size-4" />
               <span>Settings</span>
+            </CommandItem>
+          </CommandGroup>
+
+          <CommandSeparator />
+
+          <CommandGroup v-if="taskResults.length" heading="Tasks">
+            <CommandItem
+              v-for="task in taskResults"
+              :key="`task-${task.id}`"
+              :value="`${task.task} ${task.course} ${task.id}`"
+              @select="openTask(task)"
+            >
+              <SquareCheck class="mr-2 size-4" />
+              <span class="truncate">{{ task.task }}</span>
+              <span class="ml-auto shrink-0 text-xs text-subline">{{ task.course }}</span>
+            </CommandItem>
+          </CommandGroup>
+
+          <CommandGroup v-if="materialResults.length" heading="Materials">
+            <CommandItem
+              v-for="material in materialResults"
+              :key="`material-${material.id}`"
+              :value="`${material.title} ${material.course} ${material.id}`"
+              @select="openMaterial(material)"
+            >
+              <BookOpen class="mr-2 size-4" />
+              <span class="truncate">{{ material.title }}</span>
+              <span class="ml-auto shrink-0 text-xs text-subline">{{ material.course }}</span>
             </CommandItem>
           </CommandGroup>
 

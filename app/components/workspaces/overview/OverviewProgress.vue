@@ -1,18 +1,23 @@
 <script setup lang="ts">
   import { CalendarClock, Plus } from '@lucide/vue'
+  import type { TimelineState } from '~/types'
 
   const props = withDefaults(defineProps<{
     completed: number
     inProgress?: number
     total: number
-    currentWeek?: number
-    totalWeeks?: number
+    daysElapsed?: number
+    daysTotal?: number
+    daysUntilStart?: number
+    state?: TimelineState
     focus?: string
     nextDeadline?: { title: string, dueIn: string }
   }>(), {
     inProgress: 0,
-    currentWeek: 0,
-    totalWeeks: 0,
+    daysElapsed: 0,
+    daysTotal: 0,
+    daysUntilStart: 0,
+    state: 'active',
     focus: '',
     nextDeadline: undefined,
   })
@@ -23,13 +28,26 @@
 
   const pct = (value: number, max: number) => (max ? Math.round((value / max) * 100) : 0)
 
-  const hasTime = computed(() => !!props.currentWeek && !!props.totalWeeks)
+  const hasTime = computed(() => props.daysTotal > 0)
+  const hasTasks = computed(() => props.total > 0)
   const taskPercent = computed(() => pct(props.completed, props.total))
-  const timePercent = computed(() => pct(props.currentWeek ?? 0, props.totalWeeks ?? 0))
+  const timePercent = computed(() => {
+    if (!hasTime.value || props.state === 'upcoming') return 0
+    if (props.state === 'ended') return 100
+    return pct(props.daysElapsed, props.daysTotal)
+  })
   const toDo = computed(() => Math.max(props.total - props.completed - props.inProgress, 0))
 
+  const timelineLabel = computed(() => {
+    if (!hasTime.value) return ''
+    if (props.state === 'upcoming')
+      return `Starts in ${props.daysUntilStart} ${props.daysUntilStart === 1 ? 'day' : 'days'}`
+    if (props.state === 'ended') return 'Ended'
+    return `Day ${props.daysElapsed} of ${props.daysTotal}`
+  })
+
   const pace = computed(() => {
-    if (!hasTime.value) return null
+    if (!hasTime.value || !hasTasks.value || props.state !== 'active') return null
     const diff = taskPercent.value - timePercent.value
     if (diff > 5) return { label: 'Ahead of schedule', dot: 'bg-status-done' }
     if (diff < -5) return { label: 'Behind schedule', dot: 'bg-urgency-overdue' }
@@ -89,12 +107,12 @@
       </CardDescription>
     </CardHeader>
 
-    <CardContent class="space-y-6">
-      <div class="space-y-4">
-        <div v-if="hasTime" class="space-y-2">
+    <CardContent class="flex flex-col gap-6">
+      <div class="flex flex-col gap-4">
+        <div v-if="hasTime" class="flex flex-col gap-2">
           <div class="flex items-baseline justify-between gap-3 text-xs">
-            <span class="text-text-muted">Time elapsed</span>
-            <span class="shrink-0 font-mono text-text-muted">Week {{ currentWeek }}/{{ totalWeeks }}</span>
+            <span class="text-text-muted">Timeline</span>
+            <span class="shrink-0 font-mono text-text-muted">{{ timelineLabel }}</span>
           </div>
           <Progress
             :model-value="timePercent"
@@ -102,7 +120,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div v-if="hasTasks" class="flex flex-col gap-2">
           <div class="flex items-baseline justify-between gap-3 text-xs">
             <span class="text-text-strong">Tasks done</span>
             <span class="shrink-0 font-mono text-subline">{{ completed }}/{{ total }} · {{ taskPercent }}%</span>
@@ -113,13 +131,17 @@
           />
         </div>
 
+        <p v-if="!hasTasks" class="text-sm leading-relaxed text-text-muted">
+          Add your first task to start tracking progress.
+        </p>
+
         <p v-if="pace" class="flex items-center gap-1.5 text-[11px] text-text-muted">
           <span :class="pace.dot" class="size-1.5 rounded-full" />
           {{ pace.label }}
         </p>
       </div>
 
-      <div class="space-y-2.5">
+      <div v-if="hasTasks" class="flex flex-col gap-2.5">
         <p class="text-[11px] uppercase tracking-[0.15em] text-text-muted">
           Status
         </p>
@@ -150,12 +172,13 @@
         </div>
       </div>
 
-      <div class="border-t border-line pt-5">
+      <Separator />
+      <div>
         <p class="text-[11px] uppercase tracking-[0.15em] text-text-muted">
           This Week
         </p>
 
-        <div v-if="editing" class="mt-2 space-y-1.5">
+        <div v-if="editing" class="mt-2 flex flex-col gap-1.5">
           <Textarea
             ref="inputEl"
             v-model="draft"
@@ -175,20 +198,21 @@
         </div>
 
         <div v-else-if="focus" class="group mt-2">
-          <button
+          <Button
             type="button"
-            class="text-left text-sm leading-relaxed text-text-strong transition-colors hover:text-ink"
+            variant="link"
+            class="h-auto justify-start p-0 text-left text-sm leading-relaxed text-text-strong no-underline transition-colors hover:text-ink"
             @click="startEdit"
           >
             {{ focus }}
-          </button>
+          </Button>
           <div class="mt-1 flex gap-4 text-[11px] text-text-muted transition-opacity md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
-            <button type="button" class="py-1.5 underline-offset-4 hover:text-ink hover:underline" @click="startEdit">
+            <Button type="button" variant="link" class="h-auto p-0 py-1.5 text-[11px] text-text-muted no-underline hover:text-ink hover:underline" @click="startEdit">
               Edit
-            </button>
-            <button type="button" class="py-1.5 underline-offset-4 hover:text-ink hover:underline" @click="clearFocus">
+            </Button>
+            <Button type="button" variant="link" class="h-auto p-0 py-1.5 text-[11px] text-text-muted no-underline hover:text-ink hover:underline" @click="clearFocus">
               Clear
-            </button>
+            </Button>
           </div>
         </div>
 

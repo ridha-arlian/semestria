@@ -16,22 +16,26 @@
 
 <template>
   <ClientOnly>
-    <Button
-      variant="ghost"
-      size="icon"
-      class="h-8 w-8 text-ink bg-transparent! hover:opacity-70 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer select-none"
-      title="Toggle theme"
-      @click="toggleDarkMode"
-    >
-      <Sun v-if="colorMode.value === 'dark'" class="h-4 w-4" />
-      <Moon v-else class="h-4 w-4" />
-      <span class="sr-only">Toggle theme</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-8 text-ink bg-transparent! hover:opacity-70 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer select-none"
+          @click="toggleDarkMode"
+        >
+          <Sun v-if="colorMode.value === 'dark'" />
+          <Moon v-else />
+          <span class="sr-only">Toggle theme</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Toggle theme</TooltipContent>
+    </Tooltip>
 
     <template #fallback>
-      <div class="h-8 w-8 flex items-center justify-center text-ink opacity-50">
-        <Moon class="h-4 w-4 dark:hidden" />
-        <Sun class="h-4 w-4 hidden dark:block" />
+      <div class="flex size-8 items-center justify-center text-ink opacity-50">
+        <Moon class="size-4 dark:hidden" />
+        <Sun class="size-4 hidden dark:block" />
       </div>
     </template>
   </ClientOnly>

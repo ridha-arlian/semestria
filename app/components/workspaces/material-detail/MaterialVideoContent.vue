@@ -49,7 +49,7 @@ function confirmSwitch() {
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="flex flex-col gap-2">
     <WorkspacesMaterialDetailMaterialFileContent
       v-if="source === 'file'"
       :material="viewMaterial"

@@ -80,9 +80,9 @@
 <template>
   <div class="w-256 border border-line bg-card shadow-[10px_10px_0_var(--line-strong)] md:rotate-[1.2deg] md:shadow-[22px_22px_0_var(--line-strong)]">
     <div class="flex items-center gap-1.5 border-b border-line px-4 py-3.5 font-mono text-[10px]">
-      <Circle class="h-2 w-2 text-subline" />
-      <Circle class="h-2 w-2 text-subline" />
-      <Circle class="h-2 w-2 text-subline" />
+      <Circle class="size-2 text-subline" />
+      <Circle class="size-2 text-subline" />
+      <Circle class="size-2 text-subline" />
 
       <strong class="ml-3.5 font-sans text-[13px] font-bold text-headline">
         My semester
@@ -104,7 +104,7 @@
     />
 
     <div class="flex items-center gap-2 border-t border-line bg-soft px-5 py-4 font-mono text-[10px] text-text-muted">
-      <Plus class="h-3.5 w-3.5" />
+      <Plus class="size-3.5" />
       Add an assignment
     </div>
   </div>

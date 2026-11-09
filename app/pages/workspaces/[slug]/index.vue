@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { Plus } from '@lucide/vue'
   import OverviewStats from '~/components/dashboard/OverviewStats.vue'
-  import type { Task, ModalType, StatItem, Workspace } from '~/types'
+  import type { Task, ModalType, StatItem, Workspace, WorkspaceTimeline } from '~/types'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -11,13 +11,14 @@
 
   interface WorkspaceContext {
     workspace: Ref<Workspace | undefined>
-    week: Ref<{ current: number, total: number } | null>
+    week: Ref<WorkspaceTimeline | null>
     tasks: Ref<Task[]>
     openAdd: (type: ModalType) => void
     cycleStatus: (item: Task) => void
   }
 
   const { workspace, week, tasks, openAdd, cycleStatus } = inject('workspace') as WorkspaceContext
+  const api = useApi()
 
   const base = computed(() => `/workspaces/${workspace.value?.slug}`)
 
@@ -50,9 +51,22 @@
   const completed = computed(() => tasks.value.filter(t => t.status === 'Done').length)
   const inProgress = computed(() => tasks.value.filter(t => t.status === 'In progress').length)
 
-  const weeklyNotes = ref<Record<string, string>>({})
-  const noteKey = computed(() => `${workspace.value?.slug}-${week.value?.current ?? 0}`)
-  const focus = computed(() => weeklyNotes.value[noteKey.value] ?? '')
+  const focus = computed(() => {
+    const key = String(week.value?.current ?? 0)
+    return workspace.value?.focusNotes?.[key] ?? ''
+  })
+
+  async function updateFocus(value: string) {
+    const ws = workspace.value
+    if (!ws)
+      return
+    try {
+      await api.setWorkspaceFocus(ws.id, week.value?.current ?? 0, value)
+    }
+    catch {
+      // Keep the previous note; the editor already closed optimistically.
+    }
+  }
 
   const DAY = 24 * 60 * 60 * 1000
   const today = new Date()
@@ -108,7 +122,7 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div class="space-y-8">
+    <div class="flex flex-col gap-8">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 class="text-lg font-bold tracking-tight text-headline sm:hidden">
           {{ workspace?.name }}
@@ -118,7 +132,7 @@
         </h1>
 
         <Button class="w-full sm:w-auto" @click="openAdd('task')">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus data-icon="inline-start" />
           New task
         </Button>
       </div>
@@ -136,11 +150,13 @@
           :completed="completed"
           :in-progress="inProgress"
           :total="tasks.length"
-          :current-week="week?.current ?? 0"
-          :total-weeks="week?.total ?? 0"
+          :days-elapsed="week?.daysElapsed ?? 0"
+          :days-total="week?.totalDays ?? 0"
+          :days-until-start="week?.daysUntilStart ?? 0"
+          :state="week?.state ?? 'active'"
           :focus="focus"
           :next-deadline="nextDeadline"
-          @update:focus="weeklyNotes[noteKey] = $event"
+          @update:focus="updateFocus"
         />
       </div>
     </div>

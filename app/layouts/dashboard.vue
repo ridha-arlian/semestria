@@ -2,6 +2,9 @@
   import { LayoutDashboard, CircleSmall } from '@lucide/vue'
   import type { View } from '~/types'
 
+  const api = useApi()
+  const workspaces = computed(() => api.getWorkspaces())
+
   const view = ref<View>('Overview')
 
   const mainNavItems = [
@@ -23,7 +26,7 @@
             </SidebarGroupLabel>
           </div>
           <SidebarGroupContent class="mt-2 group-data-[collapsible=icon]:mt-0">
-            <SidebarMenu class="space-y-1">
+            <SidebarMenu class="gap-2">
               <SidebarMenuItem
                 v-for="item in mainNavItems"
                 :key="item.name"
@@ -60,21 +63,41 @@
                 <AccordionContent class="mt-2 pb-0 overflow-hidden">
                   <div class="flex flex-col gap-0.5">
                     <Item
-                      v-for="semester in ['Fall 2026', 'Spring 2026', 'Fall 2025']"
-                      :key="semester"
+                      v-for="workspace in workspaces"
+                      :key="workspace.id"
+                      as-child
                       variant="default"
                       class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-subline transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&:hover_svg]:fill-ink [&:hover_svg]:text-ink"
                     >
-                      <ItemMedia variant="icon" class="size-5 shrink-0 justify-center bg-transparent border-none p-0">
-                        <CircleSmall class="size-5 transition-colors fill-transparent text-subline" />
-                      </ItemMedia>
+                      <NuxtLink :to="`/workspaces/${workspace.slug}`">
+                        <ItemMedia variant="icon" class="size-5 shrink-0 justify-center bg-transparent border-none p-0">
+                          <CircleSmall
+                            class="size-5 transition-colors"
+                            :class="workspace.active ? 'fill-ink text-ink' : 'fill-transparent text-subline'"
+                          />
+                        </ItemMedia>
 
-                      <ItemContent class="p-0">
-                        <ItemTitle class="text-[13px] font-normal text-current transition-colors">
-                          {{ semester }}
-                        </ItemTitle>
-                      </ItemContent>
+                        <ItemContent class="p-0">
+                          <ItemTitle
+                            class="text-[13px] font-normal text-current transition-colors"
+                            :class="workspace.active && 'text-ink'"
+                          >
+                            {{ workspace.name }}
+                          </ItemTitle>
+                        </ItemContent>
+                      </NuxtLink>
                     </Item>
+
+                    <Empty
+                      v-if="!workspaces.length"
+                      class="items-start gap-0 p-0 px-2 py-1.5 text-left md:p-0 md:px-2 md:py-1.5"
+                    >
+                      <EmptyHeader class="items-start gap-0">
+                        <EmptyDescription class="text-[12px]">
+                          No workspaces yet.
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </div>
                 </AccordionContent>
               </AccordionItem>

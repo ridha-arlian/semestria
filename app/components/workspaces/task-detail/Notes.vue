@@ -53,7 +53,7 @@ onUnmounted(() => {
         </CardDescription>
       </div>
     </CardHeader>
-    <CardContent class="space-y-3 p-3">
+    <CardContent class="flex flex-col gap-3 p-3">
               <Textarea
                 v-model="noteDraft"
                 rows="4"

@@ -29,17 +29,18 @@ function filterByTag(tag: string) {
         Details
       </CardTitle>
     </CardHeader>
-    <CardContent class="space-y-3.5 p-4">
+    <CardContent class="flex flex-col gap-3.5 p-4">
       <div class="flex items-start justify-between gap-3 text-sm">
         <span class="shrink-0 text-xs text-subline">Course</span>
-        <button
+        <Button
           type="button"
-          class="min-w-0 truncate text-right text-xs font-medium text-text-strong underline-offset-2 hover:underline"
+          variant="link"
+          class="h-auto min-w-0 truncate p-0 text-right text-xs font-medium text-text-strong no-underline hover:underline"
           :title="`Filter by ${material.course}`"
           @click="filterByCourse"
         >
           {{ material.course }}
-        </button>
+        </Button>
       </div>
       <div class="flex items-center justify-between gap-3 text-sm">
         <span class="shrink-0 text-xs text-subline">Type</span>
@@ -50,16 +51,21 @@ function filterByTag(tag: string) {
       <div class="flex items-start justify-between gap-3 text-sm">
         <span class="shrink-0 text-xs text-subline">Tags</span>
         <div v-if="tags.length" class="flex min-w-0 flex-wrap justify-end gap-1">
-          <button
+          <Badge
             v-for="tag in tags"
             :key="tag"
-            type="button"
-            :title="`Filter by #${tag}`"
-            class="max-w-28 truncate rounded border border-line px-1.5 py-0 font-mono text-[10px] font-normal text-subline transition-colors hover:border-ink/30 hover:text-ink"
-            @click="filterByTag(tag)"
+            as-child
+            variant="outline"
+            class="max-w-28 truncate rounded px-1.5 py-0 font-mono text-[10px] font-normal text-subline transition-colors hover:border-ink/30 hover:text-ink"
           >
-            #{{ tag }}
-          </button>
+            <button
+              type="button"
+              :title="`Filter by #${tag}`"
+              @click="filterByTag(tag)"
+            >
+              #{{ tag }}
+            </button>
+          </Badge>
         </div>
         <span v-else class="text-xs text-text-muted">—</span>
       </div>

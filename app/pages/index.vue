@@ -130,12 +130,12 @@
       <div class="mt-6 flex flex-col items-start gap-2.5 shrink-0 sm:flex-row sm:items-center md:mt-0 md:flex-col md:items-end">
         <Button as-child size="lg" class="w-full sm:w-auto">
           <NuxtLink to="/dashboard" class="flex items-center justify-center gap-1.5">
-            Try the demo
+            Get started
             <ArrowUpRight class="size-3.5" />
           </NuxtLink>
         </Button>
         <span class="font-mono text-[10px] text-subline">
-          No setup required
+          Sign in with Google
         </span>
       </div>
     </section>

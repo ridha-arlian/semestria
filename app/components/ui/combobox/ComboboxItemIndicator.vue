@@ -2,7 +2,7 @@
 import type { ComboboxItemIndicatorProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { cn } from "cn"
+import { cn } from "@/lib/utils"
 import { ComboboxItemIndicator, useForwardProps } from "reka-ui"
 
 const props = defineProps<ComboboxItemIndicatorProps & { class?: HTMLAttributes["class"] }>()

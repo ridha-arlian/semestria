@@ -50,6 +50,11 @@ function selectPreset(id: ThemePresetId) {
   settings.value.appearance.preset = id
 }
 
+function onPresetChange(value: unknown) {
+  if (typeof value === 'string')
+    selectPreset(value as ThemePresetId)
+}
+
 function resetTheme() {
   settings.value.appearance.preset = 'mono'
   settings.value.appearance.customColor = '#2563eb'
@@ -100,9 +105,9 @@ function cancelCustomColor() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-2">
-      <Label class="text-sm">Mode</Label>
+  <FieldGroup class="gap-6">
+    <Field class="gap-2">
+      <FieldLabel class="text-sm">Mode</FieldLabel>
       <div class="w-fit" @click.capture="rememberModeOrigin">
         <ToggleGroup
           v-model="modePreference"
@@ -125,41 +130,45 @@ function cancelCustomColor() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-      <p class="text-[11px] text-subline">
+      <FieldDescription class="text-[11px]">
         System follows your device appearance.
-      </p>
-    </div>
+      </FieldDescription>
+    </Field>
 
-    <div class="flex flex-col gap-2">
-      <Label class="text-sm">Theme preset</Label>
-      <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
-        <button
+    <Field class="gap-2">
+      <FieldLabel class="text-sm">Theme preset</FieldLabel>
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        :spacing="2"
+        class="grid w-full grid-cols-3 sm:grid-cols-6"
+        :model-value="settings.appearance.preset"
+        @update:model-value="onPresetChange"
+      >
+        <ToggleGroupItem
           v-for="preset in themePresets"
           :key="preset.id"
-          type="button"
-          class="flex flex-col items-center gap-1.5 rounded-lg border border-line p-2 transition-colors hover:border-line-strong"
-          :class="settings.appearance.preset === preset.id ? 'border-ink bg-soft' : 'bg-paper'"
-          :aria-pressed="settings.appearance.preset === preset.id"
-          @click="selectPreset(preset.id)"
+          :value="preset.id"
+          class="flex h-auto w-auto flex-col items-center gap-1.5 rounded-lg p-2 whitespace-normal hover:border-line-strong data-[state=on]:border-ink! data-[state=on]:bg-soft!"
         >
           <div
             class="size-4 rounded-full border border-line-strong"
             :style="{ backgroundColor: preset.light ?? '#18181b' }"
           />
           <span class="text-[11px] text-subline">{{ preset.name }}</span>
-        </button>
-      </div>
-      <p class="text-[11px] text-subline">
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <FieldDescription class="text-[11px]">
         Theme accent changes instantly, including surfaces.
-      </p>
-    </div>
+      </FieldDescription>
+    </Field>
 
-    <div
-      class="flex flex-col gap-2 rounded-lg border border-line p-3 transition-colors hover:border-line-strong"
+    <Field
+      orientation="horizontal"
+      class="items-center justify-between gap-3 rounded-lg border border-line p-3 transition-colors hover:border-line-strong"
       :class="isCustom ? 'border-ink bg-soft' : 'bg-paper'"
     >
-      <div class="flex items-center justify-between gap-3">
-        <Label class="text-sm">Custom</Label>
+      <FieldLabel class="text-sm">Custom</FieldLabel>
         <Popover :open="customColorOpen" @update:open="handleCustomColorOpen">
           <PopoverTrigger as-child>
             <Button
@@ -226,20 +235,22 @@ function cancelCustomColor() {
             </ColorPicker>
           </PopoverContent>
         </Popover>
-      </div>
-    </div>
+    </Field>
 
-    <div class="flex items-center justify-between rounded-lg border border-line p-3">
-      <div class="flex flex-col gap-0.5">
-        <Label class="text-sm">Reset to default</Label>
-        <p class="text-[12px] text-subline">
+    <Field
+      orientation="horizontal"
+      class="items-center justify-between rounded-lg border border-line p-3"
+    >
+      <FieldContent class="gap-0.5">
+        <FieldLabel class="text-sm">Reset to default</FieldLabel>
+        <FieldDescription class="text-xs">
           Revert to the built‑in monochrome theme.
-        </p>
-      </div>
+        </FieldDescription>
+      </FieldContent>
       <Button variant="outline" size="sm" @click="resetTheme">
         <RotateCcw class="mr-1.5 size-3.5" />
         Reset
       </Button>
-    </div>
-  </div>
+    </Field>
+  </FieldGroup>
 </template>

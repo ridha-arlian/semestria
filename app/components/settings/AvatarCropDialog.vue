@@ -127,7 +127,7 @@ async function handleSave() {
           </div>
 
           <div class="flex items-center gap-3">
-            <Label for="avatar-crop-zoom" class="text-xs text-subline">Zoom</Label>
+            <FieldLabel for="avatar-crop-zoom" class="text-xs text-subline">Zoom</FieldLabel>
             <input
               id="avatar-crop-zoom"
               type="range"

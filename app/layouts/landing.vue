@@ -35,11 +35,17 @@
           <span class="sm:hidden">
             Workspace
           </span>
-          <ArrowUpRight class="h-3.5 w-3.5 shrink-0" />
+          <ArrowUpRight class="size-3.5 shrink-0" />
         </NuxtLink>
-        <button v-else type="button" class="inline-flex cursor-pointer items-center border-b border-ink pb-1 text-[11px] font-bold uppercase text-ink hover:border-b-ink/20 hover:text-ink/60 md:text-xs" @click="scrollToSignIn">
+        <Button
+          v-else
+          type="button"
+          variant="link"
+          class="h-auto cursor-pointer items-center gap-0 border-b border-ink p-0 pb-1 text-[11px] font-bold uppercase text-ink no-underline hover:border-b-ink/20 hover:text-ink/60 hover:no-underline md:text-xs"
+          @click="scrollToSignIn"
+        >
           Login
-        </button>
+        </Button>
         <ColorModeToggle />
       </div>
     </header>
@@ -48,7 +54,7 @@
     
     <footer class="mx-auto flex w-[calc(100%-24px)] max-w-295 items-center justify-between border-t border-line-strong py-6 font-mono text-[10px] text-subline md:w-[calc(100%-64px)] md:pb-8.5">
       <span class="inline-flex items-center gap-1">
-        <Copyright class="h-3.5 w-3.5" />
+        <Copyright class="size-3.5" />
         2026 Ridha Arlian
       </span>
     </footer>

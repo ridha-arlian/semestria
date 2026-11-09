@@ -20,7 +20,7 @@ const hasContent = computed(() => props.material.type !== 'Notes')
         {{ description }}
       </CardDescription>
     </CardHeader>
-    <CardContent class="space-y-5 p-4 sm:p-5">
+    <CardContent class="flex flex-col gap-5 p-4 sm:p-5">
       <template v-if="hasContent">
         <WorkspacesMaterialDetailMaterialFileContent
           v-if="material.type === 'PDF' || material.type === 'Slides' || material.type === 'Book'"

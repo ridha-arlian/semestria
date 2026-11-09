@@ -78,7 +78,7 @@ onUnmounted(() => {
       </div>
     </CardHeader>
     <CardContent class="flex min-h-92 flex-col gap-2 p-2">
-      <div class="max-h-75 space-y-2 overflow-y-auto overscroll-contain">
+      <div class="max-h-75 flex flex-col gap-2 overflow-y-auto overscroll-contain">
         <div
           v-for="sub in checklist"
           :key="sub.id"
@@ -135,9 +135,13 @@ onUnmounted(() => {
             </Button>
           </div>
         </div>
-        <p v-if="checklist.length === 0" class="px-2 py-4 text-center text-xs text-subline">
-          No checklist items yet — add the first step below.
-        </p>
+        <Empty v-if="checklist.length === 0" class="gap-0 p-2 md:p-2">
+          <EmptyHeader class="gap-1">
+            <EmptyDescription class="text-xs">
+              No checklist items yet — add the first step below.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
       <div class="flex shrink-0 items-center gap-2 px-2 pb-1 pt-2">
         <Input

@@ -159,9 +159,8 @@ watch(() => props.material.id, () => {
                 size="icon"
                 class="size-7 text-subline hover:text-ink"
                 aria-label="Link task"
-                title="Link task"
               >
-                <Plus class="size-3.5" />
+                <Plus />
               </Button>
             </ComboboxTrigger>
           </ComboboxAnchor>
@@ -170,31 +169,40 @@ watch(() => props.material.id, () => {
       <CardContent class="p-2">
         <div
           v-if="linkedTasks.length > 0"
-          class="max-h-[9rem] space-y-0.5 overflow-y-auto overscroll-contain"
+          class="flex max-h-[9rem] flex-col gap-0.5 overflow-y-auto overscroll-contain"
         >
-          <div
+          <Item
             v-for="t in visibleLinked"
             :key="t.id"
-            class="flex items-center gap-2.5 rounded-md px-2 py-2"
+            size="sm"
+            class="gap-2.5 px-2 py-2"
           >
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-xs font-semibold text-text-strong">
+            <ItemContent class="min-w-0 gap-0">
+              <ItemTitle class="w-full truncate text-xs font-semibold text-text-strong">
                 {{ t.task }}
-              </p>
-              <p class="truncate text-[11px] text-subline">
+              </ItemTitle>
+              <ItemDescription class="line-clamp-1 text-[11px] text-subline">
                 {{ t.course }} · {{ t.status }}
-              </p>
-            </div>
-            <button
-              type="button"
-              class="shrink-0 rounded p-1 text-subline transition-colors hover:text-ink"
-              :aria-label="`Unlink ${t.task}`"
-              :title="`Unlink ${t.task}`"
-              @click="ctx.unlinkMaterialTask(material.id, t.id)"
-            >
-              <X class="size-3.5" />
-            </button>
-          </div>
+              </ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    class="shrink-0 rounded p-1 text-subline hover:bg-transparent hover:text-ink"
+                    :aria-label="`Unlink ${t.task}`"
+                    @click="ctx.unlinkMaterialTask(material.id, t.id)"
+                  >
+                    <X class="size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Unlink {{ t.task }}</TooltipContent>
+              </Tooltip>
+            </ItemActions>
+          </Item>
         </div>
 
         <p
@@ -268,7 +276,8 @@ watch(() => props.material.id, () => {
           </ComboboxItem>
         </ComboboxGroup>
       </div>
-      <div class="border-t border-line px-2 py-1.5">
+      <Separator />
+      <div class="px-2 py-1.5">
         <Button
           type="button"
           size="sm"

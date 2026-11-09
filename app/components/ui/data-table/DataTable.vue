@@ -164,7 +164,13 @@
           <TableRow>
             <TableCell :colspan="columns.length" class="h-24 text-center text-xs text-subline">
               <slot name="empty">
-                {{ emptyText ?? 'No results.' }}
+                <Empty class="gap-0 p-0 md:p-0">
+                  <EmptyHeader class="gap-1">
+                    <EmptyDescription class="text-xs">
+                      {{ emptyText ?? 'No results.' }}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </slot>
             </TableCell>
           </TableRow>

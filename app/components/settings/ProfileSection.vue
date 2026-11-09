@@ -5,7 +5,6 @@ const api = useApi()
 const { settings, avatarUrl, setAvatarBlob, showToast } = useSettings()
 
 const nameInput = ref('')
-const emailInput = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const nameError = ref(false)
@@ -109,10 +108,6 @@ async function handleRemoveAvatar() {
   }
 }
 
-function validateEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
 function handleNameBlur() {
   const value = nameInput.value.trim()
   if (!value) {
@@ -123,19 +118,8 @@ function handleNameBlur() {
   settings.value.profile.name = value
 }
 
-function handleEmailBlur() {
-  const value = emailInput.value.trim()
-  if (!validateEmail(value)) {
-    showToast('Invalid email address')
-    emailInput.value = settings.value.profile.email
-    return
-  }
-  settings.value.profile.email = value
-}
-
 function init() {
   nameInput.value = settings.value.profile.name
-  emailInput.value = settings.value.profile.email
 }
 
 onMounted(init)
@@ -190,9 +174,9 @@ onBeforeUnmount(clearCropSrc)
       >
     </div>
 
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1.5">
-        <Label for="settings-display-name" class="text-sm">Display name</Label>
+    <FieldGroup class="gap-4">
+      <Field class="gap-1.5" :data-invalid="!!nameError">
+        <FieldLabel for="settings-display-name" class="text-sm">Display name</FieldLabel>
         <Input
           id="settings-display-name"
           v-model="nameInput"
@@ -203,26 +187,25 @@ onBeforeUnmount(clearCropSrc)
           :aria-describedby="nameError ? 'settings-display-name-error' : undefined"
           @blur="handleNameBlur"
         />
-        <p v-if="nameError" id="settings-display-name-error" class="text-[11px] text-destructive">
+        <FieldError v-if="nameError" id="settings-display-name-error" class="text-[11px]">
           Name cannot be empty.
-        </p>
-      </div>
+        </FieldError>
+      </Field>
 
-      <div class="flex flex-col gap-1.5">
-        <Label for="settings-email" class="text-sm">Email</Label>
+      <Field class="gap-1.5">
+        <FieldLabel for="settings-email" class="text-sm">Email</FieldLabel>
         <Input
           id="settings-email"
-          v-model="emailInput"
+          :model-value="settings.profile.email"
           type="email"
-          placeholder="ari.rahman@example.com"
+          readonly
           class="text-sm"
-          @blur="handleEmailBlur"
         />
-        <p class="text-[11px] text-subline">
-          Used to sign in to your account.
-        </p>
-      </div>
-    </div>
+        <FieldDescription class="text-[11px]">
+          Email is your sign-in identity and cannot be changed here.
+        </FieldDescription>
+      </Field>
+    </FieldGroup>
 
     <ClientOnly>
       <SettingsAvatarCropDialog

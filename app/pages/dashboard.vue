@@ -105,7 +105,7 @@
       </h1>
 
       <Button class="w-full sm:w-auto" @click="handleCreateNew">
-        <Plus class="mr-2 h-4 w-4" />
+        <Plus data-icon="inline-start" />
         New workspace
       </Button>
       
@@ -159,14 +159,16 @@
           @row-click="handleRowClick"
         >
           <template #empty>
-            <div class="px-5 py-16 text-center">
-              <p class="text-sm font-medium text-text-strong">
-                No workspaces yet
-              </p>
-              <p class="mt-1 text-xs text-subline">
-                Create your first workspace to start organizing your semester.
-              </p>
-            </div>
+            <Empty class="px-5 py-16 md:py-16">
+              <EmptyHeader>
+                <EmptyTitle class="text-sm font-medium">
+                  No workspaces yet
+                </EmptyTitle>
+                <EmptyDescription class="text-xs">
+                  Create your first workspace to start organizing your semester.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           </template>
           <template #context-menu="{ row }">
             <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">

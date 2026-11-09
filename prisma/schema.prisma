@@ -59,6 +59,8 @@ model Workspace {
   startDate DateTime? @db.Date
   endDate   DateTime? @db.Date
   isActive  Boolean   @default(false)
+  // Per-week "This Week" focus notes, keyed by week number ("1", "2", ...).
+  focusNotes Json?
   tasks     Task[]
   materials Material[]
 

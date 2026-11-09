@@ -72,8 +72,11 @@ export async function fetchSettings() {
 
   // Mirror into the UI state so SSR renders the real name/avatar instead of a
   // placeholder. Client-side local overrides are applied in the settings plugin.
+  // Clone deeply: a shallow copy would share nested objects with the server
+  // cache, so editing the UI state would silently mutate the cache too and the
+  // settings plugin could never detect a change worth saving.
   if (settings.value) {
-    ui.value = { ...settings.value }
+    ui.value = JSON.parse(JSON.stringify(settings.value)) as AppSettings
   }
 
   return settings.value

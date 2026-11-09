@@ -147,7 +147,7 @@ function handleDelete() {
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div v-if="material" class="space-y-6">
+    <div v-if="material" class="flex flex-col gap-6">
       <!-- Header -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
@@ -181,7 +181,7 @@ function handleDelete() {
       <!-- Two columns -->
       <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
         <WorkspacesMaterialDetailMaterialContent :material="material" class="lg:col-span-2" />
-        <div class="space-y-6">
+        <div class="flex flex-col gap-6">
           <WorkspacesMaterialDetailMaterialDetails :material="material" />
           <WorkspacesMaterialDetailMaterialRelatedTasks :material="material" />
           <WorkspacesMaterialDetailMaterialActivity :material="material" />
@@ -189,13 +189,14 @@ function handleDelete() {
       </div>
 
       <!-- Footer -->
-      <div class="flex border-t border-line pt-5 sm:justify-end">
+      <Separator />
+      <div class="flex sm:justify-end">
         <Button
           variant="ghost"
           class="w-full text-destructive hover:text-destructive sm:w-auto"
           @click="deleteOpen = true"
         >
-          <Trash2 class="mr-2 size-3.5" />
+          <Trash2 data-icon="inline-start" />
           Delete
         </Button>
       </div>

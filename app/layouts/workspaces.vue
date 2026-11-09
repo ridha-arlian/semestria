@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialActivityKind, MaterialContentInput, MaterialNote, View, TaskPayload, MaterialPayload, TaskPriority } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialContentInput, MaterialNote, View, TaskPayload, MaterialPayload, WorkspaceTimeline } from '~/types'
   import { planTypeChange } from '~/utils/materialContent'
   import { useActivityCache } from '~/composables/apiCache'
 
@@ -11,20 +11,29 @@
   const workspace = computed(() => api.getWorkspaceBySlug(slug.value))
   const workspaceName = computed(() => workspace.value?.name ?? '')
 
-  const week = computed(() => {
+  const week = computed<WorkspaceTimeline | null>(() => {
     const w = workspace.value
     if (!w?.startDate || !w?.endDate) return null
 
-    const WEEK = 7 * 24 * 60 * 60 * 1000
+    const DAY = 24 * 60 * 60 * 1000
     const start = new Date(`${w.startDate}T00:00:00`).getTime()
     const end = new Date(`${w.endDate}T00:00:00`).getTime()
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null
 
-    const total = Math.ceil((end - start) / WEEK)
-    if (!Number.isFinite(total) || total <= 0)
-      return null
-    const current = Math.min(Math.max(Math.floor((Date.now() - start) / WEEK) + 1, 1), total)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    return { current, total }
+    const totalDays = Math.max(1, Math.round((end - start) / DAY))
+    const daysElapsed = Math.min(Math.max(Math.round((today.getTime() - start) / DAY), 0), totalDays)
+    const daysUntilStart = Math.max(Math.ceil((start - today.getTime()) / DAY), 0)
+    const daysLeft = Math.max(Math.ceil((end - today.getTime()) / DAY), 0)
+    const total = Math.max(1, Math.ceil(totalDays / 7))
+    const current = daysUntilStart > 0
+      ? 1
+      : Math.min(Math.floor(daysElapsed / 7) + 1, total)
+    const state = daysUntilStart > 0 ? 'upcoming' : daysLeft <= 0 ? 'ended' : 'active'
+
+    return { current, total, totalDays, daysElapsed, daysUntilStart, daysLeft, state }
   })
 
   const routeMap = computed<Record<View, string>>(() => ({
@@ -82,9 +91,6 @@
   watch(tasks, (list) => list.forEach(recalcTask), { immediate: true })
 
   const courses = computed(() => [...new Set([...tasks.value, ...materials.value].map(i => i.course))])
-
-  // Keep for template parity; server owns priority mapping.
-  void (0 as unknown as TaskPriority)
 
   async function handleTaskSubmit(payload: TaskPayload, addAnother: boolean) {
     await api.addTask(workspace.value!.id, payload)
@@ -273,12 +279,6 @@
     })
     const item = tasks.value.find((t) => t.id === id)
     if (item) Object.assign(item, updated)
-  }
-
-  // Activities are now server-backed. pushMaterialActivity is kept as a no-op
-  // for compatibility with older calls; server handlers log activities.
-  function pushMaterialActivity(_materialId: number, _kind: MaterialActivityKind, _label: string, _detail?: string) {
-    // Intentionally empty: activity history comes from /api/materials/:id/activities
   }
 
   function getMaterialActivities(material: Material): MaterialActivity[] {
@@ -504,16 +504,23 @@
   async function markMaterialReviewed(id: number) {
     const item = materials.value.find(m => m.id === id)
     if (!item) return
+    const { reviewedAt } = await api.request<{ reviewedAt: string }>(`/api/materials/${id}/review`, { method: 'POST' })
+    // Reconcile with the server timestamp instead of labelling it locally
+    // before the request resolves.
+    item.reviewedAt = reviewedAt
     item.reviewed = 'Just now'
-    item.reviewedAt = new Date().toISOString()
-    await api.request(`/api/materials/${id}/review`, { method: 'POST' })
   }
 
   async function markMaterialOpened(id: number) {
     const item = materials.value.find(m => m.id === id)
     if (!item) return
-    item.lastOpened = 'Just now'
-    api.request(`/api/materials/${id}/open`, { method: 'POST' }).catch(() => {})
+    try {
+      await api.request<{ lastOpenedAt: string }>(`/api/materials/${id}/open`, { method: 'POST' })
+      item.lastOpened = 'Just now'
+    }
+    catch {
+      // Best-effort: opening a material should never block the page.
+    }
   }
 
   async function removeMaterial(id: number) {
@@ -554,7 +561,6 @@
     markMaterialReviewed,
     markMaterialOpened,
     removeMaterial,
-    pushMaterialActivity,
     getMaterialActivities,
     ensureMaterialActivities,
   })
@@ -585,7 +591,7 @@
             </SidebarGroupLabel>
           </div>
           <SidebarGroupContent class="mt-2 group-data-[collapsible=icon]:mt-0">
-            <SidebarMenu class="space-y-1">
+            <SidebarMenu class="gap-2">
               <SidebarMenuItem v-for="item in mainNavItems" :key="item.name" class="flex justify-center overflow-hidden">
                 <SidebarMenuButton
                   as-child
@@ -632,7 +638,7 @@
 
                 <AccordionContent class="mt-4 pb-0 overflow-hidden">
                   <Card class="bg-card border-line shadow-none p-3 gap-0 overflow-hidden">
-                    <CardHeader class="p-0 flex flex-row items-center justify-between space-y-0">
+                    <CardHeader class="p-0 flex flex-row items-center justify-between">
                       <CardTitle class="text-xs font-semibold text-headline">
                         {{ workspace?.name }}
                       </CardTitle>
@@ -673,14 +679,16 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" class="w-48">
-                <DropdownMenuItem @click="openAdd('task')">
-                  <SquareCheck class="mr-2 size-4 text-subline" />
-                  <span>New Task</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem @click="openAdd('material')">
-                  <FileText class="mr-2 size-4 text-subline" />
-                  <span>New Material</span>
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem @click="openAdd('task')">
+                    <SquareCheck class="mr-2 size-4 text-subline" />
+                    <span>New Task</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem @click="openAdd('material')">
+                    <FileText class="mr-2 size-4 text-subline" />
+                    <span>New Material</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </template>
@@ -715,6 +723,8 @@
       <WorkspacesModalTask
         :open="showModal && modalType === 'task'"
         :courses="courses"
+        :start-date="workspace?.startDate"
+        :end-date="workspace?.endDate"
         @close="showModal = false"
         @submit="handleTaskSubmit"
       />

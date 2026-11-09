@@ -1,4 +1,5 @@
 import { computed, ref, toValue } from 'vue'
+import { toast } from 'vue-sonner'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { Material } from '~/types'
 import type { MaterialDetailContext } from '~/components/workspaces/material-detail/materialDetailContext'
@@ -186,6 +187,7 @@ export function useMaterialFile(
     progress.value = null
     pendingFileName.value = null
     pendingFile = null
+    toast.success('File uploaded')
   }
 
   function startUpload(file: File) {

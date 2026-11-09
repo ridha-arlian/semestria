@@ -147,11 +147,12 @@ watch([isOpen, activeSection], async () => {
           aria-label="Settings sections"
           class="flex w-52 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-line p-2"
         >
-          <button
+          <Button
             v-for="section in sections"
             :key="section.id"
             type="button"
-            class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors"
+            variant="ghost"
+            class="h-auto w-full justify-start gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium"
             :class="activeSection === section.id
               ? 'bg-soft text-ink'
               : 'text-subline hover:bg-soft hover:text-ink'"
@@ -160,7 +161,7 @@ watch([isOpen, activeSection], async () => {
           >
             <component :is="section.icon" class="size-4 shrink-0" />
             <span class="truncate">{{ section.label }}</span>
-          </button>
+          </Button>
         </nav>
 
         <div
@@ -184,20 +185,22 @@ watch([isOpen, activeSection], async () => {
               class="flex min-w-0 flex-1 gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               @scroll="updateNavScroll"
             >
-              <button
+              <Button
                 v-for="section in sections"
                 :key="section.id"
                 type="button"
-                class="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors"
+                variant="ghost"
+                size="sm"
+                class="h-auto shrink-0 gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium"
                 :class="activeSection === section.id
-                  ? 'bg-ink text-paper'
-                  : 'bg-soft text-subline hover:text-ink'"
+                  ? 'bg-ink text-paper hover:bg-ink hover:text-paper'
+                  : 'bg-soft text-subline hover:bg-soft hover:text-ink'"
                 :aria-current="activeSection === section.id ? 'page' : undefined"
                 @click="selectSection(section.id)"
               >
                 <component :is="section.icon" class="size-3.5" />
                 <span>{{ section.label }}</span>
-              </button>
+              </Button>
             </nav>
             <Button
               variant="ghost"

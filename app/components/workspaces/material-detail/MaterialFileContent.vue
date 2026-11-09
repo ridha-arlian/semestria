@@ -100,9 +100,9 @@ function removeFile() {
 </script>
 
 <template>
-  <div class="space-y-3">
+  <div class="flex flex-col gap-3">
     <!-- Uploading -->
-    <div v-if="progress !== null" class="space-y-2">
+    <div v-if="progress !== null" class="flex flex-col gap-2">
       <div class="flex items-center justify-between gap-2 text-xs">
         <p class="min-w-0 truncate font-medium text-text-strong">
           Uploading {{ uploadingName }}…
@@ -112,7 +112,7 @@ function removeFile() {
       <Progress :model-value="progress" class="h-1.5" />
       <div>
         <Button size="sm" variant="outline" @click="upload.cancelUpload">
-          <X class="mr-1.5 size-3.5" />
+          <X data-icon="inline-start" />
           Cancel
         </Button>
       </div>
@@ -128,7 +128,7 @@ function removeFile() {
       </p>
       <div class="mt-3 flex justify-center gap-2">
         <Button size="sm" variant="outline" @click="upload.retryUpload">
-          <RefreshCw class="mr-1.5 size-3.5" />
+          <RefreshCw data-icon="inline-start" />
           Retry
         </Button>
         <Button size="sm" variant="ghost" @click="upload.clearError">
@@ -153,45 +153,48 @@ function removeFile() {
       <div class="flex shrink-0 items-center gap-1.5">
         <Button size="sm" variant="outline" @click="upload.openFile">
           Open
-          <ArrowUpRight class="ml-1 size-3.5" />
+          <ArrowUpRight data-icon="inline-end" />
         </Button>
         <Button size="sm" variant="ghost" @click="upload.pickFile">
           Replace
         </Button>
-        <Button
-          size="icon-sm"
-          variant="ghost"
-          class="text-subline hover:text-destructive"
-          aria-label="Remove file"
-          title="Remove file"
-          @click="removeOpen = true"
-        >
-          <X class="size-3.5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              class="text-subline hover:text-destructive"
+              aria-label="Remove file"
+              @click="removeOpen = true"
+            >
+              <X />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Remove file</TooltipContent>
+        </Tooltip>
       </div>
     </div>
 
     <!-- Empty state -->
     <div v-if="!hasFile && progress === null">
-      <button
+      <Button
         type="button"
-        class="flex w-full flex-col items-center rounded-lg border border-dashed border-line px-4 py-8 text-center transition-colors hover:border-ink/30 hover:bg-soft/50"
+        variant="outline"
+        class="flex h-auto w-full flex-col items-center rounded-lg border-dashed px-4 py-8 text-center font-normal whitespace-normal transition-colors hover:border-ink/30 hover:bg-soft/50"
         :class="isDragging && 'border-ink/40 bg-soft/60'"
         @click="upload.pickFile"
         @dragover.prevent="isDragging = true"
         @dragleave.prevent="isDragging = false"
         @drop.prevent="onDrop"
-        @keydown.enter.prevent="upload.pickFile"
-        @keydown.space.prevent="upload.pickFile"
       >
-        <CloudUpload class="size-5 text-subline" />
+        <CloudUpload class="text-subline" />
         <p class="mt-2 text-sm font-medium text-text-strong">
           {{ emptyTitle }} <span class="underline underline-offset-2">Choose file</span>
         </p>
         <p class="mt-1 font-mono text-[11px] text-subline">
           {{ emptyHint }}
         </p>
-      </button>
+      </Button>
     </div>
 
     <input

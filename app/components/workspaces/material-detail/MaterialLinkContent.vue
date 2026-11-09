@@ -58,7 +58,7 @@ function removeLink() {
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="flex flex-col gap-2">
     <!-- Existing link -->
     <div
       v-if="hasLink && !editing"
@@ -74,31 +74,39 @@ function removeLink() {
         {{ material.url }}
       </span>
       <div class="flex shrink-0 items-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          class="size-7 text-subline opacity-0 transition-opacity hover:text-headline group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
-          aria-label="Edit link"
-          title="Edit link"
-          @click.stop="startEdit"
-        >
-          <Pencil class="size-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="size-7 text-subline opacity-0 transition-opacity hover:text-destructive group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
-          aria-label="Remove link"
-          title="Remove link"
-          @click.stop="removeOpen = true"
-        >
-          <X class="size-3.5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 text-subline opacity-0 transition-opacity hover:text-headline group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
+              aria-label="Edit link"
+              @click.stop="startEdit"
+            >
+              <Pencil class="size-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Edit link</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 text-subline opacity-0 transition-opacity hover:text-destructive group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
+              aria-label="Remove link"
+              @click.stop="removeOpen = true"
+            >
+              <X class="size-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Remove link</TooltipContent>
+        </Tooltip>
       </div>
     </div>
 
     <!-- Add / edit -->
-    <div v-else class="space-y-2">
+    <div v-else class="flex flex-col gap-2">
       <div class="flex items-center gap-2">
         <Input
           ref="inputEl"

@@ -207,7 +207,7 @@ const canRedo = computed(() => {
 
 <template>
   <!-- Notes -->
-  <div class="space-y-2">
+  <div class="flex flex-col gap-2">
     <div class="flex items-center justify-between gap-2">
       <Label class="text-xs font-medium">Notes</Label>
       <div v-if="editor && noteMode === 'edit'" class="flex items-center gap-1.5">
@@ -249,22 +249,24 @@ const canRedo = computed(() => {
         >
           <Redo2 class="size-3.5" />
         </Button>
-        <span class="mx-1 h-4 w-px bg-line" />
-        <Button
-          v-for="tool in noteTools"
-          :key="tool.id"
-          type="button"
-          variant="ghost"
-          size="icon"
-          class="size-7"
-          :class="tool.active ? 'bg-line text-text-strong' : 'text-subline hover:text-ink'"
-          :aria-label="tool.label"
-          :title="tool.label"
-          @click="tool.run()"
-        >
-          <component :is="tool.icon" class="size-3.5" />
-        </Button>
-        <span class="mx-1 h-4 w-px bg-line" />
+        <Separator orientation="vertical" class="mx-1 h-4! bg-line" />
+        <Tooltip v-for="tool in noteTools" :key="tool.id">
+          <TooltipTrigger as-child>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="size-7"
+              :class="tool.active ? 'bg-line text-text-strong' : 'text-subline hover:text-ink'"
+              :aria-label="tool.label"
+              @click="tool.run()"
+            >
+              <component :is="tool.icon" class="size-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{{ tool.label }}</TooltipContent>
+        </Tooltip>
+        <Separator orientation="vertical" class="mx-1 h-4! bg-line" />
         <Popover :open="linkOpen" @update:open="onLinkOpenChange">
           <PopoverTrigger as-child>
             <Button
@@ -279,16 +281,18 @@ const canRedo = computed(() => {
               <Link2 class="size-3.5" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="center" class="w-64 space-y-2 p-2">
-            <Label for="note-link-url" class="text-xs">Link URL</Label>
-            <Input
-              id="note-link-url"
-              v-model="linkUrl"
-              placeholder="https://…"
-              class="h-8 text-sm"
-              @keydown.enter.prevent="applyLink"
-              @keydown.escape="linkOpen = false"
-            />
+          <PopoverContent align="center" class="w-64 flex flex-col gap-2 p-2">
+            <Field class="gap-2">
+              <FieldLabel for="note-link-url" class="text-xs">Link URL</FieldLabel>
+              <Input
+                id="note-link-url"
+                v-model="linkUrl"
+                placeholder="https://…"
+                class="h-8 text-sm"
+                @keydown.enter.prevent="applyLink"
+                @keydown.escape="linkOpen = false"
+              />
+            </Field>
             <div class="flex items-center justify-between gap-2">
               <Button size="sm" variant="ghost" class="text-destructive hover:text-destructive" @click="removeLink">
                 Remove
@@ -311,9 +315,11 @@ const canRedo = computed(() => {
         class="notes-editor"
         :class="noteMode === 'preview' && 'notes-preview'"
       />
-      <p v-else class="flex min-h-11 items-start px-3 py-2 text-sm text-subline">
-        No notes yet.
-      </p>
+      <Empty v-else class="min-h-11 items-start justify-start gap-0 p-3 text-left md:p-3">
+        <EmptyDescription class="text-sm">
+          No notes yet.
+        </EmptyDescription>
+      </Empty>
     </div>
   </div>
 </template>

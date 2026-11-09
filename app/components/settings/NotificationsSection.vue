@@ -12,19 +12,25 @@ const leadTimeOptions = [
 
 <template>
   <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center justify-between rounded-lg border border-line p-3">
-        <div class="flex flex-col gap-0.5">
-          <Label for="settings-deadline-reminders" class="text-sm">Deadline reminders</Label>
-          <p class="text-[12px] text-subline">
+    <p class="text-[11px] text-subline">
+      Preferences are saved, but notification delivery is not enabled yet.
+    </p>
+    <FieldGroup class="gap-4">
+      <Field
+        orientation="horizontal"
+        class="items-center justify-between rounded-lg border border-line p-3"
+      >
+        <FieldContent class="gap-0.5">
+          <FieldLabel for="settings-deadline-reminders" class="text-sm">Deadline reminders</FieldLabel>
+          <FieldDescription class="text-xs">
             Show a notification when a task is approaching its due date.
-          </p>
-        </div>
+          </FieldDescription>
+        </FieldContent>
         <Switch id="settings-deadline-reminders" v-model:checked="settings.notifications.deadlineReminders" />
-      </div>
+      </Field>
 
-      <div v-if="settings.notifications.deadlineReminders" class="flex flex-col gap-2 rounded-lg border border-line p-3">
-        <Label for="settings-lead-time" class="text-sm">Lead time</Label>
+      <Field v-if="settings.notifications.deadlineReminders" class="gap-2 rounded-lg border border-line p-3">
+        <FieldLabel for="settings-lead-time" class="text-sm">Lead time</FieldLabel>
         <Select v-model="settings.notifications.leadTime">
           <SelectTrigger id="settings-lead-time" class="w-full">
             <SelectValue placeholder="Select lead time" />
@@ -37,27 +43,33 @@ const leadTimeOptions = [
             </SelectGroup>
           </SelectContent>
         </Select>
-      </div>
+      </Field>
 
-      <div class="flex items-center justify-between rounded-lg border border-line p-3">
-        <div class="flex flex-col gap-0.5">
-          <Label for="settings-weekly-digest" class="text-sm">Weekly digest</Label>
-          <p class="text-[12px] text-subline">
+      <Field
+        orientation="horizontal"
+        class="items-center justify-between rounded-lg border border-line p-3"
+      >
+        <FieldContent class="gap-0.5">
+          <FieldLabel for="settings-weekly-digest" class="text-sm">Weekly digest</FieldLabel>
+          <FieldDescription class="text-xs">
             Send a weekly summary of your tasks and materials.
-          </p>
-        </div>
+          </FieldDescription>
+        </FieldContent>
         <Switch id="settings-weekly-digest" v-model:checked="settings.notifications.weeklyDigest" />
-      </div>
+      </Field>
 
-      <div class="flex items-center justify-between rounded-lg border border-line p-3">
-        <div class="flex flex-col gap-0.5">
-          <Label for="settings-material-updates" class="text-sm">Material updates</Label>
-          <p class="text-[12px] text-subline">
+      <Field
+        orientation="horizontal"
+        class="items-center justify-between rounded-lg border border-line p-3"
+      >
+        <FieldContent class="gap-0.5">
+          <FieldLabel for="settings-material-updates" class="text-sm">Material updates</FieldLabel>
+          <FieldDescription class="text-xs">
             Notify when new materials are added to your workspaces.
-          </p>
-        </div>
+          </FieldDescription>
+        </FieldContent>
         <Switch id="settings-material-updates" v-model:checked="settings.notifications.materialUpdates" />
-      </div>
-    </div>
+      </Field>
+    </FieldGroup>
   </div>
 </template>

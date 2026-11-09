@@ -61,7 +61,7 @@ const canvasType = computed<'HSL' | 'HSV'>(() => {
     <div class="flex items-center gap-2">
       <ColorPickerSelect
         v-model="format"
-        class="w-[56px]"
+        class="w-14"
         label="Color Format"
         placeholder="Format"
         :disabled="props.disabled"

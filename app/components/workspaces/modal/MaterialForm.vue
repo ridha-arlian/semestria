@@ -173,14 +173,14 @@
 
 <template>
   <form
-    class="space-y-7"
+    class="flex flex-col gap-7"
     @submit.prevent="handleSubmit(false)"
     @keydown.ctrl.enter.prevent="handleSubmit(false)"
     @keydown.meta.enter.prevent="handleSubmit(false)"
   >
-    <div class="space-y-5">
-      <div class="space-y-2">
-        <Label for="material-title" class="text-xs">Title</Label>
+    <FieldGroup class="gap-5">
+      <Field class="gap-2">
+        <FieldLabel for="material-title" class="text-xs">Title</FieldLabel>
         <Input
           id="material-title"
           ref="titleEl"
@@ -188,10 +188,10 @@
           class="text-sm"
           placeholder="e.g. Week 04 — Synthesis methods"
         />
-      </div>
+      </Field>
 
-      <div class="space-y-2">
-        <Label class="text-xs">Course</Label>
+      <Field class="gap-2">
+        <FieldLabel class="text-xs">Course</FieldLabel>
         <Select
           v-if="courses?.length"
           :model-value="addingCourse ? NEW_COURSE : course"
@@ -201,39 +201,43 @@
             <SelectValue placeholder="Select a course" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="c in courses" :key="c" :value="c">
-              {{ c }}
-            </SelectItem>
-            <SelectItem :value="NEW_COURSE">
-              + New course
-            </SelectItem>
+            <SelectGroup>
+              <SelectItem v-for="c in courses" :key="c" :value="c">
+                {{ c }}
+              </SelectItem>
+              <SelectItem :value="NEW_COURSE">
+                + New course
+              </SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
         <Input v-if="showCourseInput" v-model="course" class="text-sm" placeholder="e.g. Design Research" />
-      </div>
+      </Field>
 
-      <div class="space-y-2">
-        <Label class="text-xs">Type</Label>
+      <Field class="gap-2">
+        <FieldLabel class="text-xs">Type</FieldLabel>
         <Select :model-value="type" @update:model-value="onTypeChange">
           <SelectTrigger class="w-full">
             <SelectValue placeholder="Select a type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="t in materialTypes" :key="t" :value="t">
-              {{ t }}
-            </SelectItem>
+            <SelectGroup>
+              <SelectItem v-for="t in materialTypes" :key="t" :value="t">
+                {{ t }}
+              </SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
-        <p class="text-xs text-muted-foreground">
+        <FieldDescription class="text-xs">
           {{ MATERIAL_TYPE_DESCRIPTIONS[type] }}
-        </p>
-      </div>
+        </FieldDescription>
+      </Field>
 
-      <div v-if="showUrl" class="space-y-2">
-        <Label for="material-url" class="text-xs">
+      <Field v-if="showUrl" class="gap-2" :data-invalid="!!urlError">
+        <FieldLabel for="material-url" class="text-xs">
           {{ type === 'Video' ? 'Video link' : 'Link' }}
           <span class="font-normal text-muted-foreground">(optional)</span>
-        </Label>
+        </FieldLabel>
         <Input
           id="material-url"
           v-model="url"
@@ -245,24 +249,24 @@
           @input="urlError = null"
           @blur="onUrlBlur"
         />
-        <p v-if="urlError" class="text-xs text-destructive">
+        <FieldError v-if="urlError" class="text-xs">
           {{ urlError }}
-        </p>
-        <p v-else class="text-xs text-muted-foreground">
+        </FieldError>
+        <FieldDescription v-else class="text-xs">
           {{ type === 'Video' ? 'Opens in a new tab. You can upload a file instead.' : 'Opens in a new tab.' }}
-        </p>
-      </div>
+        </FieldDescription>
+      </Field>
 
       <Collapsible v-model:open="showMore">
         <CollapsibleTrigger as-child>
           <Button type="button" variant="ghost" size="sm" class="-ml-2 gap-1 text-xs text-muted-foreground">
             More options
-            <ChevronDown class="size-3.5 transition-transform" :class="showMore && 'rotate-180'" />
+            <ChevronDown data-icon="inline-end" class="transition-transform" :class="showMore && 'rotate-180'" />
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent class="mt-2 space-y-5">
-          <div v-if="tasks?.length" class="space-y-2">
-            <Label class="text-xs">Linked task <span class="font-normal text-muted-foreground">(optional)</span></Label>
+        <CollapsibleContent class="mt-2 flex flex-col gap-5">
+          <Field v-if="tasks?.length" class="gap-2">
+            <FieldLabel class="text-xs">Linked task <span class="font-normal text-muted-foreground">(optional)</span></FieldLabel>
             <Select
               :model-value="linkedTask === null ? NO_TASK : String(linkedTask)"
               @update:model-value="onTaskSelect"
@@ -271,30 +275,34 @@
                 <SelectValue placeholder="No linked task" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem :value="NO_TASK">
-                  No linked task
-                </SelectItem>
-                <SelectItem v-for="t in taskOptions" :key="t.id" :value="String(t.id)">
-                  {{ t.task }}
-                  <span class="text-muted-foreground">· {{ t.course }}</span>
-                </SelectItem>
+                <SelectGroup>
+                  <SelectItem :value="NO_TASK">
+                    No linked task
+                  </SelectItem>
+                  <SelectItem v-for="t in taskOptions" :key="t.id" :value="String(t.id)">
+                    {{ t.task }}
+                    <span class="text-muted-foreground">· {{ t.course }}</span>
+                  </SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="material-tags" class="text-xs">Tags <span class="font-normal text-muted-foreground">(Enter or comma)</span></Label>
+          <Field class="gap-2">
+            <FieldLabel for="material-tags" class="text-xs">Tags <span class="font-normal text-muted-foreground">(Enter or comma)</span></FieldLabel>
             <div class="flex flex-wrap items-center gap-1.5 rounded-md border border-input px-2 py-1.5 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
               <Badge v-for="t in tags" :key="t" variant="secondary" class="gap-1 pr-1">
                 {{ t }}
-                <button
+                <Button
                   type="button"
-                  class="rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+                  variant="ghost"
+                  size="icon-xs"
+                  class="rounded-sm p-0.5 text-muted-foreground hover:bg-transparent hover:text-foreground"
                   :aria-label="`Remove ${t}`"
                   @click="removeTag(t)"
                 >
-                  <X class="size-3" />
-                </button>
+                  <X data-icon="inline-start" />
+                </Button>
               </Badge>
               <Input
                 id="material-tags"
@@ -305,10 +313,10 @@
                 @blur="commitTag"
               />
             </div>
-          </div>
+          </Field>
         </CollapsibleContent>
       </Collapsible>
-    </div>
+    </FieldGroup>
 
     <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
       <Button v-if="!props.initial" type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">

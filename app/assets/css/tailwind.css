@@ -3,6 +3,7 @@
 @import 'tailwindcss';
 @import "tw-animate-css";
 @import "@vuelor/picker/tailwind.css";
+@import "vue-sonner/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -332,6 +333,44 @@ tbody:has([data-state="open"]) tr button:hover {
   float: left;
   height: 0;
   pointer-events: none;
+  color: var(--color-subline);
+}
+
+/* Toasts (vue-sonner). The library ships its CSS unlayered, so these overrides
+   stay unlayered too and win on source order. Cards keep the app popover
+   surface; only the icon carries the outcome color. */
+[data-sonner-toaster] {
+  font-family: var(--font-sans);
+}
+
+[data-sonner-toast][data-styled='true'] {
+  gap: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.25);
+}
+
+[data-sonner-toast][data-styled='true'] [data-title] {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+[data-sonner-toast][data-styled='true'] [data-description] {
+  color: var(--color-subline);
+}
+
+[data-sonner-toast][data-type='success'] [data-icon] {
+  color: var(--color-status-done);
+}
+
+[data-sonner-toast][data-type='error'] [data-icon] {
+  color: var(--color-urgency-overdue);
+}
+
+[data-sonner-toast][data-type='warning'] [data-icon] {
+  color: var(--color-urgency-due);
+}
+
+[data-sonner-toast][data-type='info'] [data-icon] {
   color: var(--color-subline);
 }
 

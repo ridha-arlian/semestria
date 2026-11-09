@@ -69,10 +69,12 @@ function startEdit(link: MaterialLink) {
 </script>
 
 <template>
-  <div class="space-y-1">
-    <p v-if="links.length === 0 && showAdd" class="px-2 pb-1 text-center text-xs text-subline">
-      No links yet. Add the first reference link.
-    </p>
+  <div class="flex flex-col gap-1">
+    <Empty v-if="links.length === 0 && showAdd" class="gap-0 p-0 px-2 pb-1 md:p-0 md:px-2 md:pb-1">
+      <EmptyDescription class="text-xs">
+        No links yet. Add the first reference link.
+      </EmptyDescription>
+    </Empty>
 
     <WorkspacesMaterialDetailMaterialLinkRow
       v-for="entry in links"
@@ -87,41 +89,44 @@ function startEdit(link: MaterialLink) {
     />
 
     <!-- Add form -->
-    <div v-if="showAdd" class="space-y-2 border-t border-line pt-3">
-      <Input
-        v-model="newLabel"
-        class="h-8 text-xs"
-        placeholder="Label (optional)"
-        @keydown.escape.prevent="cancelAdd"
-      />
-      <div class="flex items-center gap-2">
+    <div v-if="showAdd">
+      <Separator />
+      <div class="mt-3 flex flex-col gap-2">
         <Input
-          ref="newUrlEl"
-          v-model="newUrl"
-          type="url"
-          class="h-8 font-mono text-xs"
-          placeholder="https://…"
-          @keydown.enter.prevent="addLink"
+          v-model="newLabel"
+          class="h-8 text-xs"
+          placeholder="Label (optional)"
           @keydown.escape.prevent="cancelAdd"
         />
-        <Button
-          size="icon-sm"
-          class="shrink-0"
-          :disabled="!newUrl.trim()"
-          aria-label="Add link"
-          title="Add link"
-          @click="addLink"
-        >
-          <Plus class="size-4" />
-        </Button>
-      </div>
-      <p v-if="newError" class="text-[11px] text-destructive">
-        {{ newError }}
-      </p>
-      <div v-if="links.length > 0" class="flex justify-end">
-        <Button size="sm" variant="ghost" @click="cancelAdd">
-          Cancel
-        </Button>
+        <div class="flex items-center gap-2">
+          <Input
+            ref="newUrlEl"
+            v-model="newUrl"
+            type="url"
+            class="h-8 font-mono text-xs"
+            placeholder="https://…"
+            @keydown.enter.prevent="addLink"
+            @keydown.escape.prevent="cancelAdd"
+          />
+          <Button
+            size="icon-sm"
+            class="shrink-0"
+            :disabled="!newUrl.trim()"
+            aria-label="Add link"
+            title="Add link"
+            @click="addLink"
+          >
+            <Plus class="size-4" />
+          </Button>
+        </div>
+        <p v-if="newError" class="text-[11px] text-destructive">
+          {{ newError }}
+        </p>
+        <div v-if="links.length > 0" class="flex justify-end">
+          <Button size="sm" variant="ghost" @click="cancelAdd">
+            Cancel
+          </Button>
+        </div>
       </div>
     </div>
 

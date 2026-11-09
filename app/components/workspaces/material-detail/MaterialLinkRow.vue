@@ -71,7 +71,7 @@ function open() {
 </script>
 
 <template>
-  <div v-if="editing" class="space-y-2 rounded-md bg-soft/40 p-3">
+  <div v-if="editing" class="flex flex-col gap-2 rounded-md bg-soft/40 p-3">
     <Input
       v-model="draftLabel"
       class="h-8 text-xs"
@@ -122,26 +122,34 @@ function open() {
       </span>
     </span>
     <div class="flex shrink-0 items-center">
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-7 text-subline opacity-0 transition-opacity hover:text-headline group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
-        :aria-label="`Edit ${link.label || link.url}`"
-        title="Edit link"
-        @click.stop="$emit('edit')"
-      >
-        <Pencil class="size-3.5" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-7 text-subline opacity-0 transition-opacity hover:text-destructive group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
-        :aria-label="`Remove ${link.label || link.url}`"
-        title="Remove link"
-        @click.stop="remove"
-      >
-        <X class="size-3.5" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-7 text-subline opacity-0 transition-opacity hover:text-headline group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
+            :aria-label="`Edit ${link.label || link.url}`"
+            @click.stop="$emit('edit')"
+          >
+            <Pencil class="size-3.5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Edit link</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-7 text-subline opacity-0 transition-opacity hover:text-destructive group-focus-within:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
+            :aria-label="`Remove ${link.label || link.url}`"
+            @click.stop="remove"
+          >
+            <X class="size-3.5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Remove link</TooltipContent>
+      </Tooltip>
     </div>
   </div>
 </template>

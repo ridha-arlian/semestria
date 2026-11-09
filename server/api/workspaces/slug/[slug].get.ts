@@ -1,7 +1,7 @@
-import { requireUser } from '../../utils/auth'
-import { useDb } from '../../utils/db'
-import { toWorkspace } from '../../../shared/serialize'
-import { summarizeWorkspace } from '../../utils/workspaceSummary'
+import { requireUser } from '../../../utils/auth'
+import { useDb } from '../../../utils/db'
+import { toWorkspace } from '../../../../shared/serialize'
+import { summarizeWorkspace } from '../../../utils/workspaceSummary'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)

@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
 
   await ownedMaterialId(event, id)
   const db = useDb(event)
-  await db.material.update({ where: { id }, data: { lastOpenedAt: new Date() } })
-  return { ok: true }
+  const lastOpenedAt = new Date()
+  await db.material.update({ where: { id }, data: { lastOpenedAt } })
+  return { lastOpenedAt: lastOpenedAt.toISOString() }
 })

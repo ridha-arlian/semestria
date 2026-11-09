@@ -41,23 +41,27 @@ function onUpdateOpen(open: boolean) {
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-36">
-      <DropdownMenuItem
-        v-if="material.url || material.links?.length"
-        class="cursor-pointer text-xs"
-        @click="emit('open-link', material)"
-      >
-        <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open content
-      </DropdownMenuItem>
-      <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('mark-reviewed', material)">
-        <Check class="mr-2 size-3.5 text-subline" /> Mark reviewed
-      </DropdownMenuItem>
+      <DropdownMenuGroup>
+        <DropdownMenuItem
+          v-if="material.url || material.links?.length"
+          class="cursor-pointer text-xs"
+          @click="emit('open-link', material)"
+        >
+          <ArrowUpRight class="mr-2 size-3.5 text-subline" /> Open content
+        </DropdownMenuItem>
+        <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('mark-reviewed', material)">
+          <Check class="mr-2 size-3.5 text-subline" /> Mark reviewed
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        class="cursor-pointer text-xs text-destructive focus:text-destructive"
-        @click="emit('delete', material)"
-      >
-        <Trash2 class="mr-2 size-3.5" /> Delete
-      </DropdownMenuItem>
+      <DropdownMenuGroup>
+        <DropdownMenuItem
+          class="cursor-pointer text-xs text-destructive focus:text-destructive"
+          @click="emit('delete', material)"
+        >
+          <Trash2 class="mr-2 size-3.5" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
     </DropdownMenuContent>
   </DropdownMenu>
   <Teleport to="body">

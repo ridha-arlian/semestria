@@ -11,6 +11,13 @@ export default defineNuxtPlugin((nuxtApp) => {
   let lastActiveSlug = api.getWorkspaces().find(w => w.active)?.slug ?? null
   let ready = false
   let saveTimer: ReturnType<typeof setTimeout> | null = null
+  // Serialized copy of the last state confirmed by the server. Compared against
+  // the UI state to skip saves triggered by hydration or route refreshes, and
+  // never mutated by UI edits (unlike the settings cache, which used to be
+  // shared with the UI state).
+  let serverSnapshot: string | null = serverSettings.value
+    ? JSON.stringify(serverSettings.value)
+    : null
 
   function readStored(): Partial<AppSettings> | null {
     try {
@@ -76,14 +83,35 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (!ready)
       return
     // Ignore hydration/route refreshes that match what the server already has.
-    const server = serverSettings.value
-    if (server && JSON.stringify(server) === JSON.stringify(settings.settings.value))
+    if (serverSnapshot === null && serverSettings.value)
+      serverSnapshot = JSON.stringify(serverSettings.value)
+
+    const current = JSON.stringify(settings.settings.value)
+    if (serverSnapshot === current)
       return
 
     if (saveTimer)
       clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => {
-      void api.saveSettings(settings.settings.value).catch(() => {})
+    saveTimer = setTimeout(async () => {
+      saveTimer = null
+      // Re-check at fire time: the snapshot may have caught up while the
+      // debounce was pending (for example after a previous save response).
+      const latest = JSON.stringify(settings.settings.value)
+      if (serverSnapshot === latest)
+        return
+      const payload = JSON.parse(latest) as AppSettings
+      try {
+        const updated = await api.saveSettings(payload)
+        if (!updated)
+          return
+        // Snapshot before assigning the UI state: the deep watcher would
+        // otherwise see a change and schedule another save for the same data.
+        serverSnapshot = JSON.stringify(updated)
+        settings.settings.value = JSON.parse(JSON.stringify(updated)) as AppSettings
+      }
+      catch {
+        // Keep the optimistic UI state; the next change retries the save.
+      }
     }, 600)
   }
 

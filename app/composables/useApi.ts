@@ -1,3 +1,4 @@
+import { toast } from 'vue-sonner'
 import type { Workspace, Task, Material, WorkspaceFormPayload, TaskPayload, MaterialPayload, MaterialActivity, AppSettings, TaskPriority } from '~/types'
 import {
   useWorkspaceCache, useTaskCache, useMaterialCache, useActivityCache, useSettingsCache,
@@ -7,20 +8,24 @@ import {
 
 interface ApiError extends Error { statusCode?: number; data?: unknown }
 
-let toastHandler: ((msg: string) => void) | null = null
+/**
+ * Toasts report mutation outcomes. Field-level validation stays inline in the
+ * forms, so only failures that would otherwise be silent end up here.
+ * The `id` keeps repeated failures for the same entity from stacking.
+ */
+function fail(message: string, id?: string) {
+  toast.error(message, id ? { id } : undefined)
+}
 
-function say(msg: string) {
-  toastHandler?.(msg)
+function detail(prefix: string, error: unknown) {
+  const message = error instanceof Error ? error.message.trim() : ''
+  return message ? `${prefix}: ${message}` : prefix
 }
 
 /** Forms use `''` for "not set"; the API expects `null` for empty optionals. */
 function orNull(value: string | null | undefined): string | null {
   const trimmed = value?.trim()
   return trimmed ? trimmed : null
-}
-
-export function setApiToast(handler: (msg: string) => void) {
-  toastHandler = handler
 }
 
 /**
@@ -48,8 +53,13 @@ export const useApi = () => {
       return res as T
     }
     catch (e) {
-      const err = e as { data?: { statusMessage?: string, message?: string }, statusMessage?: string, statusCode?: number, response?: { status?: number } }
-      const message = err?.data?.statusMessage ?? err?.data?.message ?? err?.statusMessage ?? 'Request failed'
+      const err = e as { data?: { statusMessage?: string, message?: string, issues?: { path: (string | number)[], message: string }[] }, statusMessage?: string, statusCode?: number, response?: { status?: number } }
+      // Validation failures carry per-field issues; surface them instead of the
+      // generic "Validation failed" so the offending field is obvious.
+      const issues = err?.data?.issues
+      const message = issues?.length
+        ? issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ')
+        : err?.data?.statusMessage ?? err?.data?.message ?? err?.statusMessage ?? 'Request failed'
       const error = new Error(message) as ApiError
       error.statusCode = err?.statusCode ?? err?.response?.status
       error.data = err?.data
@@ -68,27 +78,42 @@ export const useApi = () => {
   const getMaterialState = () => materialsState
 
   async function addWorkspace(payload: WorkspaceFormPayload): Promise<Workspace> {
-    const created = await request<Workspace>('/api/workspaces', {
-      method: 'POST',
-      body: JSON.stringify({
-        ...payload,
-        startDate: orNull(payload.startDate),
-        endDate: orNull(payload.endDate),
-      }),
-    })
+    let created: Workspace
+    try {
+      created = await request<Workspace>('/api/workspaces', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...payload,
+          startDate: orNull(payload.startDate),
+          endDate: orNull(payload.endDate),
+        }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not create workspace', error), 'workspace-create')
+      throw error
+    }
     upsertWorkspace(created)
+    toast.success('Workspace created')
     return created
   }
 
   async function updateWorkspace(id: number, payload: WorkspaceFormPayload): Promise<void> {
-    const updated = await request<Workspace>(`/api/workspaces/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        ...payload,
-        startDate: orNull(payload.startDate),
-        endDate: orNull(payload.endDate),
-      }),
-    })
+    let updated: Workspace
+    try {
+      updated = await request<Workspace>(`/api/workspaces/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ...payload,
+          startDate: orNull(payload.startDate),
+          endDate: orNull(payload.endDate),
+        }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not save workspace', error), `workspace-${id}`)
+      throw error
+    }
     upsertWorkspace(updated)
   }
 
@@ -103,13 +128,36 @@ export const useApi = () => {
       workspacesState.value = backupWs
       tasksState.value = backupTasks
       materialsState.value = backupMats
-      say('Could not delete workspace. Changes reverted.')
+      fail('Could not delete workspace. Changes reverted.', 'workspace-delete')
       throw new Error('delete failed')
     }
+    toast.success('Workspace deleted')
   }
 
   async function setActiveWorkspace(id: number): Promise<void> {
-    const updated = await request<Workspace>(`/api/workspaces/${id}/activate`, { method: 'POST' })
+    let updated: Workspace
+    try {
+      updated = await request<Workspace>(`/api/workspaces/${id}/activate`, { method: 'POST' })
+    }
+    catch (error) {
+      fail(detail('Could not switch workspace', error), 'workspace-activate')
+      throw error
+    }
+    upsertWorkspace(updated)
+  }
+
+  async function setWorkspaceFocus(id: number, week: number, note: string): Promise<void> {
+    let updated: Workspace
+    try {
+      updated = await request<Workspace>(`/api/workspaces/${id}/focus`, {
+        method: 'PATCH',
+        body: JSON.stringify({ week, note }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not save the focus note', error), `workspace-focus-${id}`)
+      throw error
+    }
     upsertWorkspace(updated)
   }
 
@@ -127,22 +175,31 @@ export const useApi = () => {
     } catch {
       materialsState.value = backupMats
       tasksState.value = backupTasks
-      say('Could not delete material. Changes reverted.')
+      fail('Could not delete material. Changes reverted.', 'material-delete')
       throw new Error('delete failed')
     }
+    toast.success('Material deleted')
   }
 
   async function addTask(workspaceId: number, payload: TaskPayload): Promise<Task> {
-    const created = await request<Task>(`/api/workspaces/${workspaceId}/tasks`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...payload,
-        due: orNull(payload.due),
-        description: orNull(payload.description),
-        submissionUrl: orNull(payload.submissionUrl),
-      }),
-    })
+    let created: Task
+    try {
+      created = await request<Task>(`/api/workspaces/${workspaceId}/tasks`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...payload,
+          due: orNull(payload.due),
+          description: orNull(payload.description),
+          submissionUrl: orNull(payload.submissionUrl),
+        }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not create task', error), 'task-create')
+      throw error
+    }
     upsertTask(created)
+    toast.success('Task created')
     return created
   }
 
@@ -158,62 +215,106 @@ export const useApi = () => {
     } catch {
       tasksState.value = backupTasks
       materialsState.value = backupMats
-      say('Could not delete task. Changes reverted.')
+      fail('Could not delete task. Changes reverted.', 'task-delete')
       throw new Error('delete failed')
     }
+    toast.success('Task deleted')
   }
 
   async function addMaterial(workspaceId: number, payload: MaterialPayload): Promise<Material> {
-    const created = await request<Material>(`/api/workspaces/${workspaceId}/materials`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...payload,
-        url: orNull(payload.url),
-      }),
-    })
+    let created: Material
+    try {
+      created = await request<Material>(`/api/workspaces/${workspaceId}/materials`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...payload,
+          url: orNull(payload.url),
+        }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not add material', error), 'material-create')
+      throw error
+    }
     upsertMaterial(created)
+    toast.success('Material added')
     return created
   }
 
   async function patchTask(id: number, patch: { title?: string; course?: string; due?: string; priority?: TaskPriority; description?: string; note?: string; status?: 'To do' | 'In progress' | 'Done' }): Promise<Task> {
-    const updated = await request<Task>(`/api/tasks/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        ...patch,
-        ...(patch.due !== undefined ? { due: orNull(patch.due) } : {}),
-        ...(patch.description !== undefined ? { description: orNull(patch.description) } : {}),
-      }),
-    })
+    let updated: Task
+    try {
+      updated = await request<Task>(`/api/tasks/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ...patch,
+          ...(patch.due !== undefined ? { due: orNull(patch.due) } : {}),
+          ...(patch.description !== undefined ? { description: orNull(patch.description) } : {}),
+        }),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not update task', error), `task-${id}`)
+      throw error
+    }
     upsertTask(updated)
     return updated
   }
 
   async function patchMaterial(id: number, patch: { title?: string; course?: string; type?: Material['type']; tags?: string[]; taskId?: number | null }): Promise<Material> {
-    const updated = await request<Material>(`/api/materials/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(patch),
-    })
+    let updated: Material
+    try {
+      updated = await request<Material>(`/api/materials/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not update material', error), `material-${id}`)
+      throw error
+    }
     upsertMaterial(updated)
     return updated
   }
 
   async function fetchActivities(materialId: number): Promise<MaterialActivity[]> {
-    const list = await request<MaterialActivity[]>(`/api/materials/${materialId}/activities`)
+    let list: MaterialActivity[]
+    try {
+      list = await request<MaterialActivity[]>(`/api/materials/${materialId}/activities`)
+    }
+    catch (error) {
+      fail(detail('Could not load activity', error), `activities-${materialId}`)
+      throw error
+    }
     activitiesState.value = { ...activitiesState.value, [materialId]: list }
     return list
   }
 
   async function fetchSettings(): Promise<AppSettings | null> {
-    const settings = await request<AppSettings>('/api/settings')
+    let settings: AppSettings
+    try {
+      settings = await request<AppSettings>('/api/settings')
+    }
+    catch (error) {
+      fail(detail('Could not load settings', error), 'settings-load')
+      throw error
+    }
     settingsState.value = settings
     return settings
   }
 
   async function saveSettings(patch: Partial<AppSettings>): Promise<AppSettings | null> {
-    const updated = await request<AppSettings>('/api/settings', {
-      method: 'PATCH',
-      body: JSON.stringify(patch),
-    })
+    let updated: AppSettings
+    try {
+      updated = await request<AppSettings>('/api/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      })
+    }
+    catch (error) {
+      fail(detail('Could not save settings', error), 'settings-save')
+      throw error
+    }
     settingsState.value = updated
     return updated
   }
@@ -240,6 +341,7 @@ export const useApi = () => {
     updateWorkspace,
     removeWorkspace,
     setActiveWorkspace,
+    setWorkspaceFocus,
     removeMaterial,
     addTask,
     removeTask,

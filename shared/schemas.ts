@@ -21,6 +21,11 @@ export const workspaceForm = z.object({
   message: 'startDate must be on or before endDate',
 })
 
+export const workspaceFocus = z.object({
+  week: z.number().int().min(0).max(600),
+  note: z.string().max(140),
+})
+
 export const taskScalar = z.object({
   title: z.string().min(1).max(300),
   course: z.string().min(1).max(200),

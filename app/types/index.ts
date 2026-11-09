@@ -21,6 +21,23 @@ export interface Workspace {
   nextDue: string
   startDate?: string
   endDate?: string
+  /** Per-week "This Week" notes, keyed by week number ("0", "1", ...). */
+  focusNotes?: Record<string, string>
+}
+
+export type TimelineState = 'upcoming' | 'active' | 'ended'
+
+/** Day-based timeline for the active workspace, derived from its start/end dates. */
+export interface WorkspaceTimeline {
+  /** Week number (1-based) used as the focus-note key. */
+  current: number
+  /** Total weeks, rounded up. */
+  total: number
+  totalDays: number
+  daysElapsed: number
+  daysUntilStart: number
+  daysLeft: number
+  state: TimelineState
 }
 
 export interface WorkspaceFormPayload {

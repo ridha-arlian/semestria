@@ -29,18 +29,19 @@ watch(() => props.material.id, (id) => { void ctx.ensureMaterialActivities(id) }
           <History class="size-4 text-subline" />
           Activity
         </CardTitle>
-        <button
+        <Button
           v-if="activities.length > PAGE_SIZE"
           type="button"
-          class="text-xs font-medium text-text-strong underline-offset-2 hover:underline"
+          variant="link"
+          class="h-auto p-0 text-xs font-medium text-text-strong no-underline hover:underline"
           @click="expanded = !expanded"
         >
           {{ expanded ? 'Show less' : 'View all' }}
-        </button>
+        </Button>
       </div>
     </CardHeader>
     <CardContent class="p-4">
-      <ol v-if="activities.length > 0" class="relative space-y-4 border-l border-line pl-4">
+      <ol v-if="activities.length > 0" class="relative flex flex-col gap-4 border-l border-line pl-4">
         <li v-for="a in visible" :key="a.id" class="relative">
           <span class="absolute -left-[21px] top-1 size-2 rounded-full border border-line bg-card" />
           <p class="text-xs font-medium text-text-strong">
@@ -54,9 +55,11 @@ watch(() => props.material.id, (id) => { void ctx.ensureMaterialActivities(id) }
           </p>
         </li>
       </ol>
-      <p v-else class="py-2 text-center text-xs text-subline">
-        No activity yet.
-      </p>
+      <Empty v-else class="gap-0 py-2 md:py-2">
+        <EmptyDescription class="text-xs">
+          No activity yet.
+        </EmptyDescription>
+      </Empty>
     </CardContent>
   </Card>
 </template>

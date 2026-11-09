@@ -30,9 +30,9 @@ function handleWorkspaceChange(value: unknown) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-2">
-      <Label for="settings-week-start" class="text-sm">Start week on</Label>
+  <FieldGroup class="gap-6">
+    <Field class="gap-2">
+      <FieldLabel for="settings-week-start" class="text-sm">Start week on</FieldLabel>
       <Select v-model="settings.preferences.weekStartsOn">
         <SelectTrigger id="settings-week-start" class="w-full">
           <SelectValue placeholder="Select week start" />
@@ -45,13 +45,13 @@ function handleWorkspaceChange(value: unknown) {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <p class="text-[11px] text-subline">
+      <FieldDescription class="text-[11px]">
         Affects all calendars in the app.
-      </p>
-    </div>
+      </FieldDescription>
+    </Field>
 
-    <div class="flex flex-col gap-2">
-      <Label for="settings-default-landing" class="text-sm">Default landing page</Label>
+    <Field class="gap-2">
+      <FieldLabel for="settings-default-landing" class="text-sm">Default landing page</FieldLabel>
       <Select v-model="settings.preferences.defaultLanding">
         <SelectTrigger id="settings-default-landing" class="w-full">
           <SelectValue placeholder="Select default landing" />
@@ -64,13 +64,13 @@ function handleWorkspaceChange(value: unknown) {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <p class="text-[11px] text-subline">
+      <FieldDescription class="text-[11px]">
         When you open the app, it will navigate to this page.
-      </p>
-    </div>
+      </FieldDescription>
+    </Field>
 
-    <div class="flex flex-col gap-2">
-      <Label for="settings-active-workspace" class="text-sm">Active workspace</Label>
+    <Field class="gap-2">
+      <FieldLabel for="settings-active-workspace" class="text-sm">Active workspace</FieldLabel>
       <Select
         v-model="settings.preferences.activeWorkspaceSlug"
         :disabled="availableSlugs.length === 0"
@@ -87,9 +87,9 @@ function handleWorkspaceChange(value: unknown) {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <p class="text-[11px] text-subline">
+      <FieldDescription class="text-[11px]">
         Selecting a workspace marks it as active.
-      </p>
-    </div>
-  </div>
+      </FieldDescription>
+    </Field>
+  </FieldGroup>
 </template>

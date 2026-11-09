@@ -70,13 +70,13 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div class="space-y-6">
+    <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-subline">
           Keep every deadline in sight, without the spreadsheet stiffness.
         </p>
         <Button class="w-full sm:w-auto" @click="openAdd('task')">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus data-icon="inline-start" />
           New task
         </Button>
       </div>
@@ -95,11 +95,13 @@
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent align="end">
-            <SelectItem value="All" class="cursor-pointer text-xs">All statuses</SelectItem>
-            <SelectItem value="Active" class="cursor-pointer text-xs">Active</SelectItem>
-            <SelectItem value="To do" class="cursor-pointer text-xs">To do</SelectItem>
-            <SelectItem value="In progress" class="cursor-pointer text-xs">In progress</SelectItem>
-            <SelectItem value="Done" class="cursor-pointer text-xs">Done</SelectItem>
+            <SelectGroup>
+              <SelectItem value="All" class="cursor-pointer text-xs">All statuses</SelectItem>
+              <SelectItem value="Active" class="cursor-pointer text-xs">Active</SelectItem>
+              <SelectItem value="To do" class="cursor-pointer text-xs">To do</SelectItem>
+              <SelectItem value="In progress" class="cursor-pointer text-xs">In progress</SelectItem>
+              <SelectItem value="Done" class="cursor-pointer text-xs">Done</SelectItem>
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
@@ -140,15 +142,19 @@
               </ContextMenuItem>
             </template>
             <template #empty>
-              <div class="px-5 py-16 text-center">
-                <Sparkles class="mx-auto size-5 text-subline/50" />
-                <p class="mt-3 text-sm font-medium text-text-strong">
-                  {{ isFiltering ? 'No tasks match your filters' : 'No tasks yet' }}
-                </p>
-                <p class="mt-1 text-xs text-subline">
-                  {{ isFiltering ? 'Try a different search or status filter.' : 'Add your first task to get started.' }}
-                </p>
-              </div>
+              <Empty class="px-5 py-16 md:py-16">
+                <EmptyHeader>
+                  <EmptyMedia>
+                    <Sparkles class="size-5 text-subline/50" />
+                  </EmptyMedia>
+                  <EmptyTitle class="text-sm font-medium">
+                    {{ isFiltering ? 'No tasks match your filters' : 'No tasks yet' }}
+                  </EmptyTitle>
+                  <EmptyDescription class="text-xs">
+                    {{ isFiltering ? 'Try a different search or status filter.' : 'Add your first task to get started.' }}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             </template>
           </DataTable>
         </CardContent>

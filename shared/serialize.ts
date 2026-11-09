@@ -12,6 +12,7 @@ interface WorkspaceRow {
   startDate: Date | string | null
   endDate: Date | string | null
   isActive: boolean
+  focusNotes?: unknown
 }
 
 interface ChecklistRow {
@@ -143,8 +144,17 @@ export function toWorkspace(row: WorkspaceRow, summary: { courses: number; assig
     startDate: row.startDate ? isoDate(row.startDate) : undefined,
     endDate: row.endDate ? isoDate(row.endDate) : undefined,
     active: row.isActive,
+    focusNotes: normalizeFocusNotes(row.focusNotes),
     ...summary,
   }
+}
+
+function normalizeFocusNotes(value: unknown): Record<string, string> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return undefined
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].trim().length > 0)
+  return entries.length ? Object.fromEntries(entries) : undefined
 }
 
 export function toTask(row: TaskRow): Task {

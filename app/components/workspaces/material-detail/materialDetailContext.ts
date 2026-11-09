@@ -18,7 +18,6 @@ export interface MaterialDetailContext {
   markMaterialReviewed: (id: number) => void
   markMaterialOpened: (id: number) => void
   removeMaterial: (id: number) => void
-  pushMaterialActivity: (materialId: number, kind: MaterialActivity['kind'], label: string, detail?: string) => void
   getMaterialActivities: (material: Material) => MaterialActivity[]
   ensureMaterialActivities: (materialId: number) => Promise<void>
 }

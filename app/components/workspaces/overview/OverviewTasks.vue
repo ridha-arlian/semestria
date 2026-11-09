@@ -75,14 +75,16 @@
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent align="end" class="min-w-36">
-              <SelectItem value="nearest" class="text-xs cursor-pointer">Earliest due</SelectItem>
-              <SelectItem value="farthest" class="text-xs cursor-pointer">Latest due</SelectItem>
-              <SelectItem value="status" class="text-xs cursor-pointer">By status</SelectItem>
-              <SelectItem value="priority" class="text-xs cursor-pointer">By priority</SelectItem>
+              <SelectGroup>
+                <SelectItem value="nearest" class="text-xs cursor-pointer">Earliest due</SelectItem>
+                <SelectItem value="farthest" class="text-xs cursor-pointer">Latest due</SelectItem>
+                <SelectItem value="status" class="text-xs cursor-pointer">By status</SelectItem>
+                <SelectItem value="priority" class="text-xs cursor-pointer">By priority</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
 
-          <div class="h-3.5 w-px shrink-0 bg-line" />
+          <Separator orientation="vertical" class="h-3.5! bg-line" />
 
           <NuxtLink
             :to="viewAllTo"
@@ -119,15 +121,17 @@
             </ContextMenuItem>
           </template>
           <template #empty>
-          <div class="px-5 py-12 text-center">
-            <p class="text-sm font-medium text-text-strong">
-              No tasks yet
-            </p>
-            <p class="mt-1 text-xs text-subline">
-              Tasks you add will show up here.
-            </p>
-          </div>
-        </template>
+            <Empty class="px-5 py-12 md:py-12">
+              <EmptyHeader>
+                <EmptyTitle class="text-sm font-medium">
+                  No tasks yet
+                </EmptyTitle>
+                <EmptyDescription class="text-xs">
+                  Tasks you add will show up here.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </template>
       </DataTable>
     </CardContent>
   </Card>

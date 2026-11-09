@@ -10,7 +10,8 @@ export default defineEventHandler(async (event) => {
 
   await ownedMaterialId(event, id)
   const db = useDb(event)
-  await db.material.update({ where: { id }, data: { reviewedAt: new Date() } })
+  const reviewedAt = new Date()
+  await db.material.update({ where: { id }, data: { reviewedAt } })
   await logActivity(event, id, user.id, 'Marked reviewed', 'Marked reviewed')
-  return { ok: true }
+  return { reviewedAt: reviewedAt.toISOString() }
 })

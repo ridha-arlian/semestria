@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { DateFormatter, getLocalTimeZone, parseDate } from '@internationalized/date'
   import { CalendarIcon } from '@lucide/vue'
+  import { useMediaQuery } from '@vueuse/core'
   import type { DateRange } from 'reka-ui'
   import type { Workspace, WorkspaceFormPayload } from '~/types'
 
@@ -16,6 +17,7 @@
   }>()
 
   const isEdit = computed(() => !!props.workspaceToEdit)
+  const isDesktop = useMediaQuery('(min-width: 640px)')
 
   const df = new DateFormatter('en-US', { dateStyle: 'medium' })
 
@@ -101,23 +103,24 @@
         </DialogDescription>
       </DialogHeader>
 
-      <form class="space-y-4 py-2" @submit.prevent="handleSubmit">
-        <div class="space-y-2">
-          <Label for="name">
-            Workspace name
-          </Label>
-          <Input
-            id="name"
-            v-model="form.name"
-            placeholder="e.g. Fall 2026 or Frontend Bootcamp"
-            required
-          />
-        </div>
+      <form class="py-2" @submit.prevent="handleSubmit">
+        <FieldGroup class="gap-4">
+          <Field class="gap-2">
+            <FieldLabel for="name">
+              Workspace name
+            </FieldLabel>
+            <Input
+              id="name"
+              v-model="form.name"
+              placeholder="e.g. Fall 2026 or Frontend Bootcamp"
+              required
+            />
+          </Field>
 
-        <div class="space-y-2">
-          <Label>
-            Workspace duration
-          </Label>
+          <Field class="gap-2">
+            <FieldLabel>
+              Workspace duration
+            </FieldLabel>
           <Popover>
             <PopoverTrigger as-child>
               <Button
@@ -126,27 +129,33 @@
                 class="w-full justify-start text-left font-normal"
                 :class="!dateRange.start && 'text-subline'"
               >
-                <CalendarIcon class="mr-2 size-4" />
+                <CalendarIcon data-icon="inline-start" />
                 {{ rangeLabel }}
               </Button>
             </PopoverTrigger>
-            <PopoverContent class="w-auto p-0" align="start">
-              <RangeCalendar v-model="dateRange" :number-of-months="2" />
+            <PopoverContent class="w-auto max-w-[calc(100vw-2rem)] p-0" align="start">
+              <div class="max-h-[calc(100dvh-6rem)] overflow-y-auto">
+                <RangeCalendar v-model="dateRange" :number-of-months="isDesktop ? 2 : 1" />
+              </div>
             </PopoverContent>
           </Popover>
-        </div>
+          </Field>
 
-        <div class="flex items-center justify-between rounded-lg border border-line p-3">
-          <div class="space-y-0.5">
-            <Label class="text-sm">
-              Set as active workspace
-            </Label>
-            <p class="text-[12px] text-subline">
-              Make this your current active workspace.
-            </p>
-          </div>
-          <Switch v-model:checked="form.isActive" />
-        </div>
+          <Field
+            orientation="horizontal"
+            class="items-center justify-between rounded-lg border border-line p-3"
+          >
+            <FieldContent class="gap-0.5">
+              <FieldLabel for="workspace-active">
+                Set as active workspace
+              </FieldLabel>
+              <FieldDescription class="text-xs">
+                Make this your current active workspace.
+              </FieldDescription>
+            </FieldContent>
+            <Switch id="workspace-active" v-model:checked="form.isActive" />
+          </Field>
+        </FieldGroup>
 
         <DialogFooter class="pt-2">
           <Button type="button" variant="outline" @click="handleOpenChange(false)">

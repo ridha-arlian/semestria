@@ -14,7 +14,7 @@
       class="animate-rise gap-0 py-0 border-border bg-card transition-colors hover:border-line-strong"
       :class="`delay-${i + 1}`"
     >
-      <CardHeader class="flex h-10 flex-row items-center justify-between space-y-0 p-4 pb-0">
+      <CardHeader class="flex h-10 flex-row items-center justify-between p-4 pb-0">
         <CardTitle class="text-xs font-normal text-muted-foreground leading-none">
           {{ stat.label }}
         </CardTitle>
