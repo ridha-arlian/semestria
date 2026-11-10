@@ -42,9 +42,6 @@ export default defineNuxtConfig({
     fallback: 'light',
     classSuffix: ''
   },
-  experimental: {
-    viewTransition: true
-  },
   runtimeConfig: {
     // No defaults for secrets. Override via env vars in production:
     // NUXT_DATABASE_URL, NUXT_SESSION_PASSWORD (32+ chars), NUXT_OAUTH_GOOGLE_*,
