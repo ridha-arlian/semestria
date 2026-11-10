@@ -20,6 +20,11 @@
   // reference, so add/delete must produce a new array for the rows to refresh.
   const workspaces = computed(() => api.getWorkspaces())
 
+  const { showSkeleton, error } = useDataStatus('workspaces')
+  function retryWorkspaces() {
+    void fetchWorkspaceList({ force: true })
+  }
+
   const isModalOpen = ref(false)
   const selectedWorkspace = ref<Workspace | null>(null)
 
@@ -144,7 +149,20 @@
       </CardHeader>
 
       <CardContent class="p-0">
+        <SkeletonsContentError
+          v-if="error"
+          :message="error"
+          @retry="retryWorkspaces"
+        />
+
+        <SkeletonsTableSkeleton
+          v-else-if="showSkeleton"
+          :rows="6"
+          :bar-class="['h-4 w-40', 'h-4 w-32', 'hidden sm:block h-4 w-28', 'h-4 w-8']"
+        />
+
         <DataTable
+          v-else
           :columns="columns"
           :data="workspaces"
           :mobile-hidden-columns="['progress', 'assignments']"

@@ -19,8 +19,15 @@
 
   const { workspace, week, tasks, openAdd, cycleStatus } = inject('workspace') as WorkspaceContext
   const api = useApi()
+  const route = useRoute()
 
   const base = computed(() => `/workspaces/${workspace.value?.slug}`)
+  const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
+  const { showSkeleton, error } = useDataStatus(workspaceKey)
+
+  function retryWorkspace() {
+    void fetchWorkspaceData(route.params.slug as string, { force: true })
+  }
 
   function taskUrl(item: Task) {
     return `${window.location.origin}${base.value}/tasks/${item.id}`
@@ -122,7 +129,26 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div class="flex flex-col gap-8">
+    <SkeletonsContentError
+      v-if="error"
+      :message="error"
+      @retry="retryWorkspace"
+    />
+
+    <div v-else-if="showSkeleton" class="flex flex-col gap-8">
+      <SkeletonsPageHeaderSkeleton with-action />
+
+      <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+        <Skeleton v-for="index in 4" :key="index" class="h-24" />
+      </div>
+
+      <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <Skeleton class="h-72" />
+        <Skeleton class="h-72" />
+      </div>
+    </div>
+
+    <div v-else class="flex flex-col gap-8 content-fade-in">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 class="text-lg font-bold tracking-tight text-headline sm:hidden">
           {{ workspace?.name }}
