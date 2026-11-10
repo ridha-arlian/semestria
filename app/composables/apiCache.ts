@@ -80,6 +80,36 @@ export function useHydratedCache() {
   return useState<Record<string, boolean>>('api-hydrated', () => ({}))
 }
 
+export function useLoadingCache() {
+  return useState<Record<string, boolean>>('api-loading', () => ({}))
+}
+
+export function useErrorCache() {
+  return useState<Record<string, string | null>>('api-errors', () => ({}))
+}
+
+export function useFetchedAtCache() {
+  return useState<Record<string, number>>('api-fetched-at', () => ({}))
+}
+
+export function markLoading(key: string, value: boolean, loading = useLoadingCache()): void {
+  loading.value = { ...loading.value, [key]: value }
+}
+
+export function setFetchError(key: string, message: string | null, errors = useErrorCache()): void {
+  errors.value = { ...errors.value, [key]: message }
+}
+
+export function markFetched(key: string, at = Date.now(), fetchedAt = useFetchedAtCache()): void {
+  fetchedAt.value = { ...fetchedAt.value, [key]: at }
+}
+
+export function isFresh(key: string, ttlMs = 30_000): boolean {
+  const fetchedAt = useFetchedAtCache()
+  const at = fetchedAt.value[key]
+  return at !== undefined && Date.now() - at < ttlMs
+}
+
 // Fetch functions run in middleware, so they must capture the state ref before
 // their first `await`. Callers that can resolve it synchronously may omit it.
 export function setHydrated(key: string, hydrated = useHydratedCache()): void {

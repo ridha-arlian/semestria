@@ -1,7 +1,8 @@
 import type { Workspace, Task, Material, MaterialActivity, AppSettings } from '~/types'
 import {
   useWorkspaceCache, useTaskCache, useMaterialCache, useActivityCache, useSettingsCache,
-  useHydratedCache, setHydrated,
+  useHydratedCache, setHydrated, useLoadingCache, useErrorCache, markLoading, setFetchError,
+  markFetched, isFresh,
 } from './apiCache'
 import { defaultSettings } from './useSettings'
 
@@ -14,42 +15,93 @@ const PUBLIC_ROUTES = new Set(['/'])
  *
  * `useRequestFetch` forwards session cookies during SSR; plain `$fetch` would
  * call the handler without the browser's cookies and get 401s.
+ *
+ * Each fetch is guarded by a 30 s freshness window and an in-flight flag, so a
+ * client navigation can call these without awaiting and still avoid duplicate
+ * requests. Failures are recorded per key instead of throwing.
  */
-export async function fetchWorkspaceList() {
+
+/** Only record a fetch error when there is nothing cached to keep showing. */
+function failKey(key: string, message: string, hasData: boolean, errors: ReturnType<typeof useErrorCache>) {
+  if (!hasData) setFetchError(key, message, errors)
+}
+
+export async function fetchWorkspaceList(options: { force?: boolean } = {}) {
   const workspaces = useWorkspaceCache()
   const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
   const request = useRequestFetch()
-  workspaces.value = await request<Workspace[]>('/api/workspaces').catch(() => [])
-  setHydrated('workspaces', hydrated)
+
+  if (!options.force && isFresh('workspaces')) return workspaces.value
+  if (!options.force && loading.value.workspaces) return workspaces.value
+
+  markLoading('workspaces', true, loading)
+  setFetchError('workspaces', null, errors)
+
+  try {
+    workspaces.value = await request<Workspace[]>('/api/workspaces')
+    setHydrated('workspaces', hydrated)
+    markFetched('workspaces')
+  }
+  catch {
+    failKey('workspaces', 'Could not load workspaces.', workspaces.value.length > 0, errors)
+  }
+  finally {
+    markLoading('workspaces', false, loading)
+  }
+
   return workspaces.value
 }
 
 /** Initial load for a specific workspace. Called by global middleware. */
-export async function fetchWorkspaceData(slug: string) {
+export async function fetchWorkspaceData(slug: string, options: { force?: boolean } = {}) {
   const workspaces = useWorkspaceCache()
   const tasks = useTaskCache()
   const materials = useMaterialCache()
   const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
   const request = useRequestFetch()
 
-  // Workspace list is needed for sidebar/dashboard and slug validation.
-  if (!workspaces.value.length) {
-    workspaces.value = await request<Workspace[]>('/api/workspaces').catch(() => [])
+  // The list resolves the slug, so it must be ready before the workspace key.
+  if (!workspaces.value.length && !isFresh('workspaces')) {
+    await fetchWorkspaceList()
   }
 
-  const ws = workspaces.value.find((w) => w.slug === slug)
+  const ws = workspaces.value.find(w => w.slug === slug)
   if (!ws) return
 
-  const [ts, ms] = await Promise.all([
-    request<Task[]>(`/api/workspaces/${ws.id}/tasks`).catch(() => []),
-    request<Material[]>(`/api/workspaces/${ws.id}/materials`).catch(() => []),
-  ])
+  const key = `workspace:${ws.id}`
+  if (!options.force && isFresh(key)) return
+  if (!options.force && loading.value[key]) return
 
-  tasks.value = [...tasks.value.filter((t) => t.workspaceId !== ws.id), ...ts]
-  materials.value = [...materials.value.filter((m) => m.workspaceId !== ws.id), ...ms]
+  markLoading(key, true, loading)
+  setFetchError(key, null, errors)
 
-  // Activity history is lazy: fetch only for open detail pages.
-  setHydrated(`workspace:${ws.id}`, hydrated)
+  const hasCached = tasks.value.some(t => t.workspaceId === ws.id)
+    || materials.value.some(m => m.workspaceId === ws.id)
+
+  try {
+    const [ts, ms] = await Promise.all([
+      request<Task[]>(`/api/workspaces/${ws.id}/tasks`),
+      request<Material[]>(`/api/workspaces/${ws.id}/materials`),
+    ])
+
+    // Merge per workspace: replacing the whole arrays would drop other
+    // workspaces' rows while switching quickly.
+    tasks.value = [...tasks.value.filter(t => t.workspaceId !== ws.id), ...ts]
+    materials.value = [...materials.value.filter(m => m.workspaceId !== ws.id), ...ms]
+
+    setHydrated(key, hydrated)
+    markFetched(key)
+  }
+  catch {
+    failKey(key, 'Could not load this workspace.', hasCached, errors)
+  }
+  finally {
+    markLoading(key, false, loading)
+  }
 }
 
 export async function fetchMaterialActivities(materialId: number) {
@@ -61,22 +113,41 @@ export async function fetchMaterialActivities(materialId: number) {
   }
 }
 
-export async function fetchSettings() {
+export async function fetchSettings(options: { force?: boolean } = {}) {
   const settings = useSettingsCache()
+  const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
   const ui = useState<AppSettings>('app-settings', defaultSettings)
   const request = useRequestFetch()
 
-  if (!settings.value) {
-    settings.value = await request<AppSettings>('/api/settings').catch(() => null)
-  }
+  if (!options.force && isFresh('settings')) return settings.value
+  if (!options.force && loading.value.settings) return settings.value
 
-  // Mirror into the UI state so SSR renders the real name/avatar instead of a
-  // placeholder. Client-side local overrides are applied in the settings plugin.
-  // Clone deeply: a shallow copy would share nested objects with the server
-  // cache, so editing the UI state would silently mutate the cache too and the
-  // settings plugin could never detect a change worth saving.
-  if (settings.value) {
-    ui.value = JSON.parse(JSON.stringify(settings.value)) as AppSettings
+  markLoading('settings', true, loading)
+  setFetchError('settings', null, errors)
+
+  try {
+    settings.value = await request<AppSettings>('/api/settings')
+
+    // Mirror into the UI state only on the first load so SSR renders the real
+    // name/avatar instead of a placeholder. Later revalidations must not
+    // clobber unsaved local edits.
+    // Clone deeply: a shallow copy would share nested objects with the server
+    // cache, so editing the UI state would silently mutate the cache too and the
+    // settings plugin could never detect a change worth saving.
+    if (!hydrated.value.settings) {
+      ui.value = JSON.parse(JSON.stringify(settings.value)) as AppSettings
+    }
+
+    setHydrated('settings', hydrated)
+    markFetched('settings')
+  }
+  catch {
+    failKey('settings', 'Could not load your settings.', settings.value !== null, errors)
+  }
+  finally {
+    markLoading('settings', false, loading)
   }
 
   return settings.value
