@@ -12,6 +12,9 @@
   const workspaceName = computed(() => workspace.value?.name ?? '')
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
   const { ready: workspaceReady } = useDataStatus(workspaceKey)
+  // The count skeleton is a client-navigation affordance; SSR either has the
+  // data or renders the error page, so never emit a skeleton in server HTML.
+  const showCountSkeleton = computed(() => import.meta.client && !workspaceReady.value)
 
   const week = computed<WorkspaceTimeline | null>(() => {
     const w = workspace.value
@@ -611,14 +614,14 @@
                     </div>
 
                     <div v-if="item.name === 'Tasks'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <Skeleton v-if="!workspaceReady" class="h-3.5 w-6 rounded" />
+                      <Skeleton v-if="showCountSkeleton" class="h-3.5 w-6 rounded" />
                       <SidebarMenuBadge v-else class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ tasks.length }}
                       </SidebarMenuBadge>
                     </div>
 
                     <div v-if="item.name === 'Materials'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <Skeleton v-if="!workspaceReady" class="h-3.5 w-6 rounded" />
+                      <Skeleton v-if="showCountSkeleton" class="h-3.5 w-6 rounded" />
                       <SidebarMenuBadge v-else class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ materials.length }}
                       </SidebarMenuBadge>

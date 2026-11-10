@@ -32,20 +32,20 @@ function dedupe<T>(key: string, force: boolean, run: () => Promise<T>): Promise<
   if (!import.meta.client)
     return run()
 
-  if (!force) {
-    const pending = inflight.get(key) as Promise<T> | undefined
-    if (pending) return pending
-  }
+  const pending = inflight.get(key) as Promise<T> | undefined
+  if (pending && !force) return pending
 
-  const promise = run()
+  // A forced retry queues behind the request already in flight, so the older
+  // response cannot land last and overwrite the fresh one.
+  const promise = pending
+    ? pending.then(() => run(), () => run())
+    : run()
 
-  if (!force) {
-    inflight.set(key, promise)
-    const clear = () => {
-      if (inflight.get(key) === promise) inflight.delete(key)
-    }
-    promise.then(clear, clear)
+  inflight.set(key, promise)
+  const clear = () => {
+    if (inflight.get(key) === promise) inflight.delete(key)
   }
+  promise.then(clear, clear)
 
   return promise
 }
@@ -76,7 +76,7 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
       markFetched('workspaces')
     }
     catch {
-      failKey('workspaces', 'Could not load workspaces.', workspaces.value.length > 0, errors)
+      failKey('workspaces', 'Could not load workspaces.', hydrated.value.workspaces === true, errors)
     }
     finally {
       markLoading('workspaces', false, loading)
@@ -113,8 +113,7 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
     markLoading(key, true, loading)
     setFetchError(key, null, errors)
 
-    const hasCached = tasks.value.some(t => t.workspaceId === ws.id)
-      || materials.value.some(m => m.workspaceId === ws.id)
+    const hasCached = hydrated.value[key] === true
 
     try {
       const [ts, ms] = await Promise.all([
@@ -181,7 +180,7 @@ export function fetchSettings(options: { force?: boolean } = {}) {
       markFetched('settings')
     }
     catch {
-      failKey('settings', 'Could not load your settings.', settings.value !== null, errors)
+      failKey('settings', 'Could not load your settings.', hydrated.value.settings === true, errors)
     }
     finally {
       markLoading('settings', false, loading)

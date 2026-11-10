@@ -134,7 +134,16 @@
       </DeleteConfirmDialog>
     </div>
 
-    <OverviewStats class="mt-6 sm:mt-8" :stats="homeStats" />
+    <template v-if="ready">
+      <OverviewStats class="mt-6 sm:mt-8" :stats="homeStats" />
+    </template>
+    <div
+      v-else-if="showSkeleton"
+      class="mt-6 grid gap-3 sm:mt-8"
+      style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"
+    >
+      <Skeleton v-for="index in 3" :key="index" class="h-24" />
+    </div>
 
     <Card class="mt-6 overflow-hidden sm:mt-8">
       <CardHeader class="border-b border-line">
