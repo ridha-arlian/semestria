@@ -3,7 +3,7 @@ import type { Workspace, Task, Material, WorkspaceFormPayload, TaskPayload, Mate
 import {
   useWorkspaceCache, useTaskCache, useMaterialCache, useActivityCache, useSettingsCache,
   findWorkspace, findTasks, findMaterials, upsertWorkspace, removeWorkspaceFromCache,
-  upsertTask, upsertMaterial,
+  upsertTask, upsertMaterial, clearCacheStatus,
 } from './apiCache'
 
 interface ApiError extends Error { statusCode?: number; data?: unknown }
@@ -327,6 +327,7 @@ export const useApi = () => {
     materialsState.value = []
     activitiesState.value = {}
     settingsState.value = null
+    clearCacheStatus()
     useState<{ id: string } | null>('auth-user', () => null).value = null
   }
 

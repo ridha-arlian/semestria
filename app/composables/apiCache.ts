@@ -110,6 +110,14 @@ export function isFresh(key: string, ttlMs = 30_000): boolean {
   return at !== undefined && Date.now() - at < ttlMs
 }
 
+/** Forget every per-key status so the next session starts from a cold cache. */
+export function clearCacheStatus(): void {
+  useHydratedCache().value = {}
+  useLoadingCache().value = {}
+  useErrorCache().value = {}
+  useFetchedAtCache().value = {}
+}
+
 // Fetch functions run in middleware, so they must capture the state ref before
 // their first `await`. Callers that can resolve it synchronously may omit it.
 export function setHydrated(key: string, hydrated = useHydratedCache()): void {

@@ -61,12 +61,12 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
   if (!options.force && isFresh('workspaces'))
     return Promise.resolve(workspaces.value)
 
-  return dedupe('workspaces', options.force ?? false, async () => {
-    const hydrated = useHydratedCache()
-    const loading = useLoadingCache()
-    const errors = useErrorCache()
-    const request = useRequestFetch()
+  const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
+  const request = useRequestFetch()
 
+  return dedupe('workspaces', options.force ?? false, async () => {
     markLoading('workspaces', true, loading)
     setFetchError('workspaces', null, errors)
 
@@ -89,6 +89,12 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
 /** Initial load for a specific workspace. Called by global middleware. */
 export async function fetchWorkspaceData(slug: string, options: { force?: boolean } = {}) {
   const workspaces = useWorkspaceCache()
+  const tasks = useTaskCache()
+  const materials = useMaterialCache()
+  const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
+  const request = useRequestFetch()
 
   // The list resolves the slug, so it must be ready before the workspace key.
   // Sharing the in-flight request keeps a cold navigation from 404ing while
@@ -104,13 +110,6 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
   if (!options.force && isFresh(key)) return
 
   await dedupe(key, options.force ?? false, async () => {
-    const tasks = useTaskCache()
-    const materials = useMaterialCache()
-    const hydrated = useHydratedCache()
-    const loading = useLoadingCache()
-    const errors = useErrorCache()
-    const request = useRequestFetch()
-
     markLoading(key, true, loading)
     setFetchError(key, null, errors)
 
@@ -155,13 +154,13 @@ export function fetchSettings(options: { force?: boolean } = {}) {
   if (!options.force && isFresh('settings'))
     return Promise.resolve(settings.value)
 
-  return dedupe('settings', options.force ?? false, async () => {
-    const hydrated = useHydratedCache()
-    const loading = useLoadingCache()
-    const errors = useErrorCache()
-    const ui = useState<AppSettings>('app-settings', defaultSettings)
-    const request = useRequestFetch()
+  const hydrated = useHydratedCache()
+  const loading = useLoadingCache()
+  const errors = useErrorCache()
+  const ui = useState<AppSettings>('app-settings', defaultSettings)
+  const request = useRequestFetch()
 
+  return dedupe('settings', options.force ?? false, async () => {
     markLoading('settings', true, loading)
     setFetchError('settings', null, errors)
 
