@@ -48,6 +48,11 @@
   const isMounted = useMounted()
   const formattedDate = useDateFormat(computed(() => (isMounted.value ? new Date() : undefined)), 'dddd, MMMM D, YYYY', { locales: 'en-US' })
 
+  const { ready: settingsReady, error: settingsError } = useDataStatus('settings')
+  // The name comes from server settings; hold the placeholder until it lands
+  // instead of flashing the "you" fallback.
+  const showNameSkeleton = computed(() => !settingsReady.value && !settingsError.value)
+
   const headingDesktop = computed(() => {
     // Rendered on the server too, so keep the fallback neutral and swap in the
     // time-based greeting once mounted to avoid a hydration mismatch.
@@ -55,9 +60,9 @@
       return 'Welcome back.'
     const hour = new Date().getHours()
     const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
-    const name = settings.value.profile.name || 'you'
-    return `Good ${part}, ${name.split(' ')[0]}.`
+    return `Good ${part},`
   })
+  const headingName = computed(() => (settings.value.profile.name || 'you').split(' ')[0])
   const headingMobile = computed(() => view)
   const isOverview = computed(() => view === 'Overview')
 
@@ -116,7 +121,16 @@
         </h1>
 
         <h1 class="hidden text-xl font-semibold tracking-[-0.03em] text-headline md:mt-1 md:block">
-          {{ headingDesktop }}
+          <template v-if="!isMounted">
+            Welcome back.
+          </template>
+          <template v-else>
+            {{ headingDesktop }}
+            <Skeleton v-if="showNameSkeleton" class="inline-block h-4 w-20 align-middle" />
+            <template v-else>
+              {{ headingName }}
+            </template>.
+          </template>
         </h1>
       </div>
     </div>
