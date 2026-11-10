@@ -6,7 +6,7 @@
   const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
   const route = useRoute()
   const api = useApi()
-  const { settings, avatarUrl, avatarLoading, openSettings, setAvatarBlob, applyTheme } = useSettings()
+  const { settings, avatarUrl, openSettings, setAvatarBlob, applyTheme } = useSettings()
   // The footer mirrors server settings; keep it quiet until the key resolves
   // instead of showing an empty name.
   const { pending: settingsPending } = useDataStatus('settings')
@@ -111,8 +111,7 @@
     <SidebarFooter class="h-16 justify-center border-t border-line px-3 group-data-[collapsible=icon]:p-0 overflow-x-hidden">
       <div class="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center whitespace-nowrap">
         <div class="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
-          <Skeleton v-if="avatarLoading" class="size-8 shrink-0 rounded-full" />
-          <Avatar v-else class="size-8 shrink-0">
+          <Avatar class="size-8 shrink-0">
             <AvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="settings.profile.name" />
             <AvatarFallback class="bg-ink text-paper">
               <UserRound />
