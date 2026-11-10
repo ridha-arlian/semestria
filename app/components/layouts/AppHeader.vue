@@ -64,7 +64,6 @@
   })
   const headingName = computed(() => (settings.value.profile.name || 'you').split(' ')[0])
   const headingMobile = computed(() => view)
-  const isOverview = computed(() => view === 'Overview')
 
   function handleSelectAction(action: () => void) {
     open.value = false
@@ -91,7 +90,7 @@
       </Button>
 
       <div>
-        <p v-if="isOverview" class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-subline md:block">
+        <p v-if="!breadcrumbs.length" class="hidden text-[11px] font-medium uppercase tracking-[0.15em] text-subline md:block">
           {{ formattedDate || '...' }}
         </p>
 
