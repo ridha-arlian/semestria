@@ -3,7 +3,7 @@
   import DataTable from '~/components/ui/data-table/DataTable.vue'
   import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
   import { tasksPageColumns } from '~/components/workspaces/tasks/tasks-page-columns.ts'
-  import type { Task, Status, ModalType } from '~/types'
+  import type { Task, Status, ModalType, Workspace } from '~/types'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -12,16 +12,23 @@
   })
 
   interface WorkspaceContext {
+    workspace: Ref<Workspace | undefined>
     tasks: Ref<Task[]>
     openAdd: (type: ModalType) => void
     cycleStatus: (item: Task) => void
     removeTask: (id: number) => void
   }
 
-  const { tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
+  const { workspace, tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
 
   const route = useRoute()
   const slug = computed(() => route.params.slug as string)
+  const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
+  const { showSkeleton, error } = useDataStatus(workspaceKey)
+
+  function retryWorkspace() {
+    void fetchWorkspaceData(slug.value, { force: true })
+  }
 
   function handleRowClick(item: Task) {
     navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
@@ -108,7 +115,28 @@
 
       <Card class="overflow-hidden">
         <CardContent class="p-0">
+          <SkeletonsContentError
+            v-if="error"
+            :message="error"
+            @retry="retryWorkspace"
+          />
+
+          <SkeletonsTableSkeleton
+            v-else-if="showSkeleton"
+            with-header
+            :bar-class="[
+              'h-4 w-8',
+              'h-4 w-48',
+              'hidden sm:block h-4 w-44',
+              'hidden sm:block h-4 w-36',
+              'hidden sm:block h-4 w-24',
+              'hidden sm:block h-4 w-52',
+              'h-4 w-8',
+            ]"
+          />
+
           <DataTable
+            v-else
             :columns="tasksPageColumns"
             :data="filtered"
             :mobile-hidden-columns="['course', 'due', 'progress', 'status']"

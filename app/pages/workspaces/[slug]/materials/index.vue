@@ -3,7 +3,7 @@
   import DataTable from '~/components/ui/data-table/DataTable.vue'
   import { ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu'
   import { materialsPageColumns } from '~/components/workspaces/materials/materials-page-columns.ts'
-  import type { Material, MaterialType, ModalType } from '~/types'
+  import type { Material, MaterialType, ModalType, Workspace } from '~/types'
   import type { Ref } from 'vue'
 
   definePageMeta({
@@ -12,17 +12,24 @@
   })
 
   interface WorkspaceContext {
+    workspace: Ref<Workspace | undefined>
     materials: Ref<Material[]>
     openAdd: (type: ModalType) => void
     markMaterialReviewed: (id: number) => void
     removeMaterial: (id: number) => void
   }
 
-  const { materials, openAdd, markMaterialReviewed, removeMaterial } = inject<WorkspaceContext>('workspace')!
+  const { workspace, materials, openAdd, markMaterialReviewed, removeMaterial } = inject<WorkspaceContext>('workspace')!
 
   const route = useRoute()
   const router = useRouter()
   const slug = computed(() => route.params.slug as string)
+  const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
+  const { showSkeleton, error } = useDataStatus(workspaceKey)
+
+  function retryWorkspace() {
+    void fetchWorkspaceData(slug.value, { force: true })
+  }
 
   const search = ref('')
   const typeFilter = ref<'All' | MaterialType>('All')
@@ -145,7 +152,27 @@
 
       <Card class="overflow-hidden">
         <CardContent class="p-0">
+          <SkeletonsContentError
+            v-if="error"
+            :message="error"
+            @retry="retryWorkspace"
+          />
+
+          <SkeletonsTableSkeleton
+            v-else-if="showSkeleton"
+            with-header
+            :bar-class="[
+              'h-4 w-48',
+              'hidden sm:block h-4 w-44',
+              'hidden sm:block h-4 w-32',
+              'hidden sm:block h-4 w-64',
+              'hidden sm:block h-4 w-36',
+              'h-4 w-8',
+            ]"
+          />
+
           <DataTable
+            v-else
             :columns="materialsPageColumns"
             :data="filtered"
             :mobile-hidden-columns="['course', 'type', 'tags', 'reviewed']"
