@@ -104,8 +104,9 @@ export function markFetched(key: string, at = Date.now(), fetchedAt = useFetched
   fetchedAt.value = { ...fetchedAt.value, [key]: at }
 }
 
-export function isFresh(key: string, ttlMs = 30_000): boolean {
-  const fetchedAt = useFetchedAtCache()
+// Pass `fetchedAt` when calling after an `await`: resolving the state ref again
+// needs the Nuxt instance, which is gone once the async context is lost.
+export function isFresh(key: string, ttlMs = 30_000, fetchedAt = useFetchedAtCache()): boolean {
   const at = fetchedAt.value[key]
   return at !== undefined && Date.now() - at < ttlMs
 }

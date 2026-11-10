@@ -64,6 +64,7 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
   const hydrated = useHydratedCache()
   const loading = useLoadingCache()
   const errors = useErrorCache()
+  const fetchedAt = useFetchedAtCache()
   const request = useRequestFetch()
 
   return dedupe('workspaces', options.force ?? false, async () => {
@@ -73,7 +74,7 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
     try {
       workspaces.value = await request<Workspace[]>('/api/workspaces')
       setHydrated('workspaces', hydrated)
-      markFetched('workspaces')
+      markFetched('workspaces', Date.now(), fetchedAt)
     }
     catch {
       failKey('workspaces', 'Could not load workspaces.', hydrated.value.workspaces === true, errors)
@@ -94,6 +95,7 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
   const hydrated = useHydratedCache()
   const loading = useLoadingCache()
   const errors = useErrorCache()
+  const fetchedAt = useFetchedAtCache()
   const request = useRequestFetch()
 
   // The list resolves the slug, so it must be ready before the workspace key.
@@ -107,7 +109,7 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
   if (!ws) return
 
   const key = `workspace:${ws.id}`
-  if (!options.force && isFresh(key)) return
+  if (!options.force && isFresh(key, undefined, fetchedAt)) return
 
   await dedupe(key, options.force ?? false, async () => {
     markLoading(key, true, loading)
@@ -127,7 +129,7 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
       materials.value = [...materials.value.filter(m => m.workspaceId !== ws.id), ...ms]
 
       setHydrated(key, hydrated)
-      markFetched(key)
+      markFetched(key, Date.now(), fetchedAt)
     }
     catch {
       failKey(key, 'Could not load this workspace.', hasCached, errors)
@@ -156,6 +158,7 @@ export function fetchSettings(options: { force?: boolean } = {}) {
   const hydrated = useHydratedCache()
   const loading = useLoadingCache()
   const errors = useErrorCache()
+  const fetchedAt = useFetchedAtCache()
   const ui = useState<AppSettings>('app-settings', defaultSettings)
   const request = useRequestFetch()
 
@@ -177,7 +180,7 @@ export function fetchSettings(options: { force?: boolean } = {}) {
       }
 
       setHydrated('settings', hydrated)
-      markFetched('settings')
+      markFetched('settings', Date.now(), fetchedAt)
     }
     catch {
       failKey('settings', 'Could not load your settings.', hydrated.value.settings === true, errors)
