@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   if (path === '/') return
 
-  const match = path.match(/^\/workspaces\/([^/]+)/)
+  const match = path.match(/^\/w\/([^/]+)/)
 
   if (import.meta.server) {
     // Settings for identity-dependent render (sidebar, header).
@@ -17,8 +17,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // Workspace detail pages: load that workspace's tasks/materials.
     if (match) {
-      const slug = decodeURIComponent(match[1]!)
-      await fetchWorkspaceData(slug)
+      const workspacePublicId = decodeURIComponent(match[1]!)
+      await fetchWorkspaceData(workspacePublicId)
       return
     }
 
@@ -32,11 +32,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (match) {
-    const slug = decodeURIComponent(match[1]!)
+    const workspacePublicId = decodeURIComponent(match[1]!)
 
-    // Only the list blocks a cold navigation: `workspace.ts` validates the slug
-    // against it, and an empty cache would otherwise 404 a valid workspace.
-    // Tasks and materials always resolve in the background.
+    // Only the list blocks a cold navigation: `workspace.ts` validates the
+    // public id against it, and an empty cache would otherwise 404 a valid
+    // workspace. Tasks and materials always resolve in the background.
     const workspaces = useWorkspaceCache()
     if (!workspaces.value.length) {
       await fetchWorkspaceList()
@@ -45,7 +45,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       void fetchWorkspaceList()
     }
 
-    void fetchWorkspaceData(slug)
+    void fetchWorkspaceData(workspacePublicId)
     return
   }
 

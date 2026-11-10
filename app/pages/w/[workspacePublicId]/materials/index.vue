@@ -23,12 +23,12 @@
 
   const route = useRoute()
   const router = useRouter()
-  const slug = computed(() => route.params.slug as string)
+  const workspacePublicId = computed(() => route.params.workspacePublicId as string)
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
   const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
 
   function retryWorkspace() {
-    void fetchWorkspaceData(slug.value, { force: true })
+    void fetchWorkspaceData(workspacePublicId.value, { force: true })
   }
 
   const search = ref('')
@@ -38,7 +38,7 @@
   const tagQuery = computed(() => typeof route.query.tag === 'string' ? route.query.tag : '')
 
   function handleRowClick(item: Material) {
-    navigateTo(`/workspaces/${slug.value}/materials/${item.id}`)
+    navigateTo(`/w/${workspacePublicId.value}/materials/${item.publicId}`)
   }
 
   function handleOpenLink(item: Material) {

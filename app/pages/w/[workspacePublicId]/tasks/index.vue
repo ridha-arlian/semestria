@@ -22,16 +22,16 @@
   const { workspace, tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
 
   const route = useRoute()
-  const slug = computed(() => route.params.slug as string)
+  const workspacePublicId = computed(() => route.params.workspacePublicId as string)
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
   const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
 
   function retryWorkspace() {
-    void fetchWorkspaceData(slug.value, { force: true })
+    void fetchWorkspaceData(workspacePublicId.value, { force: true })
   }
 
   function handleRowClick(item: Task) {
-    navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
+    navigateTo(`/w/${workspacePublicId.value}/tasks/${item.publicId}`)
   }
 
   const deleteTarget = ref<Task | null>(null)

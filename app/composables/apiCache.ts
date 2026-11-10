@@ -27,8 +27,8 @@ export function useSettingsCache() {
   return useState<AppSettings | null>('api-settings', () => null)
 }
 
-export function findWorkspace(slug: string): Workspace | undefined {
-  return useWorkspaceCache().value.find((w: Workspace) => w.slug === slug)
+export function findWorkspaceByPublicId(publicId: string): Workspace | undefined {
+  return useWorkspaceCache().value.find((w: Workspace) => w.publicId === publicId)
 }
 
 export function findTasks(workspaceId: number): Task[] {

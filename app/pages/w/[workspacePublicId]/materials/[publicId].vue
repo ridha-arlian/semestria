@@ -13,14 +13,14 @@ definePageMeta({
 })
 
 const route = useRoute()
-const slug = computed(() => route.params.slug as string)
-const listPath = computed(() => `/workspaces/${slug.value}/materials`)
+const workspacePublicId = computed(() => route.params.workspacePublicId as string)
+const listPath = computed(() => `/w/${workspacePublicId.value}/materials`)
 
 const ctx = inject<MaterialDetailContext>('workspace')!
 const breadcrumbExtra = inject<Ref<BreadcrumbEntry[]> | undefined>('breadcrumbExtra')
 const isDesktop = useMediaQuery('(min-width: 768px)')
 
-const material = computed(() => ctx.materials.value.find(m => m.id === Number(route.params.id)))
+const material = computed(() => ctx.materials.value.find(m => m.publicId === route.params.publicId))
 
 const workspaceKey = computed(() => `workspace:${ctx.workspace.value?.id ?? 0}`)
 const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
@@ -39,7 +39,7 @@ watch([material, ready], ([value, isReady]) => {
 }, { immediate: true })
 
 function retryWorkspace() {
-  void fetchWorkspaceData(slug.value, { force: true })
+  void fetchWorkspaceData(workspacePublicId.value, { force: true })
 }
 
 watch(() => material.value?.title, (title) => {

@@ -11,6 +11,7 @@
   const workspaces: Workspace[] = [
     {
       id: 1,
+      publicId: 'preview-fall-2026',
       name: 'Fall 2026',
       slug: 'fall-2026',
       dates: 'Sep 1 – Dec 20, 2026',
@@ -24,6 +25,7 @@
     },
     {
       id: 2,
+      publicId: 'preview-spring-2026',
       name: 'Spring 2026',
       slug: 'spring-2026',
       dates: 'Feb 2 – May 29, 2026',
@@ -37,6 +39,7 @@
     },
     {
       id: 3,
+      publicId: 'preview-fall-2025',
       name: 'Fall 2025',
       slug: 'fall-2025',
       dates: 'Sep 1 – Dec 19, 2025',
@@ -50,6 +53,7 @@
     },
     {
       id: 4,
+      publicId: 'preview-spring-2025',
       name: 'Spring 2025',
       slug: 'spring-2025',
       dates: 'Feb 3 – May 30, 2025',
@@ -63,6 +67,7 @@
     },
     {
       id: 5,
+      publicId: 'preview-fall-2024',
       name: 'Fall 2024',
       slug: 'fall-2024',
       dates: 'Sep 2 – Dec 20, 2024',

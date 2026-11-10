@@ -145,7 +145,9 @@ export default defineNuxtPlugin((nuxtApp) => {
       && lastActiveSlug
       && (route.path === '/' || route.path === '/dashboard')
     ) {
-      navigateTo(`/workspaces/${lastActiveSlug}`)
+      const lastActive = api.getWorkspaces().find(w => w.slug === lastActiveSlug)
+      if (lastActive)
+        navigateTo(`/w/${lastActive.publicId}`)
     }
   })
 })

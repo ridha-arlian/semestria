@@ -7,6 +7,7 @@ import type { Workspace, Task, Material, MaterialActivity, AppSettings, Material
 // the shared module stays independent of the generated Prisma client.
 interface WorkspaceRow {
   id: number
+  publicId: string
   name: string
   slug: string
   startDate: Date | string | null
@@ -31,6 +32,7 @@ interface TaskMaterialRow {
 
 interface TaskRow {
   id: number
+  publicId: string
   workspaceId: number
   title: string
   course: string
@@ -61,6 +63,7 @@ interface MaterialTaskRow {
 
 interface MaterialRow {
   id: number
+  publicId: string
   workspaceId: number
   title: string
   course: string
@@ -138,6 +141,7 @@ export function shortDueLabel(due: string): string {
 export function toWorkspace(row: WorkspaceRow, summary: { courses: number; assignments: number; completed: number; progress: number; next: string; nextDue: string }): Workspace {
   return {
     id: row.id,
+    publicId: row.publicId,
     name: row.name,
     slug: row.slug,
     dates: dateRangeLabel(row.startDate ? isoDate(row.startDate) : undefined, row.endDate ? isoDate(row.endDate) : undefined),
@@ -161,6 +165,7 @@ export function toTask(row: TaskRow): Task {
   const dueIso = row.dueDate ? isoDate(row.dueDate) : ''
   return {
     id: row.id,
+    publicId: row.publicId,
     workspaceId: row.workspaceId,
     task: row.title,
     course: row.course,
@@ -187,6 +192,7 @@ export function displayUrl(row: Pick<MaterialRow, 'storageProvider' | 'contentUr
 export function toMaterial(row: MaterialRow): Material {
   return {
     id: row.id,
+    publicId: row.publicId,
     workspaceId: row.workspaceId,
     title: row.title,
     course: row.course,

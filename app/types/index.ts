@@ -9,6 +9,7 @@ export type MaterialNote = string | JSONContent
 
 export interface Workspace {
   id: number
+  publicId: string
   name: string
   slug: string
   dates: string
@@ -55,6 +56,7 @@ export interface Subtask {
 
 export interface Task {
   id: number
+  publicId: string
   workspaceId: number
   task: string
   course: string
@@ -77,6 +79,7 @@ export interface MaterialLink {
 
 export interface Material {
   id: number
+  publicId: string
   workspaceId: number
   title: string
   course: string

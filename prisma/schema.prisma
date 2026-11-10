@@ -52,6 +52,8 @@ model UserSettings {
 
 model Workspace {
   id        Int       @id @default(autoincrement())
+  // Opaque id used in URLs; the integer primary key stays internal.
+  publicId  String    @unique @default(cuid(2))
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
@@ -76,6 +78,7 @@ model Workspace {
 
 model Task {
   id            Int        @id @default(autoincrement())
+  publicId      String     @unique @default(cuid(2))
   workspaceId   Int
   workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   title         String
@@ -126,6 +129,7 @@ model SubmissionLink {
 
 model Material {
   id              Int        @id @default(autoincrement())
+  publicId        String     @unique @default(cuid(2))
   workspaceId     Int
   workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   title           String

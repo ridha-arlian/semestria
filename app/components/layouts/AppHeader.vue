@@ -30,14 +30,14 @@
     const workspace = workspaceById.value.get(task.workspaceId)
     if (!workspace)
       return
-    handleSelectAction(() => navigateTo(`/workspaces/${workspace.slug}/tasks/${task.id}`))
+    handleSelectAction(() => navigateTo(`/w/${workspace.publicId}/tasks/${task.publicId}`))
   }
 
   function openMaterial(material: Material) {
     const workspace = workspaceById.value.get(material.workspaceId)
     if (!workspace)
       return
-    handleSelectAction(() => navigateTo(`/workspaces/${workspace.slug}/materials/${material.id}`))
+    handleSelectAction(() => navigateTo(`/w/${workspace.publicId}/materials/${material.publicId}`))
   }
 
   const { meta_q, ctrl_q } = useMagicKeys()

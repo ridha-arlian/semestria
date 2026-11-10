@@ -16,14 +16,14 @@
   })
 
   const route = useRoute()
-  const slug = computed(() => route.params.slug as string)
-  const listPath = computed(() => `/workspaces/${slug.value}/tasks`)
+  const workspacePublicId = computed(() => route.params.workspacePublicId as string)
+  const listPath = computed(() => `/w/${workspacePublicId.value}/tasks`)
 
   const ctx = inject<TaskDetailContext>('workspace')!
   const breadcrumbExtra = inject<Ref<BreadcrumbEntry[]> | undefined>('breadcrumbExtra')
   const isDesktop = useMediaQuery('(min-width: 640px)')
 
-  const task = computed(() => ctx.tasks.value.find(t => t.id === Number(route.params.id)))
+  const task = computed(() => ctx.tasks.value.find(t => t.publicId === route.params.publicId))
 
   const workspaceKey = computed(() => `workspace:${ctx.workspace.value?.id ?? 0}`)
   const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
@@ -42,7 +42,7 @@
   }, { immediate: true })
 
   function retryWorkspace() {
-    void fetchWorkspaceData(slug.value, { force: true })
+    void fetchWorkspaceData(workspacePublicId.value, { force: true })
   }
 
   watch(() => task.value?.task, (name) => {

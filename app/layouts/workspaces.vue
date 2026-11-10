@@ -7,8 +7,8 @@
   const route = useRoute()
   const api = useApi()
 
-  const slug = computed(() => route.params.slug as string)
-  const workspace = computed(() => api.getWorkspaceBySlug(slug.value))
+  const workspacePublicId = computed(() => route.params.workspacePublicId as string)
+  const workspace = computed(() => api.getWorkspaceByPublicId(workspacePublicId.value))
   const workspaceName = computed(() => workspace.value?.name ?? '')
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
   const { ready: workspaceReady } = useDataStatus(workspaceKey)
@@ -42,9 +42,9 @@
   })
 
   const routeMap = computed<Record<View, string>>(() => ({
-    'Overview': `/workspaces/${slug.value}`,
-    'Tasks': `/workspaces/${slug.value}/tasks`,
-    'Materials': `/workspaces/${slug.value}/materials`,
+    'Overview': `/w/${workspacePublicId.value}`,
+    'Tasks': `/w/${workspacePublicId.value}/tasks`,
+    'Materials': `/w/${workspacePublicId.value}/materials`,
     'All Workspaces': '/dashboard',
   }))
 

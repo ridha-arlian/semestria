@@ -21,16 +21,16 @@
   const api = useApi()
   const route = useRoute()
 
-  const base = computed(() => `/workspaces/${workspace.value?.slug}`)
+  const base = computed(() => `/w/${workspace.value?.publicId}`)
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
   const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
 
   function retryWorkspace() {
-    void fetchWorkspaceData(route.params.slug as string, { force: true })
+    void fetchWorkspaceData(route.params.workspacePublicId as string, { force: true })
   }
 
   function taskUrl(item: Task) {
-    return `${window.location.origin}${base.value}/tasks/${item.id}`
+    return `${window.location.origin}${base.value}/tasks/${item.publicId}`
   }
 
   async function handleShareLink(item: Task) {

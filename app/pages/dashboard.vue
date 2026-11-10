@@ -63,7 +63,7 @@
   }
 
   function handleRowClick(workspace: Workspace) {
-    navigateTo(`/workspaces/${workspace.slug}`)
+    navigateTo(`/w/${workspace.publicId}`)
   }
 
   function handleSetActive(workspace: Workspace) {

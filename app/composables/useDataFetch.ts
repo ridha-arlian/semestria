@@ -88,7 +88,7 @@ export function fetchWorkspaceList(options: { force?: boolean } = {}) {
 }
 
 /** Initial load for a specific workspace. Called by global middleware. */
-export async function fetchWorkspaceData(slug: string, options: { force?: boolean } = {}) {
+export async function fetchWorkspaceData(workspacePublicId: string, options: { force?: boolean } = {}) {
   const workspaces = useWorkspaceCache()
   const tasks = useTaskCache()
   const materials = useMaterialCache()
@@ -98,14 +98,14 @@ export async function fetchWorkspaceData(slug: string, options: { force?: boolea
   const fetchedAt = useFetchedAtCache()
   const request = useRequestFetch()
 
-  // The list resolves the slug, so it must be ready before the workspace key.
+  // The list resolves the public id, so it must be ready before the workspace key.
   // Sharing the in-flight request keeps a cold navigation from 404ing while
   // the list is still loading.
   if (!workspaces.value.length && !isFresh('workspaces')) {
     await fetchWorkspaceList()
   }
 
-  const ws = workspaces.value.find(w => w.slug === slug)
+  const ws = workspaces.value.find(w => w.publicId === workspacePublicId)
   if (!ws) return
 
   const key = `workspace:${ws.id}`

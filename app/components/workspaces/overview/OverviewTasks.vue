@@ -16,10 +16,10 @@
   }>()
 
   const route = useRoute()
-  const slug = computed(() => route.params.slug as string)
+  const workspacePublicId = computed(() => route.params.workspacePublicId as string)
 
   function handleRowClick(item: Task) {
-    navigateTo(`/workspaces/${slug.value}/tasks/${item.id}`)
+    navigateTo(`/w/${workspacePublicId.value}/tasks/${item.publicId}`)
   }
 
   const sortBy = ref<'nearest' | 'farthest' | 'status' | 'priority'>('nearest')

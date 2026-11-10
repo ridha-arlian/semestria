@@ -2,7 +2,7 @@ import { toast } from 'vue-sonner'
 import type { Workspace, Task, Material, WorkspaceFormPayload, TaskPayload, MaterialPayload, MaterialActivity, AppSettings, TaskPriority } from '~/types'
 import {
   useWorkspaceCache, useTaskCache, useMaterialCache, useActivityCache, useSettingsCache,
-  findWorkspace, findTasks, findMaterials, upsertWorkspace, removeWorkspaceFromCache,
+  findWorkspaceByPublicId, findTasks, findMaterials, upsertWorkspace, removeWorkspaceFromCache,
   upsertTask, upsertMaterial, clearCacheStatus,
 } from './apiCache'
 
@@ -70,7 +70,7 @@ export const useApi = () => {
   // Summaries come from the server list/detail endpoints. Recomputing them
   // here would zero every field until tasks/materials are loaded.
   const getWorkspaces = () => workspacesState.value
-  const getWorkspaceBySlug = (slug: string) => findWorkspace(slug)
+  const getWorkspaceByPublicId = (publicId: string) => findWorkspaceByPublicId(publicId)
 
   const getTasks = (workspaceId: number) => findTasks(workspaceId)
   const getMaterials = (workspaceId: number) => findMaterials(workspaceId)
@@ -335,7 +335,7 @@ export const useApi = () => {
 
   return {
     getWorkspaces,
-    getWorkspaceBySlug,
+    getWorkspaceByPublicId,
     getTasks,
     getMaterials,
     getTaskState,

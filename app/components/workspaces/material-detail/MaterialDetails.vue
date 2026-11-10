@@ -6,8 +6,8 @@ const props = defineProps<{
 }>()
 
 const route = useRoute()
-const slug = computed(() => route.params.slug as string)
-const listPath = computed(() => `/workspaces/${slug.value}/materials`)
+const workspacePublicId = computed(() => route.params.workspacePublicId as string)
+const listPath = computed(() => `/w/${workspacePublicId.value}/materials`)
 
 const tags = computed(() =>
   props.material.tags.split(',').map(t => t.trim()).filter(Boolean),

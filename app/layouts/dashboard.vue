@@ -73,7 +73,7 @@
                         variant="default"
                         class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-subline transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&:hover_svg]:fill-ink [&:hover_svg]:text-ink"
                       >
-                        <NuxtLink :to="`/workspaces/${workspace.slug}`">
+                        <NuxtLink :to="`/w/${workspace.publicId}`">
                           <ItemMedia variant="icon" class="size-5 shrink-0 justify-center bg-transparent border-none p-0">
                             <CircleSmall
                               class="size-5 transition-colors"
