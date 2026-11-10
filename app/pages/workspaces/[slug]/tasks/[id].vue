@@ -25,9 +25,24 @@
 
   const task = computed(() => ctx.tasks.value.find(t => t.id === Number(route.params.id)))
 
-  if (!task.value) {
-    // Fatal only on the client: a fatal SSR error tears down the dev server.
-    throw createError({ statusCode: 404, statusMessage: 'Task not found', fatal: import.meta.client })
+  const workspaceKey = computed(() => `workspace:${ctx.workspace.value?.id ?? 0}`)
+  const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
+
+  // SSR always has the awaited data, so a missing task there is a real 404.
+  // On the client the cache may still be loading; wait for hydration before
+  // deciding, otherwise a valid deep link would 404 on a cold cache.
+  if (import.meta.server && !task.value) {
+    throw createError({ statusCode: 404, statusMessage: 'Task not found' })
+  }
+
+  watch([task, ready], ([value, isReady]) => {
+    if (!value && isReady) {
+      showError({ statusCode: 404, statusMessage: 'Task not found' })
+    }
+  }, { immediate: true })
+
+  function retryWorkspace() {
+    void fetchWorkspaceData(slug.value, { force: true })
   }
 
   watch(() => task.value?.task, (name) => {
@@ -131,7 +146,15 @@
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div v-if="task" class="flex flex-col gap-6">
+    <SkeletonsContentError
+      v-if="error"
+      :message="error"
+      @retry="retryWorkspace"
+    />
+
+    <SkeletonsDetailSkeleton v-else-if="showSkeleton" />
+
+    <div v-else-if="task" class="flex flex-col gap-6 content-fade-in">
       <div class="grid items-start gap-x-6 gap-y-6 xl:relative xl:grid-cols-[1.6fr_1fr] xl:gap-y-0">
         <div class="flex flex-wrap items-center justify-between gap-2 xl:contents">
           <div class="min-w-0 xl:col-start-1 xl:row-start-1 xl:pr-56">

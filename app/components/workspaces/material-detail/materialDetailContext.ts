@@ -1,8 +1,9 @@
 import type { Ref } from 'vue'
-import type { Material, MaterialActivity, MaterialContentInput, MaterialNote, MaterialPayload, ModalType, Task } from '~/types'
+import type { Material, MaterialActivity, MaterialContentInput, MaterialNote, MaterialPayload, ModalType, Task, Workspace } from '~/types'
 
 /** Workspace-provided operations consumed by the material detail page and its cards. */
 export interface MaterialDetailContext {
+  workspace: Ref<Workspace | undefined>
   tasks: Ref<Task[]>
   materials: Ref<Material[]>
   materialActivities: Ref<Record<number, MaterialActivity[]>>

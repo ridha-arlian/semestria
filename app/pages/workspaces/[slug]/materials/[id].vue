@@ -22,9 +22,24 @@ const isDesktop = useMediaQuery('(min-width: 768px)')
 
 const material = computed(() => ctx.materials.value.find(m => m.id === Number(route.params.id)))
 
-if (!material.value) {
-  // Fatal only on the client: a fatal SSR error tears down the dev server.
-  throw createError({ statusCode: 404, statusMessage: 'Material not found', fatal: import.meta.client })
+const workspaceKey = computed(() => `workspace:${ctx.workspace.value?.id ?? 0}`)
+const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
+
+// SSR always has the awaited data, so a missing material there is a real 404.
+// On the client the cache may still be loading; wait for hydration before
+// deciding, otherwise a valid deep link would 404 on a cold cache.
+if (import.meta.server && !material.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Material not found' })
+}
+
+watch([material, ready], ([value, isReady]) => {
+  if (!value && isReady) {
+    showError({ statusCode: 404, statusMessage: 'Material not found' })
+  }
+}, { immediate: true })
+
+function retryWorkspace() {
+  void fetchWorkspaceData(slug.value, { force: true })
 }
 
 watch(() => material.value?.title, (title) => {
@@ -147,7 +162,15 @@ function handleDelete() {
 
 <template>
   <main class="mx-auto w-full max-w-330 px-5 py-7 md:px-9 md:py-9">
-    <div v-if="material" class="flex flex-col gap-6">
+    <SkeletonsContentError
+      v-if="error"
+      :message="error"
+      @retry="retryWorkspace"
+    />
+
+    <SkeletonsDetailSkeleton v-else-if="showSkeleton" />
+
+    <div v-else-if="material" class="flex flex-col gap-6 content-fade-in">
       <!-- Header -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">

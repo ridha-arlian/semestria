@@ -1,8 +1,9 @@
 import type { Ref } from 'vue'
-import type { Material, ModalType, Task, TaskPayload } from '~/types'
+import type { Material, ModalType, Task, TaskPayload, Workspace } from '~/types'
 
 /** Workspace-provided operations consumed by the task detail page and its cards. */
 export interface TaskDetailContext {
+  workspace: Ref<Workspace | undefined>
   tasks: Ref<Task[]>
   materials: Ref<Material[]>
   openAdd: (type: ModalType) => void
