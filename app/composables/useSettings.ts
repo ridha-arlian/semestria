@@ -38,6 +38,7 @@ export function useSettings() {
   const activeSection = useState<SettingsSection>('app-settings-section', () => 'profile')
   const toastMessage = useState<string | null>('app-settings-toast', () => null)
   const avatarUrl = useState<string | null>('app-settings-avatar', () => null)
+  const avatarLoading = useState<boolean>('app-settings-avatar-loading', () => false)
   const hydrated = useState<boolean>('app-settings-hydrated', () => false)
 
   const displayName = computed(() => settings.value.profile.name.trim() || 'there')
@@ -118,12 +119,16 @@ export function useSettings() {
   async function loadAvatar() {
     if (!import.meta.client)
       return
+    avatarLoading.value = true
     try {
       const blob = await $fetch<Blob>('/api/me/avatar', { responseType: 'blob' })
       setAvatarBlob(blob)
     }
     catch {
       setAvatarBlob(null)
+    }
+    finally {
+      avatarLoading.value = false
     }
   }
 
@@ -133,6 +138,7 @@ export function useSettings() {
     activeSection,
     toastMessage,
     avatarUrl,
+    avatarLoading,
     hydrated,
     displayName,
     firstName,
