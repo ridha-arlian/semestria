@@ -25,7 +25,7 @@
   const router = useRouter()
   const slug = computed(() => route.params.slug as string)
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
-  const { showSkeleton, error } = useDataStatus(workspaceKey)
+  const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
 
   function retryWorkspace() {
     void fetchWorkspaceData(slug.value, { force: true })
@@ -159,7 +159,7 @@
           />
 
           <SkeletonsTableSkeleton
-            v-else-if="showSkeleton"
+            v-else-if="!ready && showSkeleton"
             with-header
             :bar-class="[
               'h-4 w-48',
@@ -172,7 +172,7 @@
           />
 
           <DataTable
-            v-else
+            v-else-if="ready"
             :columns="materialsPageColumns"
             :data="filtered"
             :mobile-hidden-columns="['course', 'type', 'tags', 'reviewed']"

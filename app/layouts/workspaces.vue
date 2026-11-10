@@ -11,7 +11,7 @@
   const workspace = computed(() => api.getWorkspaceBySlug(slug.value))
   const workspaceName = computed(() => workspace.value?.name ?? '')
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
-  const { showSkeleton: workspacePending } = useDataStatus(workspaceKey)
+  const { ready: workspaceReady } = useDataStatus(workspaceKey)
 
   const week = computed<WorkspaceTimeline | null>(() => {
     const w = workspace.value
@@ -611,14 +611,14 @@
                     </div>
 
                     <div v-if="item.name === 'Tasks'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <Skeleton v-if="workspacePending" class="h-3.5 w-6 rounded" />
+                      <Skeleton v-if="!workspaceReady" class="h-3.5 w-6 rounded" />
                       <SidebarMenuBadge v-else class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ tasks.length }}
                       </SidebarMenuBadge>
                     </div>
 
                     <div v-if="item.name === 'Materials'" class="ml-auto flex items-center transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
-                      <Skeleton v-if="workspacePending" class="h-3.5 w-6 rounded" />
+                      <Skeleton v-if="!workspaceReady" class="h-3.5 w-6 rounded" />
                       <SidebarMenuBadge v-else class="rounded bg-soft px-1.5 py-0.5 text-[10px] font-normal text-text-strong">
                         {{ materials.length }}
                       </SidebarMenuBadge>
@@ -644,17 +644,17 @@
                   <Card class="bg-card border-line shadow-none p-3 gap-0 overflow-hidden">
                     <CardHeader class="p-0 flex flex-row items-center justify-between">
                       <CardTitle class="text-xs font-semibold text-headline">
-                        <Skeleton v-if="workspacePending" class="h-3 w-24" />
+                        <Skeleton v-if="!workspace" class="h-3 w-24" />
                         <template v-else>
-                          {{ workspace?.name }}
+                          {{ workspace.name }}
                         </template>
                       </CardTitle>
                     </CardHeader>
 
                     <CardContent class="p-0 mt-1">
-                      <Skeleton v-if="workspacePending" class="mt-0.5 h-2.5 w-28" />
+                      <Skeleton v-if="!workspace" class="mt-0.5 h-2.5 w-28" />
                       <p v-else class="text-[11px] text-subline whitespace-nowrap">
-                        {{ workspace?.dates }}
+                        {{ workspace.dates }}
                       </p>
 
                       <Progress :model-value="workspace?.progress ?? 0" class="mt-3 h-1 bg-soft" />

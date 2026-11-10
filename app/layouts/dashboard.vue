@@ -4,7 +4,7 @@
 
   const api = useApi()
   const workspaces = computed(() => api.getWorkspaces())
-  const { showSkeleton: workspacesPending } = useDataStatus('workspaces')
+  const { ready: workspacesReady, showSkeleton: workspacesPending } = useDataStatus('workspaces')
 
   const view = ref<View>('Overview')
 
@@ -65,7 +65,7 @@
                   <div class="flex flex-col gap-0.5">
                     <SkeletonsSidebarSkeleton v-if="workspacesPending" />
 
-                    <template v-else>
+                    <template v-else-if="workspacesReady">
                       <Item
                         v-for="workspace in workspaces"
                         :key="workspace.id"

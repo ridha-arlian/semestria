@@ -20,7 +20,7 @@
   // reference, so add/delete must produce a new array for the rows to refresh.
   const workspaces = computed(() => api.getWorkspaces())
 
-  const { showSkeleton, error } = useDataStatus('workspaces')
+  const { ready, showSkeleton, error } = useDataStatus('workspaces')
   function retryWorkspaces() {
     void fetchWorkspaceList({ force: true })
   }
@@ -156,13 +156,13 @@
         />
 
         <SkeletonsTableSkeleton
-          v-else-if="showSkeleton"
+          v-else-if="!ready && showSkeleton"
           :rows="6"
           :bar-class="['h-4 w-40', 'h-4 w-32', 'hidden sm:block h-4 w-28', 'h-4 w-8']"
         />
 
         <DataTable
-          v-else
+          v-else-if="ready"
           :columns="columns"
           :data="workspaces"
           :mobile-hidden-columns="['progress', 'assignments']"

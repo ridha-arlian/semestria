@@ -23,7 +23,7 @@
 
   const base = computed(() => `/workspaces/${workspace.value?.slug}`)
   const workspaceKey = computed(() => `workspace:${workspace.value?.id ?? 0}`)
-  const { showSkeleton, error } = useDataStatus(workspaceKey)
+  const { ready, showSkeleton, error } = useDataStatus(workspaceKey)
 
   function retryWorkspace() {
     void fetchWorkspaceData(route.params.slug as string, { force: true })
@@ -135,17 +135,19 @@
       @retry="retryWorkspace"
     />
 
-    <div v-else-if="showSkeleton" class="flex flex-col gap-8">
-      <SkeletonsPageHeaderSkeleton with-action />
+    <div v-else-if="!ready" class="flex flex-col gap-8">
+      <template v-if="showSkeleton">
+        <SkeletonsPageHeaderSkeleton with-action />
 
-      <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
-        <Skeleton v-for="index in 4" :key="index" class="h-24" />
-      </div>
+        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+          <Skeleton v-for="index in 4" :key="index" class="h-24" />
+        </div>
 
-      <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Skeleton class="h-72" />
-        <Skeleton class="h-72" />
-      </div>
+        <div class="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+          <Skeleton class="h-72" />
+          <Skeleton class="h-72" />
+        </div>
+      </template>
     </div>
 
     <div v-else class="flex flex-col gap-8 content-fade-in">
