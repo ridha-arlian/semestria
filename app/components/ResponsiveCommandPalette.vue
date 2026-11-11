@@ -25,21 +25,7 @@
     set: val => emit('update:open', val),
   })
 
-  function handleViewportChange() {
-    if (isDesktop.value) return
-    const active = document.activeElement
-    if (active instanceof HTMLElement) {
-      active.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    }
-  }
-
-  onMounted(() => {
-    window.visualViewport?.addEventListener('resize', handleViewportChange)
-  })
-
-  onUnmounted(() => {
-    window.visualViewport?.removeEventListener('resize', handleViewportChange)
-  })
+  useKeepFocusVisible(() => !isDesktop.value)
 </script>
 
 <template>

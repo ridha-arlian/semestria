@@ -9,6 +9,8 @@ import type { SettingsSection } from '~/types'
 const { isOpen, openSettings, closeSettings, activeSection, toastMessage } = useSettings()
 const isDesktop = useMediaQuery('(min-width: 768px)')
 
+useKeepFocusVisible(() => !isDesktop.value)
+
 const sections: { id: SettingsSection, label: string, description: string, icon: typeof UserRound }[] = [
   { id: 'profile', label: 'Profile', description: 'Name, avatar, and email', icon: UserRound },
   { id: 'appearance', label: 'Appearance', description: 'Mode, theme preset, and accent color', icon: Palette },
@@ -130,7 +132,7 @@ watch([isOpen, activeSection], async () => {
             data-settings-focus
             variant="ghost"
             size="icon"
-            class="size-8 rounded-md text-subline hover:text-ink"
+            class="relative size-8 rounded-md text-subline after:absolute after:-inset-1.5 after:content-[''] hover:text-ink"
           >
             <X class="size-4" />
             <span class="sr-only">Close</span>
@@ -168,11 +170,11 @@ watch([isOpen, activeSection], async () => {
           class="flex-1 overflow-y-auto"
           :class="{ 'p-6': isDesktop, 'p-4': !isDesktop }"
         >
-          <div v-if="!isDesktop" class="mb-4 flex items-center gap-1">
+          <div v-if="!isDesktop" class="mb-4 flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              class="size-7 shrink-0 rounded-full text-subline"
+              class="relative size-9 shrink-0 rounded-full text-subline after:absolute after:-inset-1 after:content-['']"
               :disabled="!canScrollLeft"
               aria-label="Scroll settings sections left"
               @click="scrollNav(-1)"
@@ -205,7 +207,7 @@ watch([isOpen, activeSection], async () => {
             <Button
               variant="ghost"
               size="icon"
-              class="size-7 shrink-0 rounded-full text-subline"
+              class="relative size-9 shrink-0 rounded-full text-subline after:absolute after:-inset-1 after:content-['']"
               :disabled="!canScrollRight"
               aria-label="Scroll settings sections right"
               @click="scrollNav(1)"

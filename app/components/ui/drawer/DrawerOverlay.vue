@@ -14,6 +14,12 @@ const delegatedProps = reactiveOmit(props, "class")
   <DrawerOverlay
     data-slot="drawer-overlay"
     v-bind="delegatedProps"
-    :class="cn('data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 duration-500', props.class)"
+    :class="cn(
+      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 duration-500',
+      // Dismissing by swipe darkens less: the scrim tracks the drag offset
+      // written by `useDrawerSwipeProgress`, so it can never drift from the panel.
+      '[opacity:calc(1-var(--drawer-drag-progress,0))]',
+      props.class,
+    )"
   />
 </template>

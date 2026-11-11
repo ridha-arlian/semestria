@@ -17,6 +17,8 @@
 
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
+  useKeepFocusVisible(() => !isDesktop.value)
+
   function onOpenChange(value: boolean) {
     if (!value)
       emit('close')
