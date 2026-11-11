@@ -1,9 +1,10 @@
 <script setup lang="ts">
-  import { fromDate, getLocalTimeZone, toCalendarDate, today } from '@internationalized/date'
+  import { fromDate, getLocalTimeZone, parseDate, toCalendarDate, today } from '@internationalized/date'
   import type { DateValue } from '@internationalized/date'
   import { CalendarIcon, ChevronDown, Plus } from '@lucide/vue'
   import { Input } from '@/components/ui/input'
   import { editPriorities } from '~/utils/taskDisplay'
+  import { displayToISO } from '~/components/workspaces/task-detail/taskDetailUtils'
   import type { TaskPayload, TaskPriority } from '~/types'
 
   const props = defineProps<{
@@ -11,6 +12,8 @@
     autofocus?: boolean
     startDate?: string
     endDate?: string
+    initial?: TaskPayload | null
+    submitLabel?: string
   }>()
 
   const emit = defineEmits<{
@@ -33,6 +36,21 @@
   const showCourseInput = computed(() => !props.courses?.length)
   const canSubmit = computed(() => !!title.value.trim() && !!course.value.trim())
   const isPast = computed(() => !!due.value && due.value.compare(today(getLocalTimeZone())) < 0)
+
+  function applyInitial() {
+    const init = props.initial
+    if (!init)
+      return
+    title.value = init.title
+    course.value = init.course
+    const isoDue = displayToISO(init.due)
+    due.value = isoDue ? parseDate(isoDue) : undefined
+    priority.value = init.priority
+    description.value = init.description
+    submissionUrl.value = init.submissionUrl
+  }
+
+  watch(() => props.initial, applyInitial)
 
   const workspaceStart = computed(() => props.startDate ? new Date(`${props.startDate}T00:00:00`) : null)
   const workspaceEnd = computed(() => props.endDate ? new Date(`${props.endDate}T00:00:00`) : null)
@@ -116,6 +134,7 @@
   }
 
   onMounted(() => {
+    applyInitial()
     if (props.autofocus)
       focusTitle()
   })
@@ -300,7 +319,7 @@
         </CollapsibleTrigger>
         <CollapsibleContent class="mt-2 flex flex-col gap-5">
           <Field class="gap-2">
-            <FieldLabel for="task-notes" class="text-xs">Notes <span class="font-normal text-muted-foreground">(optional)</span></FieldLabel>
+            <FieldLabel for="task-notes" class="text-xs">Description <span class="font-normal text-muted-foreground">(optional)</span></FieldLabel>
             <Textarea
               id="task-notes"
               v-model="description"
@@ -309,7 +328,7 @@
               placeholder="Short details, links, or notes from your lecturer"
             />
           </Field>
-          <Field class="gap-2">
+          <Field v-if="!props.initial" class="gap-2">
             <FieldLabel for="task-submission" class="text-xs">Submission link <span class="font-normal text-muted-foreground">(optional — more can be added later)</span></FieldLabel>
             <Input
               id="task-submission"
@@ -324,15 +343,16 @@
     </FieldGroup>
 
     <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <Button type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
+      <Button v-if="!props.initial" type="button" variant="ghost" :disabled="!canSubmit" @click="handleSubmit(true)">
         Create & add another
       </Button>
+      <span v-else />
       <div class="flex gap-2">
         <Button type="button" variant="outline" class="flex-1 sm:flex-none" @click="emit('cancel')">
           Cancel
         </Button>
         <Button type="submit" class="flex-1 sm:flex-none" :disabled="!canSubmit">
-          Add task
+          {{ props.submitLabel ?? 'Add task' }}
         </Button>
       </div>
     </div>

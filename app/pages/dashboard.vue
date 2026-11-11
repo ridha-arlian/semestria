@@ -90,7 +90,7 @@
 
   const homeStats = computed<StatItem[]>(() => [
     { label: 'Workspaces', value: String(workspaces.value.length), note: 'workspaces in your space' },
-    { label: 'Assignments', value: String(totalAssignments.value), note: `${completedAssignments.value} completed overall` },
+    { label: 'Tasks', value: String(totalAssignments.value), note: `${completedAssignments.value} completed overall` },
     {
       label: 'Active semester',
       value: activeWorkspace.value?.name ?? '—',
@@ -129,7 +129,7 @@
         @close="workspaceToDelete = null"
       >
         <template #description>
-          Are you sure you want to delete <strong class="font-semibold text-destructive">{{ workspaceToDelete?.name }}</strong>? This action cannot be undone and will delete all associated courses and assignments.
+          Are you sure you want to delete <strong class="font-semibold text-destructive">{{ workspaceToDelete?.name }}</strong>? This action cannot be undone and will delete all associated courses and tasks.
         </template>
       </DeleteConfirmDialog>
     </div>

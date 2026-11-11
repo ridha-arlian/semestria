@@ -31,11 +31,8 @@
   <Dialog v-if="isDesktop" :open="open" @update:open="onOpenChange">
     <DialogContent class="flex max-h-[90vh] max-w-md flex-col" @open-auto-focus.prevent>
       <DialogHeader>
-        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-          New task
-        </p>
         <DialogTitle class="text-base">
-          Make it part of the plan.
+          New task
         </DialogTitle>
         <DialogDescription class="sr-only">
           Add this task to your active semester timeline.
@@ -59,11 +56,8 @@
   <Drawer v-else :open="open" @update:open="onOpenChange">
     <DrawerContent @open-auto-focus.prevent>
       <DrawerHeader class="text-left">
-        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-          New task
-        </p>
         <DrawerTitle class="text-base">
-          Make it part of the plan.
+          New task
         </DrawerTitle>
         <DrawerDescription class="sr-only">
           Add this task to your active semester timeline.

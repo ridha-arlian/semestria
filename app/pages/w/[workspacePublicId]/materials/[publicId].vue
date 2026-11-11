@@ -174,27 +174,27 @@ function handleDelete() {
       <!-- Header -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
-          <h1 class="truncate text-2xl font-bold tracking-tight text-headline">
-            {{ material.title }}
-          </h1>
-          <p class="mt-1.5 truncate text-sm text-subline">
+          <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">
             {{ material.course }}
           </p>
-          <p v-if="reviewState === 'none'" class="mt-1 flex items-center gap-1.5 text-xs text-subline">
+          <h1 class="mt-2 truncate text-2xl font-bold tracking-tight text-headline">
+            {{ material.title }}
+          </h1>
+          <p v-if="reviewState === 'none'" class="mt-1.5 flex items-center gap-1.5 text-xs text-subline">
             <span class="size-1.5 shrink-0 rounded-full bg-text-muted" />
             Not reviewed yet
           </p>
-          <p v-else-if="reviewState === 'stale'" class="mt-1 flex items-center gap-1.5 text-xs text-subline">
+          <p v-else-if="reviewState === 'stale'" class="mt-1.5 flex items-center gap-1.5 text-xs text-subline">
             <span class="size-1.5 shrink-0 rounded-full bg-urgency-due" />
             Need review
           </p>
         </div>
-        <div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-1.5">
-          <Button size="sm" variant="outline" class="w-full sm:w-auto" @click="editOpen = true">
-            <Pencil class="mr-2 size-3.5" />
-            <span>Edit</span>
+        <div class="flex w-full shrink-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-start">
+          <Button size="sm" variant="outline" class="max-sm:order-last max-sm:w-8 max-sm:px-0" @click="editOpen = true">
+            <Pencil class="mr-2 size-3.5 max-sm:mr-0" />
+            <span class="max-sm:hidden">Edit</span>
           </Button>
-          <Button size="sm" class="w-full sm:w-auto" :disabled="justReviewed" @click="handleMarkReviewed">
+          <Button size="sm" class="flex-1 sm:flex-none" :disabled="justReviewed" @click="handleMarkReviewed">
             <Check class="mr-2 size-3.5" />
             <span>{{ justReviewed ? 'Reviewed' : 'Mark reviewed' }}</span>
           </Button>
@@ -229,11 +229,8 @@ function handleDelete() {
     <Dialog v-if="isDesktop" :open="editOpen" @update:open="(v: boolean) => { if (!v) editOpen = false }">
       <DialogContent class="flex max-h-[90vh] max-w-md flex-col" @open-auto-focus.prevent>
         <DialogHeader>
-          <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-            Edit material
-          </p>
           <DialogTitle class="text-base">
-            Keep it up to date.
+            Edit material
           </DialogTitle>
           <DialogDescription class="sr-only">
             Edit this material.
@@ -257,11 +254,8 @@ function handleDelete() {
     <Drawer v-else :open="editOpen" @update:open="(v: boolean) => { if (!v) editOpen = false }">
       <DrawerContent @open-auto-focus.prevent>
         <DrawerHeader class="text-left">
-          <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-            Edit material
-          </p>
           <DrawerTitle class="text-base">
-            Keep it up to date.
+            Edit material
           </DrawerTitle>
           <DrawerDescription class="sr-only">
             Edit this material.

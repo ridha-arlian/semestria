@@ -9,6 +9,8 @@ import type { Workspace } from '~/types'
 
 const columnHelper = createColumnHelper<DataTableFeatures, Workspace>()
 
+const countLabel = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`
+
 export const columns = [
   columnHelper.accessor('name', {
     header: 'Semester',
@@ -43,14 +45,18 @@ export const columns = [
           h('span', { class: 'text-[11px] font-mono text-subline shrink-0' }, `${row.original.progress}%`),
         ]),
         h(Progress, { modelValue: row.original.progress, class: 'h-1.5 w-full' }),
-        h('div', { class: 'flex items-center justify-between gap-2 text-[11px] text-subline' }, [
-          h('span', { class: 'flex items-center gap-1.5 shrink-0' }, [
+        h('div', { class: 'flex flex-col gap-1 text-[11px] text-subline' }, [
+          h('span', { class: 'flex items-center gap-1.5' }, [
             h(CalendarDays, { class: 'size-3.5' }),
             row.original.dates,
           ]),
-          h('span', { class: 'truncate min-w-0' },
-            row.original.assignments > 0 ? `${row.original.assignments} assignments` : 'Semester complete'
-          ),
+          h('span', { class: 'flex items-center' }, [
+            h('span', { class: 'truncate' },
+              row.original.assignments > 0 ? countLabel(row.original.assignments, 'task', 'tasks') : 'Semester complete'
+            ),
+            h(Dot, { class: 'size-4 shrink-0 text-text-muted -mx-0.5' }),
+            h('span', { class: 'shrink-0' }, countLabel(row.original.courses, 'course', 'courses')),
+          ]),
         ]),
       ]),
     ]),
@@ -72,12 +78,12 @@ export const columns = [
 
   columnHelper.display({
     id: 'assignments',
-    header: 'Assignments',
+    header: 'Tasks',
     cell: ({ row }) => h('div', { class: 'space-y-1' }, [
       h('div', { class: 'flex items-center text-xs font-medium text-text-strong' }, [
-        h('span', {}, `${row.original.assignments} assignments`),
+        h('span', {}, countLabel(row.original.assignments, 'task', 'tasks')),
         h(Dot, { class: 'size-4 text-text-muted -mx-0.5' }),
-        h('span', { class: 'text-subline font-normal' }, `${row.original.courses} courses`),
+        h('span', { class: 'text-subline font-normal' }, countLabel(row.original.courses, 'course', 'courses')),
       ]),
 
       h('div', { class: 'flex items-center gap-1.5 text-[11px]' }, [

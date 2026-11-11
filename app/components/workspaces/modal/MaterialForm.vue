@@ -265,7 +265,7 @@
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent class="mt-2 flex flex-col gap-5">
-          <Field v-if="tasks?.length" class="gap-2">
+          <Field v-if="!props.initial && tasks?.length" class="gap-2">
             <FieldLabel class="text-xs">Linked task <span class="font-normal text-muted-foreground">(optional)</span></FieldLabel>
             <Select
               :model-value="linkedTask === null ? NO_TASK : String(linkedTask)"

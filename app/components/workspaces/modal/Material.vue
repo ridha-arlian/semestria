@@ -26,11 +26,8 @@
   <Dialog v-if="isDesktop" :open="open" @update:open="onOpenChange">
     <DialogContent class="flex max-h-[90vh] max-w-md flex-col" @open-auto-focus.prevent>
       <DialogHeader>
-        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-          New material
-        </p>
         <DialogTitle class="text-base">
-          Add it to your library.
+          New material
         </DialogTitle>
         <DialogDescription class="sr-only">
           Add this material to your active workspace library.
@@ -52,11 +49,8 @@
   <Drawer v-else :open="open" @update:open="onOpenChange">
     <DrawerContent @open-auto-focus.prevent>
       <DrawerHeader class="text-left">
-        <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-          New material
-        </p>
         <DrawerTitle class="text-base">
-          Add it to your library.
+          New material
         </DrawerTitle>
         <DrawerDescription class="sr-only">
           Add this material to your active workspace library.

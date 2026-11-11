@@ -1,12 +1,11 @@
 <script setup lang="ts">
-  import { CalendarIcon, Check, Dot, Pencil, RefreshCcw, Trash2 } from '@lucide/vue'
-  import { getLocalTimeZone, parseDate, today } from '@internationalized/date'
-  import type { DateValue } from '@internationalized/date'
+  import { CircleCheck, CirclePlay, Dot, Pencil, RotateCcw, Trash2 } from '@lucide/vue'
   import { useMediaQuery } from '@vueuse/core'
   import { displayToISO, taskPriorityToForm } from '~/components/workspaces/task-detail/taskDetailUtils.ts'
   import { cn } from '~/lib/utils'
-  import { editPriorities, getUrgency, priorityDotColor, statusStyles } from '~/utils/taskDisplay'
-  import type { BreadcrumbEntry, TaskPriority } from '~/types'
+  import { getUrgency, priorityDotColor, statusStyles } from '~/utils/taskDisplay'
+  import TaskForm from '~/components/workspaces/modal/TaskForm.vue'
+  import type { BreadcrumbEntry, TaskPayload } from '~/types'
   import type { Ref } from 'vue'
   import type { TaskDetailContext } from '~/components/workspaces/task-detail/taskDetailContext.ts'
 
@@ -57,80 +56,39 @@
 
   const urgency = computed(() => task.value ? getUrgency(task.value.due, task.value.status) : null)
 
+  const courses = computed(() => [...new Set([...ctx.tasks.value, ...ctx.materials.value].map(i => i.course))])
+  const workspaceStartDate = computed(() => ctx.workspace.value?.startDate)
+  const workspaceEndDate = computed(() => ctx.workspace.value?.endDate)
+
   const nextStatus = computed(() => {
     const s = task.value?.status
     return s === 'To do' ? 'In progress' : s === 'In progress' ? 'Done' : 'To do'
   })
 
-  const isEditingHeader = ref(false)
-  const editTitle = ref('')
-  const editCourse = ref('')
-  const editDue = ref<DateValue | undefined>(undefined)
-  const editPriority = ref<TaskPriority>('medium')
-  const editDescription = ref('')
-  const calendarOpen = ref(false)
-
-  const quickDueDates = [
-    { label: 'Today', days: 0 },
-    { label: 'Tomorrow', days: 1 },
-    { label: 'Next week', days: 7 },
-  ]
-
-  const dueLabel = computed(() =>
-    editDue.value
-      ? editDue.value.toDate(getLocalTimeZone()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      : 'Pick a date',
+  const nextStatusIcon = computed(() =>
+    nextStatus.value === 'In progress' ? CirclePlay : nextStatus.value === 'Done' ? CircleCheck : RotateCcw,
   )
 
-  const isPastDue = computed(() => !!editDue.value && editDue.value.compare(today(getLocalTimeZone())) < 0)
-
-  const canSaveHeader = computed(() => !!editTitle.value.trim() && !!editCourse.value.trim() && !!editDue.value)
-
-  function startEditHeader() {
+  const editOpen = ref(false)
+  const editInitial = computed<TaskPayload | null>(() => {
     const t = task.value
     if (!t)
-      return
-    editTitle.value = t.task
-    editCourse.value = t.course
-    const isoDue = displayToISO(t.due)
-    editDue.value = isoDue ? parseDate(isoDue) : undefined
-    editPriority.value = taskPriorityToForm[t.priority] ?? 'medium'
-    editDescription.value = t.description ?? ''
-    calendarOpen.value = false
-    isEditingHeader.value = true
-  }
-
-  function saveHeader() {
-    if (!task.value || !canSaveHeader.value)
-      return
-    ctx.updateTask(task.value.id, {
-      title: editTitle.value.trim(),
-      course: editCourse.value.trim(),
-      due: editDue.value ? editDue.value.toString() : '',
-      priority: editPriority.value,
-      description: editDescription.value.trim(),
+      return null
+    return {
+      title: t.task,
+      course: t.course,
+      due: displayToISO(t.due),
+      priority: taskPriorityToForm[t.priority] ?? 'medium',
+      description: t.description ?? '',
       submissionUrl: '',
-    })
-    isEditingHeader.value = false
-  }
+    }
+  })
 
-  function setDueIn(days: number) {
-    editDue.value = today(getLocalTimeZone()).add({ days })
-    calendarOpen.value = false
-  }
-
-  function cancelEditHeader() {
-    isEditingHeader.value = false
-  }
-
-  function onEditDrawerChange(open: boolean) {
-    if (!open)
-      cancelEditHeader()
-  }
-
-  function onEditPriorityChange(value: unknown) {
-    if (value)
-      editPriority.value = value as TaskPriority
+  function saveEdit(payload: TaskPayload) {
+    if (!task.value)
+      return
+    ctx.updateTask(task.value.id, payload)
+    editOpen.value = false
   }
 
   const deleteOpen = ref(false)
@@ -156,75 +114,23 @@
 
     <div v-else-if="task" class="flex flex-col gap-6 content-fade-in">
       <div class="grid items-start gap-x-6 gap-y-6 xl:relative xl:grid-cols-[1.6fr_1fr] xl:gap-y-0">
-        <div class="flex flex-wrap items-center justify-between gap-2 xl:contents">
-          <div class="min-w-0 xl:col-start-1 xl:row-start-1 xl:pr-56">
-            <p v-if="!isEditingHeader || !isDesktop" class="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">
+        <div class="min-w-0 xl:col-start-1 xl:row-start-1 xl:pr-56">
+          <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted">
             {{ task.course }}
           </p>
-          <Input
-            v-else
-            v-model="editCourse"
-            aria-label="Course"
-              class="h-8 max-w-xs text-xs"
-            placeholder="e.g. Design Research"
-            @keydown.enter.prevent="saveHeader"
-            @keydown.escape.prevent="cancelEditHeader"
-          />
-          </div>
-          <div
-            class="flex shrink-0 flex-wrap items-center gap-1.5 xl:absolute xl:right-0 xl:top-0"
-          >
-            <template v-if="!isEditingHeader">
-              <Button v-if="!(task.checklist?.length)" size="sm" variant="outline" class="max-sm:w-8 max-sm:px-0" :aria-label="`Mark as ${nextStatus}`" @click="ctx.cycleStatus(task)">
-                <RefreshCcw data-icon="inline-start" />
-                <span class="max-sm:hidden">Mark as {{ nextStatus }}</span>
-              </Button>
-              <Button size="sm" variant="outline" class="max-sm:w-8 max-sm:px-0" aria-label="Edit task" @click="startEditHeader">
-                <Pencil data-icon="inline-start" />
-                <span class="max-sm:hidden">Edit</span>
-              </Button>
-            </template>
-            <template v-else>
-              <Button size="sm" variant="outline" class="max-sm:hidden" @click="cancelEditHeader">
-                Cancel
-              </Button>
-              <Button size="sm" class="max-sm:hidden" :disabled="!canSaveHeader" @click="saveHeader">
-                <Check data-icon="inline-start" />
-                Save
-            </Button>
-          </template>
-        </div>
         </div>
 
-        <div class="max-xl:-mt-8 xl:col-start-1 xl:row-start-2">
-          <h1 v-if="!isEditingHeader || !isDesktop" class="mt-2 text-2xl font-bold tracking-tight text-headline">
+        <div class="max-xl:-mt-4 xl:col-start-1 xl:row-start-2">
+          <h1 class="mt-2 text-2xl font-bold tracking-tight text-headline">
             {{ task.task }}
           </h1>
-          <Input
-            v-else
-            v-model="editTitle"
-            aria-label="Title"
-            class="mt-2 h-9 max-w-2xl text-lg font-bold tracking-tight"
-            placeholder="e.g. Read chapter 4"
-            @keydown.enter.prevent="saveHeader"
-            @keydown.escape.prevent="cancelEditHeader"
-          />
-          <p v-if="(!isEditingHeader || !isDesktop) && task.description" class="mt-3 max-w-2xl text-sm leading-relaxed text-subline">
+          <p v-if="task.description" class="mt-3 max-w-2xl text-sm leading-relaxed text-subline">
             {{ task.description }}
           </p>
-          <p v-else-if="!isEditingHeader || !isDesktop" class="mt-3 text-sm text-text-muted">
+          <p v-else class="mt-3 text-sm text-text-muted">
             No description yet.
           </p>
-          <Input
-            v-else
-            v-model="editDescription"
-            aria-label="Description"
-            class="mt-3 h-9 max-w-2xl text-sm"
-            placeholder="What needs to be done?"
-            @keydown.enter.prevent="saveHeader"
-            @keydown.escape.prevent="cancelEditHeader"
-          />
-          <div v-if="!isEditingHeader || !isDesktop" class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          <div class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <Tooltip>
               <TooltipTrigger as-child>
                 <Dot
@@ -246,60 +152,17 @@
               {{ task.status }}
             </Badge>
           </div>
-        <div v-else class="mt-4 text-sm">
-          <div class="flex flex-wrap items-center gap-2">
-            <Popover v-model:open="calendarOpen">
-              <PopoverTrigger as-child>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  class="h-7 gap-1.5 px-2.5 text-[11px] font-normal"
-                  :class="!editDue && 'text-text-muted'"
-                >
-                  <CalendarIcon data-icon="inline-start" />
-                  {{ dueLabel }}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent class="w-auto p-0" align="start">
-                <!-- @vue-ignore: false-positive nominal-identity mismatch on DateValue classes under Volar (single installed copy verified at runtime); values are structurally identical -->
-                <Calendar v-model="editDue" initial-focus @update:model-value="calendarOpen = false" />
-                <Separator />
-                <div class="flex flex-wrap gap-1.5 p-2">
-                  <Button
-                    v-for="q in quickDueDates"
-                    :key="q.label"
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    class="h-6 rounded-full px-2 text-[10px]"
-                    @click="setDueIn(q.days)"
-                  >
-                    {{ q.label }}
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <span class="text-xs text-text-muted">Priority:</span>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              :model-value="editPriority"
-              @update:model-value="onEditPriorityChange"
-            >
-              <ToggleGroupItem v-for="p in editPriorities" :key="p.value" :value="p.value" class="h-7 gap-1.5 px-2.5 text-[11px]">
-                <span class="size-1.5 rounded-full" :class="p.dot" />
-                {{ p.label }}
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <Badge :class="cn('rounded-full px-2 py-0.5 text-[10px] font-medium', statusStyles[task.status] ?? statusStyles['To do'])">
-              {{ task.status }}
-            </Badge>
-          </div>
-          <p v-if="isPastDue" class="mt-1 text-[11px] text-urgency-overdue">
-            This date is in the past — the task will show as overdue right away.
-          </p>
         </div>
+
+        <div class="flex w-full shrink-0 items-center gap-1.5 sm:w-auto sm:justify-start xl:absolute xl:right-0 xl:top-0">
+          <Button size="sm" variant="outline" class="max-sm:order-last max-sm:w-8 max-sm:px-0" aria-label="Edit task" @click="editOpen = true">
+            <Pencil class="mr-2 size-3.5 max-sm:mr-0" />
+            <span class="max-sm:hidden">Edit</span>
+          </Button>
+          <Button v-if="!(task.checklist?.length)" size="sm" class="flex-1 sm:flex-none" :aria-label="`Mark as ${nextStatus}`" @click="ctx.cycleStatus(task)">
+            <component :is="nextStatusIcon" class="mr-2 size-3.5" />
+            <span>Mark as {{ nextStatus }}</span>
+          </Button>
         </div>
 
           <WorkspacesTaskDetailChecklist :task="task" class="xl:col-start-1 xl:row-start-3 xl:mt-6" />
@@ -337,92 +200,55 @@
         </template>
       </DeleteConfirmDialog>
 
-      <Drawer v-if="isEditingHeader && !isDesktop" :open="true" @update:open="onEditDrawerChange">
-        <DrawerContent class="max-h-[85vh]">
+      <Dialog v-if="isDesktop" :open="editOpen" @update:open="(v: boolean) => { if (!v) editOpen = false }">
+        <DialogContent class="flex max-h-[90vh] max-w-md flex-col" @open-auto-focus.prevent>
+          <DialogHeader>
+            <DialogTitle class="text-base">
+              Edit task
+            </DialogTitle>
+            <DialogDescription class="sr-only">
+              Edit this task.
+            </DialogDescription>
+          </DialogHeader>
+          <div class="-mx-6 min-h-0 flex-1 overflow-y-auto px-6 py-1">
+            <TaskForm
+              v-if="editOpen && editInitial"
+              key="edit"
+              :courses="courses"
+              :start-date="workspaceStartDate"
+              :end-date="workspaceEndDate"
+              :initial="editInitial"
+              submit-label="Save changes"
+              @cancel="editOpen = false"
+              @submit="saveEdit"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Drawer v-else :open="editOpen" @update:open="(v: boolean) => { if (!v) editOpen = false }">
+        <DrawerContent @open-auto-focus.prevent>
           <DrawerHeader class="text-left">
             <DrawerTitle class="text-base">
               Edit task
             </DrawerTitle>
             <DrawerDescription class="sr-only">
-              Edit task details.
+              Edit this task.
             </DrawerDescription>
           </DrawerHeader>
-          <FieldGroup class="max-h-[70vh] gap-4 overflow-y-auto px-4 pb-4">
-            <Field class="gap-2">
-              <FieldLabel class="text-xs">Course</FieldLabel>
-              <Input v-model="editCourse" class="text-sm" placeholder="e.g. Design Research" />
-            </Field>
-            <Field class="gap-2">
-              <FieldLabel class="text-xs">Title</FieldLabel>
-              <Input v-model="editTitle" class="text-sm font-semibold" placeholder="e.g. Read chapter 4" />
-            </Field>
-            <Field class="gap-2">
-              <FieldLabel class="text-xs">Description</FieldLabel>
-              <Input v-model="editDescription" class="text-sm" placeholder="What needs to be done?" />
-            </Field>
-            <Field class="gap-2">
-              <FieldLabel class="text-xs">Due date</FieldLabel>
-              <div class="flex items-center gap-2">
-                <Popover v-model:open="calendarOpen">
-                  <PopoverTrigger as-child>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      class="h-9 flex-1 justify-start gap-2 text-sm font-normal"
-                      :class="!editDue && 'text-text-muted'"
-                    >
-                      <CalendarIcon data-icon="inline-start" />
-                      {{ dueLabel }}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent class="w-auto p-0" align="start">
-                    <!-- @vue-ignore: false-positive nominal-identity mismatch on DateValue classes under Volar (single installed copy verified at runtime); values are structurally identical -->
-                    <Calendar v-model="editDue" initial-focus @update:model-value="calendarOpen = false" />
-                    <Separator />
-                    <div class="flex flex-wrap gap-1.5 p-2">
-                      <Button
-                        v-for="q in quickDueDates"
-                        :key="q.label"
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        class="h-6 rounded-full px-2 text-[10px]"
-                        @click="setDueIn(q.days)"
-                      >
-                        {{ q.label }}
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <FieldError v-if="isPastDue" class="text-[11px]">
-                This date is in the past — the task will show as overdue right away.
-              </FieldError>
-            </Field>
-            <Field class="gap-2">
-              <FieldLabel class="text-xs">Priority</FieldLabel>
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                class="grid w-full grid-cols-3"
-                :model-value="editPriority"
-                @update:model-value="onEditPriorityChange"
-              >
-                <ToggleGroupItem v-for="p in editPriorities" :key="p.value" :value="p.value" class="gap-2 text-xs">
-                  <span class="size-1.5 rounded-full" :class="p.dot" />
-                  {{ p.label }}
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </Field>
-          </FieldGroup>
-          <DrawerFooter class="flex-row gap-2 pt-2">
-            <Button variant="outline" class="flex-1" @click="cancelEditHeader">
-              Cancel
-            </Button>
-            <Button class="flex-1" :disabled="!canSaveHeader" @click="saveHeader">
-              Save
-            </Button>
-          </DrawerFooter>
+          <div class="max-h-[75vh] overflow-y-auto px-4 pb-6">
+            <TaskForm
+              v-if="editOpen && editInitial"
+              key="edit"
+              :courses="courses"
+              :start-date="workspaceStartDate"
+              :end-date="workspaceEndDate"
+              :initial="editInitial"
+              submit-label="Save changes"
+              @cancel="editOpen = false"
+              @submit="saveEdit"
+            />
+          </div>
         </DrawerContent>
       </Drawer>
     </div>
