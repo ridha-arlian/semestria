@@ -105,6 +105,7 @@ export const columns = [
     }, [
       h(DataTableDropdown, {
         workspace: row.original,
+        readOnly: table.options.meta?.readOnly,
         onEdit: (workspace: Workspace) => {
           table.options.meta?.onEdit?.(workspace)
         },

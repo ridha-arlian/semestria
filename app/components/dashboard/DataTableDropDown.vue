@@ -7,7 +7,7 @@
     shouldSwallowActivation: () => boolean
   }
 
-  defineProps<{ workspace: Workspace }>()
+  defineProps<{ workspace: Workspace, readOnly?: boolean }>()
   const emit = defineEmits<{
     edit: [workspace: Workspace]
     delete: [workspace: Workspace]
@@ -40,13 +40,23 @@
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-36">
       <DropdownMenuGroup>
-        <DropdownMenuItem class="cursor-pointer text-xs" @click="emit('edit', workspace)">
+        <DropdownMenuItem
+          class="cursor-pointer text-xs"
+          :disabled="readOnly"
+          :title="readOnly ? 'Workspace changes are off in demo' : undefined"
+          @click="emit('edit', workspace)"
+        >
           <Pencil class="mr-2 size-3.5 text-subline" /> Edit
         </DropdownMenuItem>
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
-        <DropdownMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @click="emit('delete', workspace)">
+        <DropdownMenuItem
+          class="cursor-pointer text-xs text-destructive focus:text-destructive"
+          :disabled="readOnly"
+          :title="readOnly ? 'Workspace changes are off in demo' : undefined"
+          @click="emit('delete', workspace)"
+        >
           <Trash2 class="mr-2 size-3.5" /> Delete
         </DropdownMenuItem>
       </DropdownMenuGroup>

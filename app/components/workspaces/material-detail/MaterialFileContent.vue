@@ -11,6 +11,7 @@ const props = defineProps<{
 }>()
 
 const ctx = inject<MaterialDetailContext>('workspace')!
+const { isDemo } = useDemo()
 const materialRef = toRef(props, 'material')
 
 const rules = computed(() => {
@@ -155,7 +156,7 @@ function removeFile() {
           Open
           <ArrowUpRight data-icon="inline-end" />
         </Button>
-        <Button size="sm" variant="ghost" @click="upload.pickFile">
+        <Button size="sm" variant="ghost" :disabled="isDemo" :title="isDemo ? 'Uploads are off in demo' : undefined" @click="upload.pickFile">
           Replace
         </Button>
         <Tooltip>
@@ -177,7 +178,21 @@ function removeFile() {
 
     <!-- Empty state -->
     <div v-if="!hasFile && progress === null">
+      <div
+        v-if="isDemo"
+        class="flex w-full flex-col items-center rounded-lg border border-dashed border-line px-4 py-8 text-center"
+        title="Uploads are off in demo"
+      >
+        <CloudUpload class="text-subline" />
+        <p class="mt-2 text-sm font-medium text-text-strong">
+          Uploads are off in demo
+        </p>
+        <p class="mt-1 font-mono text-[11px] text-subline">
+          Sign in with Google to attach files.
+        </p>
+      </div>
       <Button
+        v-else
         type="button"
         variant="outline"
         class="flex h-auto w-full flex-col items-center rounded-lg border-dashed px-4 py-8 text-center font-normal whitespace-normal transition-colors hover:border-ink/30 hover:bg-soft/50"
@@ -201,6 +216,7 @@ function removeFile() {
       ref="fileInput"
       type="file"
       :accept="accept"
+      :disabled="isDemo"
       class="sr-only"
       tabindex="-1"
       @change="onInputChange"

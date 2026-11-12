@@ -1,8 +1,10 @@
+import { requireFullAccessUser } from '../../utils/auth'
 import { ownedWorkspaceId } from '../../utils/ownership'
 import { useDb } from '../../utils/db'
 import { deleteObject } from '../../utils/storage'
 
 export default defineEventHandler(async (event) => {
+  await requireFullAccessUser(event)
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid id' })
 

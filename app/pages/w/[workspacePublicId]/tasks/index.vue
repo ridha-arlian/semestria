@@ -14,12 +14,13 @@
   interface WorkspaceContext {
     workspace: Ref<Workspace | undefined>
     tasks: Ref<Task[]>
+    taskLimitReached?: boolean
     openAdd: (type: ModalType) => void
     cycleStatus: (item: Task) => void
     removeTask: (id: number) => void
   }
 
-  const { workspace, tasks, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
+  const { workspace, tasks, taskLimitReached, openAdd, cycleStatus, removeTask } = inject<WorkspaceContext>('workspace')!
 
   const route = useRoute()
   const workspacePublicId = computed(() => route.params.workspacePublicId as string)
@@ -82,7 +83,7 @@
         <p class="text-sm text-subline">
           Keep every deadline in sight, without the spreadsheet stiffness.
         </p>
-        <Button class="w-full sm:w-auto" @click="openAdd('task')">
+        <Button class="w-full sm:w-auto" :disabled="taskLimitReached" :title="taskLimitReached ? 'Demo limit reached (10 tasks)' : undefined" @click="openAdd('task')">
           <Plus data-icon="inline-start" />
           New task
         </Button>

@@ -322,7 +322,7 @@ export const useApi = () => {
   /** Clears session and every client cache; callers redirect to the landing page. */
   async function logout(): Promise<void> {
     // Resolve before the await: the Nuxt instance is not reachable afterwards.
-    const authUser = useState<{ id: string } | null>('auth-user', () => null)
+    const authUser = useAuthUser()
     await request('/api/auth/logout', { method: 'POST' }).catch(() => {})
     workspacesState.value = []
     tasksState.value = []

@@ -1,10 +1,10 @@
-import { requireUser } from '../utils/auth'
+import { requireFullAccessUser } from '../utils/auth'
 import { useDb } from '../utils/db'
 import { parseOr400, settingsPatch } from '../../shared/schemas'
 import { toSettings } from '../../shared/serialize'
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const db = useDb(event)
   const body = parseOr400(settingsPatch, await readBody(event))
 

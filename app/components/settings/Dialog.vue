@@ -5,8 +5,10 @@ import { useMediaQuery } from '@vueuse/core'
 import { Dialog, DialogContent, DialogClose, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from '~/components/ui/drawer'
 import type { SettingsSection } from '~/types'
+import { DEMO_SIGN_IN_HREF } from '~~/shared/demo'
 
 const { isOpen, openSettings, closeSettings, activeSection, toastMessage } = useSettings()
+const { isDemo } = useDemo()
 const isDesktop = useMediaQuery('(min-width: 768px)')
 
 useKeepFocusVisible(() => !isDesktop.value)
@@ -225,10 +227,22 @@ watch([isOpen, activeSection], async () => {
             </p>
           </div>
 
-          <SettingsProfileSection v-if="activeSection === 'profile'" />
-          <SettingsAppearanceSection v-else-if="activeSection === 'appearance'" />
-          <SettingsNotificationsSection v-else-if="activeSection === 'notifications'" />
-          <SettingsPreferencesSection v-else-if="activeSection === 'preferences'" />
+          <div
+            v-if="isDemo"
+            class="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-soft px-3 py-2 text-xs text-subline"
+          >
+            <span>Demo mode — settings are read-only.</span>
+            <a :href="DEMO_SIGN_IN_HREF" class="font-medium text-ink underline underline-offset-2">
+              Sign in to customize
+            </a>
+          </div>
+
+          <fieldset :disabled="isDemo" class="m-0 min-w-0 border-0 p-0">
+            <SettingsProfileSection v-if="activeSection === 'profile'" />
+            <SettingsAppearanceSection v-else-if="activeSection === 'appearance'" />
+            <SettingsNotificationsSection v-else-if="activeSection === 'notifications'" />
+            <SettingsPreferencesSection v-else-if="activeSection === 'preferences'" />
+          </fieldset>
         </div>
       </div>
 

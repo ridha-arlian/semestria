@@ -1,4 +1,4 @@
-import { requireUser } from '../../utils/auth'
+import { requireFullAccessUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
 import { parseOr400, workspaceForm } from '../../../shared/schemas'
 import { toWorkspace } from '../../../shared/serialize'
@@ -6,7 +6,7 @@ import { summarizeWorkspace } from '../../utils/workspaceSummary'
 import { ownedWorkspaceId } from '../../utils/ownership'
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const db = useDb(event)
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid id' })

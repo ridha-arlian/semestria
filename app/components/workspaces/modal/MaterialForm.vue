@@ -10,6 +10,8 @@
     autofocus?: boolean
     initial?: MaterialPayload | null
     submitLabel?: string
+    /** Types a demo visitor may create; the rest render disabled. */
+    allowedTypes?: MaterialType[]
   }>()
 
   const emit = defineEmits<{
@@ -222,7 +224,7 @@
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem v-for="t in materialTypes" :key="t" :value="t">
+              <SelectItem v-for="t in materialTypes" :key="t" :value="t" :disabled="!!props.allowedTypes && !props.allowedTypes.includes(t)">
                 {{ t }}
               </SelectItem>
             </SelectGroup>
@@ -230,6 +232,9 @@
         </Select>
         <FieldDescription class="text-xs">
           {{ MATERIAL_TYPE_DESCRIPTIONS[type] }}
+          <span v-if="props.allowedTypes" class="block text-subline">
+            In demo mode only Notes and Link can be created.
+          </span>
         </FieldDescription>
       </Field>
 

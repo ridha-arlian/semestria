@@ -3,6 +3,7 @@ import { ownedMaterialId } from '../../../utils/ownership'
 import { useDb } from '../../../utils/db'
 import { parseOr400, materialNote } from '../../../../shared/schemas'
 import { logActivity } from '../../../utils/activity'
+import { isDemoMaterialType } from '../../../../shared/demo'
 import type { Prisma } from '../../../generated/prisma/client'
 
 export default defineEventHandler(async (event) => {
@@ -14,8 +15,11 @@ export default defineEventHandler(async (event) => {
   const db = useDb(event)
   const body = parseOr400(materialNote, await readBody(event))
 
-  const before = await db.material.findUnique({ where: { id }, select: { note: true } })
+  const before = await db.material.findUnique({ where: { id }, select: { note: true, type: true } })
   if (!before) throw createError({ statusCode: 404, statusMessage: 'Material not found' })
+
+  if (user.isDemo && !isDemoMaterialType(before.type))
+    throw createError({ statusCode: 403, statusMessage: 'This material type is read-only in demo' })
 
   const same = JSON.stringify(before.note ?? null) === JSON.stringify(body.note ?? null)
   if (same) return { ok: true }

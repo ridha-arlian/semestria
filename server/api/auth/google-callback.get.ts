@@ -1,4 +1,4 @@
-import { setUser } from '../../utils/auth'
+import { getUser, setUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
 import { googleAvatarKey, importGoogleAvatar } from '../../utils/googleAvatar'
 import { safeRedirect } from '../../utils/redirect'
@@ -87,6 +87,13 @@ export default defineEventHandler(async (event) => {
       avatarKey = imported
       await db.user.update({ where: { id: user.id }, data: { avatarKey } })
     }
+  }
+
+  // Signing in ends the sandbox: drop the disposable demo account instead of
+  // waiting for the 7-day cleanup. Cascades remove its workspace and content.
+  const demo = await getUser(event)
+  if (demo?.isDemo && demo.id !== user.id) {
+    await db.user.delete({ where: { id: demo.id } }).catch(() => {})
   }
 
   await setUser(event, {

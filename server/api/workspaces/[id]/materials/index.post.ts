@@ -4,6 +4,8 @@ import { useDb } from '../../../../utils/db'
 import { parseOr400, materialScalar } from '../../../../../shared/schemas'
 import { toMaterial } from '../../../../../shared/serialize'
 import { logActivity } from '../../../../utils/activity'
+import { enforceDemoMaterialLimit } from '../../../../utils/demo'
+import { isDemoMaterialType } from '../../../../../shared/demo'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -13,6 +15,12 @@ export default defineEventHandler(async (event) => {
   await ownedWorkspaceId(event, id)
   const db = useDb(event)
   const body = parseOr400(materialScalar, await readBody(event))
+
+  if (user.isDemo) {
+    await enforceDemoMaterialLimit(db, user.id)
+    if (!isDemoMaterialType(body.type))
+      throw createError({ statusCode: 403, statusMessage: 'This material type is not available in the demo' })
+  }
 
   if (body.taskId) {
     const task = await db.task.findFirst({ where: { id: body.taskId, workspaceId: id }, select: { id: true } })

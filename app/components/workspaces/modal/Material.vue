@@ -7,6 +7,7 @@
     open: boolean
     courses?: string[]
     tasks?: { id: number, task: string, course: string }[]
+    allowedTypes?: MaterialPayload['type'][]
   }>()
 
   const emit = defineEmits<{
@@ -40,6 +41,7 @@
         <MaterialForm
           :courses="courses"
           :tasks="tasks"
+          :allowed-types="allowedTypes"
           autofocus
           @cancel="emit('close')"
           @submit="(payload, addAnother) => emit('submit', payload, addAnother)"
@@ -63,6 +65,7 @@
         <MaterialForm
           :courses="courses"
           :tasks="tasks"
+          :allowed-types="allowedTypes"
           @cancel="emit('close')"
           @submit="(payload, addAnother) => emit('submit', payload, addAnother)"
         />

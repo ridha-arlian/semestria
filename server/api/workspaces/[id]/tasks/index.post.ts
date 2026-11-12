@@ -2,15 +2,20 @@ import { ownedWorkspaceId } from '../../../../utils/ownership'
 import { useDb } from '../../../../utils/db'
 import { parseOr400, taskScalar } from '../../../../../shared/schemas'
 import { toTask } from '../../../../../shared/serialize'
+import { requireUser } from '../../../../utils/auth'
+import { enforceDemoTaskLimit } from '../../../../utils/demo'
 
 const PRIORITY_MAP: Record<string, string> = { low: 'Low', medium: 'Medium', high: 'High' }
 
 export default defineEventHandler(async (event) => {
+  const user = await requireUser(event)
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid id' })
 
   await ownedWorkspaceId(event, id)
   const db = useDb(event)
+  if (user.isDemo)
+    await enforceDemoTaskLimit(db, user.id)
   const body = parseOr400(taskScalar, await readBody(event))
 
   const created = await db.task.create({

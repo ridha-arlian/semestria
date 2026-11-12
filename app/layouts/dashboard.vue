@@ -112,6 +112,7 @@
       </LayoutsAppSidebar>
 
       <SidebarInset class="flex flex-1 flex-col">
+        <DemoBanner />
         <LayoutsAppHeader :view="view" />
 
         <slot />

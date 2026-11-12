@@ -8,6 +8,8 @@
   const { view, breadcrumbs = [] } = defineProps<{
     view: View
     breadcrumbs?: BreadcrumbEntry[]
+    canAddTask?: boolean
+    canAddMaterial?: boolean
   }>()
 
   const emit = defineEmits<{
@@ -172,11 +174,21 @@
             No results found.
           </CommandEmpty>
           <CommandGroup heading="Actions">
-            <CommandItem value="add task" @select="handleSelectAction(() => emit('add-task'))">
+            <CommandItem
+              value="add task"
+              :disabled="canAddTask === false"
+              :title="canAddTask === false ? 'Demo limit reached' : undefined"
+              @select="handleSelectAction(() => emit('add-task'))"
+            >
               <Plus class="mr-2 size-4" />
               <span>Create task</span>
             </CommandItem>
-            <CommandItem value="add material" @select="handleSelectAction(() => emit('add-material'))">
+            <CommandItem
+              value="add material"
+              :disabled="canAddMaterial === false"
+              :title="canAddMaterial === false ? 'Demo limit reached' : undefined"
+              @select="handleSelectAction(() => emit('add-material'))"
+            >
               <Plus class="mr-2 size-4" />
               <span>Add material</span>
             </CommandItem>

@@ -14,12 +14,13 @@
   interface WorkspaceContext {
     workspace: Ref<Workspace | undefined>
     materials: Ref<Material[]>
+    materialLimitReached?: boolean
     openAdd: (type: ModalType) => void
     markMaterialReviewed: (id: number) => void
     removeMaterial: (id: number) => void
   }
 
-  const { workspace, materials, openAdd, markMaterialReviewed, removeMaterial } = inject<WorkspaceContext>('workspace')!
+  const { workspace, materials, materialLimitReached, openAdd, markMaterialReviewed, removeMaterial } = inject<WorkspaceContext>('workspace')!
 
   const route = useRoute()
   const router = useRouter()
@@ -87,7 +88,7 @@
         <p class="text-sm text-subline">
           A flexible shelf for everything worth coming back to.
         </p>
-        <Button class="w-full sm:w-auto" @click="openAdd('material')">
+        <Button class="w-full sm:w-auto" :disabled="materialLimitReached" :title="materialLimitReached ? 'Demo limit reached (10 materials)' : undefined" @click="openAdd('material')">
           <Plus data-icon="inline-start" />
           Add material
         </Button>

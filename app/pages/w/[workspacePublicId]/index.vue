@@ -13,11 +13,12 @@
     workspace: Ref<Workspace | undefined>
     week: Ref<WorkspaceTimeline | null>
     tasks: Ref<Task[]>
+    taskLimitReached?: boolean
     openAdd: (type: ModalType) => void
     cycleStatus: (item: Task) => void
   }
 
-  const { workspace, week, tasks, openAdd, cycleStatus } = inject('workspace') as WorkspaceContext
+  const { workspace, week, tasks, taskLimitReached, openAdd, cycleStatus } = inject('workspace') as WorkspaceContext
   const api = useApi()
   const route = useRoute()
 
@@ -159,7 +160,7 @@
           {{ workspace?.name }}
         </h1>
 
-        <Button class="w-full sm:w-auto" @click="openAdd('task')">
+        <Button class="w-full sm:w-auto" :disabled="taskLimitReached" :title="taskLimitReached ? 'Demo limit reached (10 tasks)' : undefined" @click="openAdd('task')">
           <Plus data-icon="inline-start" />
           New task
         </Button>

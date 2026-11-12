@@ -4,6 +4,7 @@ import { useDb } from '../../../utils/db'
 import { logActivity } from '../../../utils/activity'
 import { deleteObject } from '../../../utils/storage'
 import { toMaterial } from '../../../../shared/serialize'
+import { isDemoMaterialType } from '../../../../shared/demo'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -14,6 +15,10 @@ export default defineEventHandler(async (event) => {
   const db = useDb(event)
   const before = await db.material.findUnique({ where: { id } })
   if (!before) throw createError({ statusCode: 404, statusMessage: 'Material not found' })
+
+  // Seeded file-backed materials stay readable in the demo, not editable.
+  if (user.isDemo && !isDemoMaterialType(before.type))
+    throw createError({ statusCode: 403, statusMessage: 'This material type is read-only in demo' })
 
   const wasFile = before.storageProvider === 'r2'
   const label = before.storageProvider === 'external' ? 'Link removed' : wasFile ? 'File removed' : 'Content removed'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { useElementSize } from '@vueuse/core'
   import { ArrowUpRight } from '@lucide/vue'
 
@@ -8,6 +8,39 @@
   })
 
   const route = useRoute()
+  const authUser = useAuthUser()
+  const isAuthenticated = computed(() => Boolean(authUser.value))
+
+  const demoPending = ref(false)
+  const demoError = ref<string | null>(null)
+
+  async function startDemo() {
+    if (demoPending.value)
+      return
+    if (isAuthenticated.value) {
+      await navigateTo('/dashboard')
+      return
+    }
+
+    demoPending.value = true
+    demoError.value = null
+    try {
+      const result = await $fetch<{ redirect: string }>('/api/demo/start', { method: 'POST' })
+      await navigateTo(result.redirect)
+    }
+    catch (error) {
+      const status = (error as { statusCode?: number, response?: { status?: number } }).statusCode
+        ?? (error as { response?: { status?: number } }).response?.status
+      demoError.value = status === 503
+        ? 'Demo is full, try again later.'
+        : status === 429
+          ? 'Too many demo sessions. Try again in a bit.'
+          : 'Could not start the demo.'
+    }
+    finally {
+      demoPending.value = false
+    }
+  }
 
   // Only allow same-origin relative paths; never a protocol-relative URL.
   const loginHref = computed(() => {
@@ -128,14 +161,35 @@
       </div>
 
       <div class="mt-6 flex flex-col items-start gap-2.5 shrink-0 sm:flex-row sm:items-center md:mt-0 md:flex-col md:items-end">
-        <Button as-child size="lg" class="w-full sm:w-auto">
+        <Button
+          v-if="isAuthenticated"
+          as-child
+          size="lg"
+          class="w-full sm:w-auto"
+        >
           <NuxtLink to="/dashboard" class="flex items-center justify-center gap-1.5">
-            Get started
+            Open dashboard
             <ArrowUpRight class="size-3.5" />
           </NuxtLink>
         </Button>
-        <span class="font-mono text-[10px] text-subline">
-          Sign in with Google
+        <Button
+          v-else
+          type="button"
+          size="lg"
+          class="w-full sm:w-auto"
+          :disabled="demoPending"
+          @click="startDemo"
+        >
+          <span class="flex items-center justify-center gap-1.5">
+            {{ demoPending ? 'Starting demo…' : 'Try a demo' }}
+            <ArrowUpRight v-if="!demoPending" class="size-3.5" />
+          </span>
+        </Button>
+        <span v-if="demoError" class="font-mono text-[10px] text-destructive">
+          {{ demoError }}
+        </span>
+        <span v-else class="font-mono text-[10px] text-subline">
+          {{ isAuthenticated ? 'Signed in' : 'No account needed' }}
         </span>
       </div>
     </section>

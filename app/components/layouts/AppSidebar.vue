@@ -1,11 +1,13 @@
 <script setup lang="ts">
-  import { LogOut, Settings, UserRound } from '@lucide/vue'
+  import { LogIn, LogOut, Settings, UserRound } from '@lucide/vue'
   import { useSidebar } from '~/components/ui/sidebar'
   import { useSettings, defaultSettings, SETTINGS_STORAGE_KEY, THEME_CSS_STORAGE_KEY } from '~/composables/useSettings'
+  import { DEMO_SIGN_IN_HREF } from '~~/shared/demo'
 
   const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar()
   const route = useRoute()
   const api = useApi()
+  const { isDemo } = useDemo()
   const { settings, avatarUrl, openSettings, setAvatarBlob, applyTheme } = useSettings()
   // The footer mirrors server settings; keep it quiet until the key resolves
   // instead of showing an empty name.
@@ -128,7 +130,7 @@
 
         <TooltipProvider :delay-duration="0">
           <div class="flex items-center gap-1 shrink-0 group-data-[collapsible=icon]:hidden">
-            <Tooltip>
+            <Tooltip v-if="!isDemo">
               <TooltipTrigger as-child>
                 <Button
                   type="button"
@@ -143,6 +145,26 @@
               <TooltipContent side="right">
                 <p>
                   Sign out
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip v-else>
+              <TooltipTrigger as-child>
+                <Button
+                  as-child
+                  variant="ghost"
+                  size="icon"
+                  class="size-9 rounded-md text-subline hover:bg-card! hover:text-ink! shrink-0 transition-colors duration-200 ease-linear"
+                >
+                  <a :href="DEMO_SIGN_IN_HREF" aria-label="Sign in with Google">
+                    <LogIn class="size-5" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>
+                  Sign in with Google
                 </p>
               </TooltipContent>
             </Tooltip>

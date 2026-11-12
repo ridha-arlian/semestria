@@ -1,15 +1,16 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import { ArrowUpRight, Copyright } from '@lucide/vue'
+  import type { AuthUser } from '~/composables/useAuthUser'
 
-  const authUser = useState<{ id: string } | null>('auth-user', () => null)
+  const authUser = useAuthUser()
   const authLoaded = useState<boolean>('auth-user-loaded', () => false)
 
   // The landing page is public, so auth.global skips it and never fills the
   // session cache. Fetch it once so the header can tell guests from members.
   if (!authLoaded.value) {
     const request = useRequestFetch()
-    authUser.value = await request<{ id: string } | null>('/api/auth/me').catch(() => null)
+    authUser.value = await request<AuthUser | null>('/api/auth/me').catch(() => null)
     authLoaded.value = true
   }
 

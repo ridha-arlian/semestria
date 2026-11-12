@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireUser } from '../../utils/auth'
+import { requireFullAccessUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
 import { deleteObject, headObject } from '../../utils/storage'
 
@@ -11,7 +11,7 @@ const AVATAR_MIME = ['image/png', 'image/jpeg', 'image/webp']
 const MAX_BYTES = 2 * 1024 * 1024
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const parsed = bodySchema.safeParse(await readBody(event))
   if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'key is required' })
 

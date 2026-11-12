@@ -16,6 +16,7 @@
   })
 
   const api = useApi()
+  const { isDemo } = useDemo()
   // Read through a computed: TanStack Table memoizes on the data array
   // reference, so add/delete must produce a new array for the rows to refresh.
   const workspaces = computed(() => api.getWorkspaces())
@@ -109,7 +110,7 @@
         All Workspaces
       </h1>
 
-      <Button class="w-full sm:w-auto" @click="handleCreateNew">
+      <Button class="w-full sm:w-auto" :disabled="isDemo" :title="isDemo ? 'Workspace changes are off in demo' : undefined" @click="handleCreateNew">
         <Plus data-icon="inline-start" />
         New workspace
       </Button>
@@ -182,6 +183,7 @@
           :meta="{
             onEdit: handleEditWorkspace,
             onDelete: handleDeleteWorkspace,
+            readOnly: isDemo,
           }"
           @row-click="handleRowClick"
         >
@@ -201,15 +203,21 @@
             <ContextMenuItem class="cursor-pointer text-xs" @select="handleRowClick(row)">
               <FolderOpen class="mr-2 size-3.5 text-subline" /> Open workspace
             </ContextMenuItem>
-            <ContextMenuItem v-if="!row.active" class="cursor-pointer text-xs" @select="handleSetActive(row)">
+            <ContextMenuItem
+              v-if="!row.active"
+              class="cursor-pointer text-xs"
+              :disabled="isDemo"
+              :title="isDemo ? 'Workspace changes are off in demo' : undefined"
+              @select="handleSetActive(row)"
+            >
               <CheckCircle2 class="mr-2 size-3.5 text-subline" /> Set as active
             </ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem class="cursor-pointer text-xs" @select="handleEditWorkspace(row)">
+            <ContextMenuItem class="cursor-pointer text-xs" :disabled="isDemo" :title="isDemo ? 'Workspace changes are off in demo' : undefined" @select="handleEditWorkspace(row)">
               <Pencil class="mr-2 size-3.5 text-subline" /> Edit workspace
             </ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" @select="handleDeleteWorkspace(row)">
+            <ContextMenuItem class="cursor-pointer text-xs text-destructive focus:text-destructive" :disabled="isDemo" :title="isDemo ? 'Workspace changes are off in demo' : undefined" @select="handleDeleteWorkspace(row)">
               <Trash2 class="mr-2 size-3.5" /> Delete workspace
             </ContextMenuItem>
           </template>

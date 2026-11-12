@@ -1,11 +1,13 @@
 <script setup lang="ts">
   import { BookOpen, Check, LayoutDashboard, Plus, SquareCheck, FileText } from '@lucide/vue'
-  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialContentInput, MaterialNote, View, TaskPayload, MaterialPayload, WorkspaceTimeline } from '~/types'
+  import type { Task, BreadcrumbEntry, ModalType, Material, MaterialActivity, MaterialContentInput, MaterialNote, View, TaskPayload, MaterialPayload, WorkspaceTimeline, MaterialType } from '~/types'
   import { planTypeChange } from '~/utils/materialContent'
   import { useActivityCache } from '~/composables/apiCache'
+  import { DEMO_MATERIAL_LIMIT, DEMO_MATERIAL_TYPES, DEMO_TASK_LIMIT } from '~~/shared/demo'
 
   const route = useRoute()
   const api = useApi()
+  const { isDemo } = useDemo()
 
   const workspacePublicId = computed(() => route.params.workspacePublicId as string)
   const workspace = computed(() => api.getWorkspaceByPublicId(workspacePublicId.value))
@@ -86,6 +88,11 @@
   const materialsState = api.getMaterialState()
   const tasks = computed(() => tasksState.value.filter(t => t.workspaceId === workspace.value?.id))
   const materials = computed(() => materialsState.value.filter(m => m.workspaceId === workspace.value?.id))
+  const taskLimitReached = computed(() => isDemo.value && tasks.value.length >= DEMO_TASK_LIMIT)
+  const materialLimitReached = computed(() => isDemo.value && materials.value.length >= DEMO_MATERIAL_LIMIT)
+  const allowedMaterialTypes = computed<MaterialType[] | undefined>(() =>
+    isDemo.value ? [...DEMO_MATERIAL_TYPES] : undefined,
+  )
 
   // Persisted activity history across navigation. Shared with `useApi`
   // through the same `api-activities` cache key.
@@ -110,6 +117,10 @@
   }
 
   function openAdd(type: ModalType) {
+    if (type === 'task' && taskLimitReached.value)
+      return
+    if (type === 'material' && materialLimitReached.value)
+      return
     modalType.value = type
     showModal.value = true
   }
@@ -543,6 +554,8 @@
     tasks,
     materials,
     materialActivities,
+    taskLimitReached,
+    materialLimitReached,
     openAdd,
     updateTask,
     cycleStatus,
@@ -675,9 +688,12 @@
       </LayoutsAppSidebar>
 
       <SidebarInset class="flex flex-1 flex-col">
+        <DemoBanner />
         <LayoutsAppHeader
           :view="view"
           :breadcrumbs="breadcrumbs"
+          :can-add-task="!taskLimitReached"
+          :can-add-material="!materialLimitReached"
           @add-task="openAdd('task')"
           @add-material="openAdd('material')"
           @navigate="handleNavigate"
@@ -691,11 +707,19 @@
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" class="w-48">
                 <DropdownMenuGroup>
-                  <DropdownMenuItem @click="openAdd('task')">
+                  <DropdownMenuItem
+                    :disabled="taskLimitReached"
+                    :title="taskLimitReached ? 'Demo limit reached (10 tasks)' : undefined"
+                    @click="openAdd('task')"
+                  >
                     <SquareCheck class="mr-2 size-4 text-subline" />
                     <span>New Task</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click="openAdd('material')">
+                  <DropdownMenuItem
+                    :disabled="materialLimitReached"
+                    :title="materialLimitReached ? 'Demo limit reached (10 materials)' : undefined"
+                    @click="openAdd('material')"
+                  >
                     <FileText class="mr-2 size-4 text-subline" />
                     <span>New Material</span>
                   </DropdownMenuItem>
@@ -743,6 +767,7 @@
         :open="showModal && modalType === 'material'"
         :courses="courses"
         :tasks="tasks"
+        :allowed-types="allowedMaterialTypes"
         @close="showModal = false"
         @submit="handleMaterialSubmit"
       />

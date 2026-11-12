@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
-import { requireUser } from '../../utils/auth'
+import { requireFullAccessUser } from '../../utils/auth'
 import { presignUpload } from '../../utils/storage'
 
 const bodySchema = z.object({
@@ -19,7 +19,7 @@ const AVATAR_TYPES: Record<string, string> = {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const parsed = bodySchema.safeParse(await readBody(event))
   if (!parsed.success) throw createError({ statusCode: 400, statusMessage: 'Invalid avatar payload' })
 

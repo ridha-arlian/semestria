@@ -20,6 +20,10 @@ model User {
   name      String
   avatarKey String?
   avatarHidden Boolean @default(false)
+  // Demo visitors get a disposable account. `demoIpHash` backs the per-IP
+  // rate limit and never stores the raw address.
+  isDemo     Boolean @default(false)
+  demoIpHash String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -27,6 +31,8 @@ model User {
   settings      UserSettings?
   activities    Activity[]    @relation("ActivityActor")
 
+  @@index([isDemo, createdAt])
+  @@index([demoIpHash, createdAt])
   @@map("users")
 }
 

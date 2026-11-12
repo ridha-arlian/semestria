@@ -2,10 +2,11 @@
 import { Check, Pencil, Trash2 } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import MaterialForm from '~/components/workspaces/modal/MaterialForm.vue'
-import type { BreadcrumbEntry, MaterialPayload } from '~/types'
+import type { BreadcrumbEntry, MaterialPayload, MaterialType } from '~/types'
 import type { Ref } from 'vue'
 import type { MaterialDetailContext } from '~/components/workspaces/material-detail/materialDetailContext.ts'
 import { planTypeChange } from '~/utils/materialContent'
+import { DEMO_MATERIAL_TYPES } from '~~/shared/demo'
 
 definePageMeta({
   layout: 'workspaces',
@@ -19,6 +20,10 @@ const listPath = computed(() => `/w/${workspacePublicId.value}/materials`)
 const ctx = inject<MaterialDetailContext>('workspace')!
 const breadcrumbExtra = inject<Ref<BreadcrumbEntry[]> | undefined>('breadcrumbExtra')
 const isDesktop = useMediaQuery('(min-width: 768px)')
+const { isDemo } = useDemo()
+const allowedMaterialTypes = computed<MaterialType[] | undefined>(() =>
+  isDemo.value ? [...DEMO_MATERIAL_TYPES] : undefined,
+)
 
 const material = computed(() => ctx.materials.value.find(m => m.publicId === route.params.publicId))
 
@@ -242,6 +247,7 @@ function handleDelete() {
             :courses="courses"
             :tasks="ctx.tasks.value"
             :initial="editInitial"
+            :allowed-types="allowedMaterialTypes"
             submit-label="Save changes"
             autofocus
             @cancel="editOpen = false"
@@ -267,6 +273,7 @@ function handleDelete() {
             :courses="courses"
             :tasks="ctx.tasks.value"
             :initial="editInitial"
+            :allowed-types="allowedMaterialTypes"
             submit-label="Save changes"
             @cancel="editOpen = false"
             @submit="handleEditSubmit"

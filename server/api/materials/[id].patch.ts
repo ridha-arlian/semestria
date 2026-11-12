@@ -6,6 +6,7 @@ import { toMaterial } from '../../../shared/serialize'
 import { logActivity } from '../../utils/activity'
 import { deleteObject } from '../../utils/storage'
 import { planTypeChange } from '../../../shared/materialPlan'
+import { isDemoMaterialType } from '../../../shared/demo'
 import type { MaterialType } from '~/types'
 
 export default defineEventHandler(async (event) => {
@@ -27,6 +28,9 @@ export default defineEventHandler(async (event) => {
   })
   if (!before) throw createError({ statusCode: 404, statusMessage: 'Material not found' })
   const prevType = before.type as MaterialType
+
+  if (user.isDemo && body.type && body.type !== before.type && !isDemoMaterialType(body.type))
+    throw createError({ statusCode: 403, statusMessage: 'This material type is not available in the demo' })
 
   if (body.taskId) {
     const task = await db.task.findFirst({

@@ -12,6 +12,8 @@ declare module '@tanstack/vue-table' {
     onShare?: (item: TData) => void
     onOpenLink?: (item: TData) => void
     onMarkReviewed?: (item: TData) => void
+    /** Demo sandbox: row actions render disabled. Server rejects them anyway. */
+    readOnly?: boolean
   }
 }
 

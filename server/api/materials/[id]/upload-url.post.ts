@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireUser } from '../../../utils/auth'
+import { requireFullAccessUser } from '../../../utils/auth'
 import { ownedMaterialId } from '../../../utils/ownership'
 import { useDb } from '../../../utils/db'
 import { presignUpload, validateFile } from '../../../utils/storage'
@@ -11,7 +11,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const id = Number(getRouterParam(event, 'id'))
   if (!Number.isInteger(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid id' })
 

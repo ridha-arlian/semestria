@@ -5,6 +5,7 @@ import { parseOr400, materialContent } from '../../../../shared/schemas'
 import { toMaterial } from '../../../../shared/serialize'
 import { logActivity } from '../../../utils/activity'
 import { headObject, deleteObject, validateFile } from '../../../utils/storage'
+import { isDemoMaterialType } from '../../../../shared/demo'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -15,8 +16,15 @@ export default defineEventHandler(async (event) => {
   const db = useDb(event)
   const body = parseOr400(materialContent, await readBody(event))
 
+  if (user.isDemo && body.source === 'file')
+    throw createError({ statusCode: 403, statusMessage: 'Uploads are off in demo' })
+
   const before = await db.material.findUnique({ where: { id } })
   if (!before) throw createError({ statusCode: 404, statusMessage: 'Material not found' })
+
+  // Seeded file-backed materials stay readable in the demo, not editable.
+  if (user.isDemo && !isDemoMaterialType(before.type))
+    throw createError({ statusCode: 403, statusMessage: 'This material type is read-only in demo' })
 
   // Clearing content
   if (!body.url) {

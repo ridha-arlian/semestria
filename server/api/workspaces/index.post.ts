@@ -1,4 +1,4 @@
-import { requireUser } from '../../utils/auth'
+import { requireFullAccessUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
 import { parseOr400, workspaceForm } from '../../../shared/schemas'
 import { toWorkspace } from '../../../shared/serialize'
@@ -9,7 +9,7 @@ function slugify(name: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireFullAccessUser(event)
   const db = useDb(event)
   const body = parseOr400(workspaceForm, await readBody(event))
 
