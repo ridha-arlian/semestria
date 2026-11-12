@@ -42,7 +42,7 @@
           v-else
           type="button"
           variant="link"
-          class="h-auto cursor-pointer items-center gap-0 border-b border-ink p-0 pb-1 text-[11px] font-bold uppercase text-ink no-underline hover:border-b-ink/20 hover:text-ink/60 hover:no-underline md:text-xs"
+          class="h-auto cursor-pointer items-center gap-0 rounded-none border-b border-ink p-0 pb-1 text-[11px] font-bold uppercase text-ink no-underline hover:border-b-ink/20 hover:text-ink/60 hover:no-underline md:text-xs"
           @click="scrollToSignIn"
         >
           Login
