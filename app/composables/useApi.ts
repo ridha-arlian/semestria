@@ -42,8 +42,40 @@ export const useApi = () => {
   const materialsState = useMaterialCache()
   const activitiesState = useActivityCache()
   const settingsState = useSettingsCache()
+  const authUser = useAuthUser()
+  const router = useRouter()
 
-  async function request<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  /** Drop every client cache once the session is gone. */
+  function clearClientState() {
+    workspacesState.value = []
+    tasksState.value = []
+    materialsState.value = []
+    activitiesState.value = {}
+    settingsState.value = null
+    clearCacheStatus()
+    authUser.value = null
+  }
+
+  // Several requests can 401 at once; the first one owns the redirect.
+  let redirectingToLogin = false
+  async function handleUnauthorized() {
+    if (!import.meta.client)
+      return
+    clearClientState()
+    const current = router.currentRoute.value
+    // Public pages have no session by design; staying put is correct there.
+    if (redirectingToLogin || current.path === '/')
+      return
+    redirectingToLogin = true
+    try {
+      await router.push({ path: '/', query: { redirect: current.fullPath } })
+    }
+    finally {
+      redirectingToLogin = false
+    }
+  }
+
+  async function request<T>(path: string, init: { method?: string; body?: unknown, authRedirect?: boolean } = {}): Promise<T> {
     try {
       const method = (init.method ?? 'GET').toUpperCase() as 'GET' | 'POST' | 'PATCH' | 'DELETE'
       const res = await $fetch<unknown>(path as never, {
@@ -63,6 +95,8 @@ export const useApi = () => {
       const error = new Error(message) as ApiError
       error.statusCode = err?.statusCode ?? err?.response?.status
       error.data = err?.data
+      if (error.statusCode === 401 && init.authRedirect !== false)
+        await handleUnauthorized()
       throw error
     }
   }
@@ -303,7 +337,7 @@ export const useApi = () => {
     return settings
   }
 
-  async function saveSettings(patch: Partial<AppSettings>): Promise<AppSettings | null> {
+  async function saveSettings(patch: Partial<AppSettings>, options: { silent?: boolean } = {}): Promise<AppSettings | null> {
     let updated: AppSettings
     try {
       updated = await request<AppSettings>('/api/settings', {
@@ -312,7 +346,8 @@ export const useApi = () => {
       })
     }
     catch (error) {
-      fail(detail('Could not save settings', error), 'settings-save')
+      if (!options.silent)
+        fail(detail('Could not save settings', error), 'settings-save')
       throw error
     }
     settingsState.value = updated
@@ -321,16 +356,10 @@ export const useApi = () => {
 
   /** Clears session and every client cache; callers redirect to the landing page. */
   async function logout(): Promise<void> {
-    // Resolve before the await: the Nuxt instance is not reachable afterwards.
-    const authUser = useAuthUser()
-    await request('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    workspacesState.value = []
-    tasksState.value = []
-    materialsState.value = []
-    activitiesState.value = {}
-    settingsState.value = null
-    clearCacheStatus()
-    authUser.value = null
+    // A 401 here is expected when the session already expired: logout still
+    // clears the client and the caller navigates away.
+    await request('/api/auth/logout', { method: 'POST', authRedirect: false }).catch(() => {})
+    clearClientState()
   }
 
   return {

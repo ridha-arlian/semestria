@@ -1,4 +1,4 @@
-import { useSettings, SETTINGS_STORAGE_KEY } from '~/composables/useSettings'
+import { useSettings, defaultSettings, SETTINGS_STORAGE_KEY } from '~/composables/useSettings'
 import { useSettingsCache } from '~/composables/apiCache'
 import type { AppSettings } from '~/types'
 
@@ -7,6 +7,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   const api = useApi()
   const route = useRoute()
   const serverSettings = useSettingsCache()
+  const { authUser, isDemo } = useDemo()
 
   let lastActiveSlug = api.getWorkspaces().find(w => w.active)?.slug ?? null
   let ready = false
@@ -31,6 +32,16 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   function hydrate() {
+    // The sandbox always uses the default theme: the device's saved theme may
+    // belong to a previous visitor and must not leak into the demo.
+    if (isDemo.value) {
+      settings.settings.value = {
+        ...settings.settings.value,
+        appearance: { ...defaultSettings().appearance },
+      }
+      return
+    }
+
     const stored = readStored()
     if (!stored)
       return
@@ -76,11 +87,32 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   // Apply the persisted theme before first paint, then persist and re-apply on change.
   hydrate()
-  settings.applyTheme()
-  void settings.loadAvatar()
+  settings.applyTheme(!isDemo.value)
+  // The sandbox hides the avatar and the route would only answer 403.
+  if (!isDemo.value)
+    void settings.loadAvatar()
+
+  // Starting the demo from the landing page is a client-side navigation, so the
+  // plugin may already have hydrated the device's theme. Put the sandbox back on
+  // the default palette without touching the device's saved settings.
+  watch(isDemo, (demo) => {
+    if (!demo)
+      return
+    settings.settings.value = {
+      ...settings.settings.value,
+      appearance: { ...defaultSettings().appearance },
+    }
+    settings.applyTheme(false)
+  }, { immediate: true })
+
+  function canSave() {
+    // Public pages have no session, the demo is read-only, and an expired
+    // session would only earn a 401 toast.
+    return ready && Boolean(authUser.value) && !isDemo.value
+  }
 
   function scheduleSave() {
-    if (!ready)
+    if (!canSave())
       return
     // Ignore hydration/route refreshes that match what the server already has.
     if (serverSnapshot === null && serverSettings.value)
@@ -94,14 +126,18 @@ export default defineNuxtPlugin((nuxtApp) => {
       clearTimeout(saveTimer)
     saveTimer = setTimeout(async () => {
       saveTimer = null
-      // Re-check at fire time: the snapshot may have caught up while the
-      // debounce was pending (for example after a previous save response).
+      // Re-check at fire time: logout or expiry may have happened during the
+      // debounce, and the demo stays read-only regardless.
+      if (!canSave())
+        return
+      // Re-check the snapshot too: it may have caught up while the debounce
+      // was pending (for example after a previous save response).
       const latest = JSON.stringify(settings.settings.value)
       if (serverSnapshot === latest)
         return
       const payload = JSON.parse(latest) as AppSettings
       try {
-        const updated = await api.saveSettings(payload)
+        const updated = await api.saveSettings(payload, { silent: true })
         if (!updated)
           return
         // Snapshot before assigning the UI state: the deep watcher would
@@ -116,22 +152,25 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   watch(settings.settings, () => {
-    settings.persist()
+    if (!isDemo.value)
+      settings.persist()
     scheduleSave()
   }, { deep: true })
 
   watch(
     () => [settings.settings.value.appearance.preset, settings.settings.value.appearance.customColor] as const,
-    () => settings.applyThemeWithTransition(),
+    () => settings.applyThemeWithTransition(!isDemo.value),
   )
 
-  // Keep the stored last-active slug in sync with workspace switches.
+  // Keep the stored last-active slug in sync with workspace switches. The demo
+  // workspace must not write preferences.
   watch(
     () => api.getWorkspaces().find(w => w.active)?.slug ?? null,
     (slug) => {
       if (slug && slug !== lastActiveSlug) {
         lastActiveSlug = slug
-        settings.settings.value.preferences.activeWorkspaceSlug = slug
+        if (!isDemo.value)
+          settings.settings.value.preferences.activeWorkspaceSlug = slug
       }
     },
   )

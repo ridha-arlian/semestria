@@ -59,14 +59,15 @@ export function useSettings() {
     }
   }
 
-  function applyTheme() {
+  function applyTheme(persist = true) {
     if (!import.meta.client)
       return
     const css = buildThemeCss(settings.value.appearance.preset, settings.value.appearance.customColor)
     let el = document.getElementById('settings-theme') as HTMLStyleElement | null
     if (!css) {
       el?.remove()
-      localStorage.removeItem(THEME_CSS_STORAGE_KEY)
+      if (persist)
+        localStorage.removeItem(THEME_CSS_STORAGE_KEY)
       return
     }
     if (!el) {
@@ -75,16 +76,18 @@ export function useSettings() {
       document.head.appendChild(el)
     }
     el.textContent = css
-    localStorage.setItem(THEME_CSS_STORAGE_KEY, css)
+    // The demo sandbox must not overwrite the device's saved theme.
+    if (persist)
+      localStorage.setItem(THEME_CSS_STORAGE_KEY, css)
   }
 
-  function applyThemeWithTransition() {
+  function applyThemeWithTransition(persist = true) {
     if (!import.meta.client)
       return
     if (typeof document.startViewTransition === 'function')
-      document.startViewTransition(() => applyTheme())
+      document.startViewTransition(() => applyTheme(persist))
     else
-      applyTheme()
+      applyTheme(persist)
   }
 
   function openSettings(section?: SettingsSection) {
