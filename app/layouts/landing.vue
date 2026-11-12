@@ -53,11 +53,19 @@
     
     <slot />
     
-    <footer class="mx-auto flex w-[calc(100%-24px)] max-w-295 items-center justify-between border-t border-line-strong py-6 font-mono text-[10px] text-subline md:w-[calc(100%-64px)] md:pb-8.5">
+    <footer class="mx-auto flex w-[calc(100%-24px)] max-w-295 flex-wrap items-center justify-between gap-3 border-t border-line-strong py-6 font-mono text-[10px] text-subline md:w-[calc(100%-64px)] md:pb-8.5">
       <span class="inline-flex items-center gap-1">
         <Copyright class="size-3.5" />
         2026 Ridha Arlian
       </span>
+      <nav aria-label="Legal" class="flex items-center gap-4">
+        <NuxtLink to="/privacy" class="underline-offset-4 hover:text-ink hover:underline">
+          Privacy
+        </NuxtLink>
+        <NuxtLink to="/terms" class="underline-offset-4 hover:text-ink hover:underline">
+          Terms
+        </NuxtLink>
+      </nav>
     </footer>
   </div>
 </template>

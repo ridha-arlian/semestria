@@ -6,7 +6,7 @@ import type { AuthUser } from '~/composables/useAuthUser'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path.replace(/\/$/, '') || '/'
-  if (path === '/' || path.startsWith('/api/')
+  if (isPublicRoute(path) || path.startsWith('/api/')
     || path.startsWith('/_nuxt/') || path.startsWith('/assets/')) return
 
   const user = useAuthUser()

@@ -10,6 +10,26 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const nameError = ref(false)
 const avatarBusy = ref(false)
 
+const deleteOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
+
+async function deleteAccount() {
+  if (deleting.value)
+    return
+  deleting.value = true
+  deleteError.value = null
+  try {
+    await api.request('/api/me', { method: 'DELETE', authRedirect: false })
+    // Full reload drops every client cache and the in-memory session state.
+    window.location.href = '/'
+  }
+  catch (error) {
+    deleteError.value = error instanceof Error ? error.message : 'Could not delete your account.'
+    deleting.value = false
+  }
+}
+
 const cropOpen = ref(false)
 const cropSrc = ref<string | null>(null)
 
@@ -206,6 +226,49 @@ onBeforeUnmount(clearCropSrc)
         </FieldDescription>
       </Field>
     </FieldGroup>
+
+    <div class="rounded-lg border border-line p-4">
+      <h3 class="text-sm font-semibold text-headline">
+        Danger zone
+      </h3>
+      <p class="mt-1 text-xs leading-relaxed text-subline">
+        Deleting your account removes your workspaces, tasks, materials, notes, uploaded files, avatar, and activity history. This cannot be undone.
+      </p>
+      <Button
+        variant="destructive"
+        size="sm"
+        class="mt-3 text-xs"
+        @click="deleteOpen = true"
+      >
+        Delete account
+      </Button>
+    </div>
+
+    <Dialog v-model:open="deleteOpen">
+      <DialogContent :show-close-button="false" class="max-w-md">
+        <div class="flex flex-col gap-2">
+          <DialogTitle class="text-lg font-semibold text-headline">
+            Delete your account?
+          </DialogTitle>
+          <DialogDescription class="text-sm leading-relaxed text-subline">
+            This permanently deletes your account and everything in it. Residual copies in provider backups expire within 30 days. You will be signed out immediately.
+          </DialogDescription>
+        </div>
+
+        <p v-if="deleteError" class="text-xs text-destructive">
+          {{ deleteError }}
+        </p>
+
+        <DialogFooter class="gap-2">
+          <Button variant="outline" :disabled="deleting" @click="deleteOpen = false">
+            Cancel
+          </Button>
+          <Button variant="destructive" :disabled="deleting" @click="deleteAccount">
+            {{ deleting ? 'Deleting…' : 'Delete my account' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <ClientOnly>
       <SettingsAvatarCropDialog

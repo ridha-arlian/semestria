@@ -1,4 +1,4 @@
-import { fetchWorkspaceList, fetchWorkspaceData, fetchSettings } from '~/composables/useDataFetch'
+import { fetchWorkspaceList, fetchWorkspaceData, fetchSettings, isPublicRoute } from '~/composables/useDataFetch'
 import { isFresh, useWorkspaceCache } from '~/composables/apiCache'
 
 // SSR awaits every cache so the first HTML is complete. Client navigation
@@ -7,7 +7,8 @@ import { isFresh, useWorkspaceCache } from '~/composables/apiCache'
 export default defineNuxtRouteMiddleware(async (to) => {
   const path = to.path.replace(/\/$/, '') || '/'
 
-  if (path === '/') return
+  // Public pages have no session and prefetching would only earn 401s.
+  if (isPublicRoute(path)) return
 
   const match = path.match(/^\/w\/([^/]+)/)
 

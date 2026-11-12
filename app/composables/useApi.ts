@@ -5,6 +5,7 @@ import {
   findWorkspaceByPublicId, findTasks, findMaterials, upsertWorkspace, removeWorkspaceFromCache,
   upsertTask, upsertMaterial, clearCacheStatus,
 } from './apiCache'
+import { isPublicRoute } from './useDataFetch'
 
 interface ApiError extends Error { statusCode?: number; data?: unknown }
 
@@ -64,7 +65,7 @@ export const useApi = () => {
     clearClientState()
     const current = router.currentRoute.value
     // Public pages have no session by design; staying put is correct there.
-    if (redirectingToLogin || current.path === '/')
+    if (redirectingToLogin || isPublicRoute(current.path))
       return
     redirectingToLogin = true
     try {

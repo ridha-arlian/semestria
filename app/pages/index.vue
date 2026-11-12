@@ -105,6 +105,13 @@
             Continue with Google
           </a>
         </Button>
+        <p class="mt-3 max-w-70 font-mono text-[10px] leading-relaxed text-subline">
+          By continuing you agree to our
+          <NuxtLink to="/terms" class="underline underline-offset-2 hover:text-ink">Terms</NuxtLink>
+          and
+          <NuxtLink to="/privacy" class="underline underline-offset-2 hover:text-ink">Privacy Policy</NuxtLink>.
+          For users 17 and over.
+        </p>
       </div>
 
       <div
@@ -189,7 +196,7 @@
           {{ demoError }}
         </span>
         <span v-else class="font-mono text-[10px] text-subline">
-          {{ isAuthenticated ? 'Signed in' : 'No account needed' }}
+          {{ isAuthenticated ? 'Signed in' : 'No account needed · 17+' }}
         </span>
       </div>
     </section>
