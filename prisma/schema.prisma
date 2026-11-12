@@ -24,10 +24,6 @@ model User {
   // rate limit and never stores the raw address.
   isDemo     Boolean @default(false)
   demoIpHash String?
-  // Version of the Terms/Privacy the user accepted, plus when. Demo users
-  // never accept, so both stay null for them.
-  termsVersion    String?
-  termsAcceptedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

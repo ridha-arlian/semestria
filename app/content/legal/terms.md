@@ -2,11 +2,11 @@ These Terms govern your use of Semestria, a study workspace for organising assig
 
 ## 1. Acceptance
 
-You accept these Terms when you sign in with Google and confirm the consent dialog, or when you use the service in any other way. If you use Semestria on behalf of an organisation, you confirm you are allowed to accept these Terms for it.
+You accept these Terms when you sign in with Google, or when you use the service in any other way. If you use Semestria on behalf of an organisation, you confirm you are allowed to accept these Terms for it.
 
 ## 2. Eligibility
 
-You must be **17 or older** to use Semestria. By using the service you confirm that you meet this requirement. We do not verify age with identity documents.
+Semestria is open to all users. If you are under 18, use it with the knowledge and permission of a parent or guardian.
 
 ## 3. Accounts and Google sign-in
 

@@ -148,7 +148,7 @@ Demo sessions are disposable accounts. They are clearly marked in the app, chang
 
 ## 14. Age
 
-Semestria is for users **17 and older**. We do not knowingly collect data from anyone under 17. If you believe a child has created an account, contact us and we will delete it.
+Semestria does not knowingly collect personal data from children without parental consent. If you believe a child has created an account, contact us and we will delete it.
 
 ## 15. Changes to this policy
 

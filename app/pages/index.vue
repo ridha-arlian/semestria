@@ -110,7 +110,6 @@
           <NuxtLink to="/terms" class="underline underline-offset-2 hover:text-ink">Terms</NuxtLink>
           and
           <NuxtLink to="/privacy" class="underline underline-offset-2 hover:text-ink">Privacy Policy</NuxtLink>.
-          For users 17 and over.
         </p>
       </div>
 
@@ -196,7 +195,7 @@
           {{ demoError }}
         </span>
         <span v-else class="font-mono text-[10px] text-subline">
-          {{ isAuthenticated ? 'Signed in' : 'No account needed · 17+' }}
+          {{ isAuthenticated ? 'Signed in' : 'No account needed' }}
         </span>
       </div>
     </section>
