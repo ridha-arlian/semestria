@@ -688,46 +688,48 @@
       </LayoutsAppSidebar>
 
       <SidebarInset class="flex flex-1 flex-col">
-        <DemoBanner />
-        <LayoutsAppHeader
-          :view="view"
-          :breadcrumbs="breadcrumbs"
-          :can-add-task="!taskLimitReached"
-          :can-add-material="!materialLimitReached"
-          @add-task="openAdd('task')"
-          @add-material="openAdd('material')"
-          @navigate="handleNavigate"
-        >
-          <template #actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button variant="outline" size="icon" class="size-9">
-                  <Plus class="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" class="w-48">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    :disabled="taskLimitReached"
-                    :title="taskLimitReached ? 'Demo limit reached (10 tasks)' : undefined"
-                    @click="openAdd('task')"
-                  >
-                    <SquareCheck class="mr-2 size-4 text-subline" />
-                    <span>New Task</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    :disabled="materialLimitReached"
-                    :title="materialLimitReached ? 'Demo limit reached (10 materials)' : undefined"
-                    @click="openAdd('material')"
-                  >
-                    <FileText class="mr-2 size-4 text-subline" />
-                    <span>New Material</span>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </template>
-        </LayoutsAppHeader>
+        <div class="sticky top-0 z-10 flex shrink-0 flex-col">
+          <DemoBanner />
+          <LayoutsAppHeader
+            :view="view"
+            :breadcrumbs="breadcrumbs"
+            :can-add-task="!taskLimitReached"
+            :can-add-material="!materialLimitReached"
+            @add-task="openAdd('task')"
+            @add-material="openAdd('material')"
+            @navigate="handleNavigate"
+          >
+            <template #actions>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="outline" size="icon" class="size-9">
+                    <Plus class="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" class="w-48">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      :disabled="taskLimitReached"
+                      :title="taskLimitReached ? 'Demo limit reached (10 tasks)' : undefined"
+                      @click="openAdd('task')"
+                    >
+                      <SquareCheck class="mr-2 size-4 text-subline" />
+                      <span>New Task</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      :disabled="materialLimitReached"
+                      :title="materialLimitReached ? 'Demo limit reached (10 materials)' : undefined"
+                      @click="openAdd('material')"
+                    >
+                      <FileText class="mr-2 size-4 text-subline" />
+                      <span>New Material</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </template>
+          </LayoutsAppHeader>
+        </div>
 
         <div class="border-b border-line bg-paper px-5 py-2.5 md:hidden">
           <Breadcrumb>
