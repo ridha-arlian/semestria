@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Bell, ChevronLeft, ChevronRight, Palette, SlidersHorizontal, UserRound, X } from '@lucide/vue'
+import { Bell, ChevronLeft, ChevronRight, Palette, SlidersHorizontal, UserCog, UserRound, X } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
 import { Dialog, DialogContent, DialogClose, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from '~/components/ui/drawer'
 import type { SettingsSection } from '~/types'
 import { DEMO_SIGN_IN_HREF } from '~~/shared/demo'
 
-const { isOpen, openSettings, closeSettings, activeSection, toastMessage } = useSettings()
+const { isOpen, openSettings, closeSettings, activeSection } = useSettings()
 const { isDemo } = useDemo()
 const isDesktop = useMediaQuery('(min-width: 768px)')
 
@@ -18,6 +18,7 @@ const sections: { id: SettingsSection, label: string, description: string, icon:
   { id: 'appearance', label: 'Appearance', description: 'Mode, theme preset, and accent color', icon: Palette },
   { id: 'notifications', label: 'Notifications', description: 'Reminders and digests', icon: Bell },
   { id: 'preferences', label: 'Preferences', description: 'Week start, landing, workspace', icon: SlidersHorizontal },
+  { id: 'account', label: 'Account', description: 'Delete your account', icon: UserCog },
 ]
 
 const openState = computed({
@@ -242,32 +243,10 @@ watch([isOpen, activeSection], async () => {
             <SettingsAppearanceSection v-else-if="activeSection === 'appearance'" />
             <SettingsNotificationsSection v-else-if="activeSection === 'notifications'" />
             <SettingsPreferencesSection v-else-if="activeSection === 'preferences'" />
+            <SettingsAccountSection v-else-if="activeSection === 'account'" />
           </fieldset>
         </div>
       </div>
-
-      <Teleport to="body">
-        <Transition name="settings-toast">
-          <div
-            v-if="toastMessage"
-            class="fixed bottom-6 left-1/2 z-[80]! -translate-x-1/2 rounded-lg bg-ink px-4 py-2 text-sm text-paper shadow-lg"
-          >
-            {{ toastMessage }}
-          </div>
-        </Transition>
-      </Teleport>
     </component>
   </component>
 </template>
-
-<style scoped>
-.settings-toast-enter-active,
-.settings-toast-leave-active {
-  transition: all 0.3s ease;
-}
-.settings-toast-enter-from,
-.settings-toast-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 10px);
-}
-</style>

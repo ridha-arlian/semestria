@@ -2,6 +2,7 @@
 import * as imageCropper from '@zag-js/image-cropper'
 import { normalizeProps, useMachine } from '@zag-js/vue'
 import { RotateCcw } from '@lucide/vue'
+import { toast } from 'vue-sonner'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 
 const props = defineProps<{
@@ -13,8 +14,6 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
   'save': [blob: Blob]
 }>()
-
-const { showToast } = useSettings()
 
 const openState = computed({
   get: () => props.open,
@@ -83,7 +82,7 @@ async function handleSave() {
       openState.value = false
     }
     else {
-      showToast('Could not crop this image')
+      toast.error('Could not crop this image')
     }
   }
   finally {

@@ -154,7 +154,7 @@ export interface MaterialActivity {
   at: string
 }
 
-export type SettingsSection = 'profile' | 'appearance' | 'notifications' | 'preferences'
+export type SettingsSection = 'profile' | 'appearance' | 'notifications' | 'preferences' | 'account'
 
 export type ThemePresetId = 'mono' | 'ocean' | 'forest' | 'rose' | 'amber' | 'violet' | 'custom'
 

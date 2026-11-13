@@ -1,10 +1,11 @@
+import { toast } from 'vue-sonner'
 import { buildThemeCss } from '~/utils/settingsTheme'
 import type { AppSettings, SettingsSection } from '~/types'
 
 export const SETTINGS_STORAGE_KEY = 'semestria-settings'
 export const THEME_CSS_STORAGE_KEY = 'semestria-theme-css'
 
-const SETTINGS_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'notifications', 'preferences']
+const SETTINGS_SECTIONS: SettingsSection[] = ['profile', 'appearance', 'notifications', 'preferences', 'account']
 
 export function defaultSettings(): AppSettings {
   return {
@@ -30,19 +31,28 @@ export function defaultSettings(): AppSettings {
   }
 }
 
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-
 export function useSettings() {
+  const api = useApi()
   const settings = useState<AppSettings>('app-settings', defaultSettings)
   const isOpen = useState<boolean>('app-settings-open', () => false)
   const activeSection = useState<SettingsSection>('app-settings-section', () => 'profile')
-  const toastMessage = useState<string | null>('app-settings-toast', () => null)
   const avatarUrl = useState<string | null>('app-settings-avatar', () => null)
   const hydrated = useState<boolean>('app-settings-hydrated', () => false)
+
+  // The name is edited in the Profile section but saved from a bar rendered by
+  // the dialog shell, so the draft lives here instead of inside the section.
+  const nameDraft = useState<string>('app-settings-name-draft', () => '')
+  const nameBaseline = useState<string>('app-settings-name-baseline', () => '')
+  const nameSaving = useState<boolean>('app-settings-name-saving', () => false)
+  const nameInitialized = useState<boolean>('app-settings-name-initialized', () => false)
 
   const displayName = computed(() => settings.value.profile.name.trim() || 'there')
   const firstName = computed(() => displayName.value.trim().split(/\s+/)[0] || 'there')
   const weekStartsOnNumber = computed(() => settings.value.preferences.weekStartsOn === 'sunday' ? 0 : 1)
+
+  const nameError = computed(() => nameDraft.value.trim().length === 0)
+  const nameValid = computed(() => !nameError.value && nameDraft.value.trim().length <= 120)
+  const nameDirty = computed(() => nameInitialized.value && nameDraft.value.trim() !== nameBaseline.value)
 
   function persist() {
     if (!import.meta.client)
@@ -99,14 +109,55 @@ export function useSettings() {
     isOpen.value = false
   }
 
-  function showToast(message: string) {
-    toastMessage.value = message
-    if (toastTimer)
-      clearTimeout(toastTimer)
-    toastTimer = setTimeout(() => {
-      toastMessage.value = null
-    }, 2400)
+  function initNameDraft() {
+    if (nameInitialized.value)
+      return
+    nameBaseline.value = settings.value.profile.name
+    nameDraft.value = settings.value.profile.name
+    nameInitialized.value = true
   }
+
+  function discardName() {
+    nameDraft.value = nameBaseline.value
+    nameInitialized.value = true
+  }
+
+  async function saveName() {
+    const value = nameDraft.value.trim()
+    if (!nameValid.value || !nameDirty.value || nameSaving.value)
+      return
+    nameSaving.value = true
+    try {
+      const updated = await api.saveSettings({ profile: { ...settings.value.profile, name: value } })
+      if (updated) {
+        settings.value = updated
+        nameBaseline.value = updated.profile.name
+        nameDraft.value = updated.profile.name
+        toast.success('Name updated')
+      }
+    }
+    catch {
+      // api.saveSettings already reports the failure with the server detail.
+    }
+    finally {
+      nameSaving.value = false
+    }
+  }
+
+  // A rename that arrives from the server (hydration, another tab) only lands
+  // while the draft has no pending edit, so typing is never overwritten.
+  watch(() => settings.value.profile.name, (name) => {
+    if (!nameInitialized.value || nameDraft.value.trim() !== nameBaseline.value)
+      return
+    nameBaseline.value = name
+    nameDraft.value = name
+  })
+
+  // Closing the dialog abandons an unsaved rename so the next open starts clean.
+  watch(isOpen, (open) => {
+    if (!open)
+      discardName()
+  })
 
   // Single owner for the object URL so Settings and Sidebar stay in sync and
   // no blob leaks when the avatar is replaced or removed.
@@ -134,15 +185,21 @@ export function useSettings() {
     settings,
     isOpen,
     activeSection,
-    toastMessage,
     avatarUrl,
     hydrated,
     displayName,
     firstName,
     weekStartsOnNumber,
+    nameDraft,
+    nameSaving,
+    nameError,
+    nameValid,
+    nameDirty,
+    initNameDraft,
+    discardName,
+    saveName,
     openSettings,
     closeSettings,
-    showToast,
     setAvatarBlob,
     loadAvatar,
     persist,

@@ -1,37 +1,17 @@
 <script setup lang="ts">
 import { Camera, RotateCcw, UserRound } from '@lucide/vue'
+import { toast } from 'vue-sonner'
 
 const api = useApi()
-const { settings, avatarUrl, setAvatarBlob, showToast } = useSettings()
+const {
+  settings, avatarUrl, setAvatarBlob,
+  nameDraft, nameSaving, nameDirty, nameError, nameValid,
+  initNameDraft, discardName, saveName,
+} = useSettings()
 
-const nameInput = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const nameSaving = ref(false)
-const nameError = computed(() => nameInput.value.trim().length === 0)
-const nameDirty = computed(() => nameInput.value.trim() !== settings.value.profile.name)
-const nameValid = computed(() => !nameError.value && nameInput.value.trim().length <= 120)
 const avatarBusy = ref(false)
-
-const deleteOpen = ref(false)
-const deleting = ref(false)
-const deleteError = ref<string | null>(null)
-
-async function deleteAccount() {
-  if (deleting.value)
-    return
-  deleting.value = true
-  deleteError.value = null
-  try {
-    await api.request('/api/me', { method: 'DELETE', authRedirect: false })
-    // Full reload drops every client cache and the in-memory session state.
-    window.location.href = '/'
-  }
-  catch (error) {
-    deleteError.value = error instanceof Error ? error.message : 'Could not delete your account.'
-    deleting.value = false
-  }
-}
 
 const cropOpen = ref(false)
 const cropSrc = ref<string | null>(null)
@@ -53,11 +33,11 @@ function handleAvatarChange(event: Event) {
   if (!file)
     return
   if (!ACCEPTED_TYPES.includes(file.type)) {
-    showToast('Choose a PNG, JPG, or WebP image')
+    toast.error('Choose a PNG, JPG, or WebP image')
     return
   }
   if (file.size > MAX_FILE_BYTES) {
-    showToast('Avatar must be 10MB or smaller')
+    toast.error('Avatar must be 10MB or smaller')
     return
   }
   clearCropSrc()
@@ -100,10 +80,10 @@ async function uploadAvatar(blob: Blob) {
       throw new Error(`Upload failed (${response.status}).`)
     await api.request('/api/me/avatar', { method: 'PATCH', body: JSON.stringify({ key: ticket.key }) })
     setAvatarBlob(blob)
-    showToast('Avatar updated')
+    toast.success('Avatar updated')
   }
   catch (error) {
-    showToast(error instanceof Error ? error.message : 'Could not update avatar')
+    toast.error(error instanceof Error ? error.message : 'Could not update avatar')
   }
   finally {
     avatarBusy.value = false
@@ -121,46 +101,17 @@ async function handleRemoveAvatar() {
   try {
     await api.request('/api/me/avatar', { method: 'DELETE' })
     setAvatarBlob(null)
-    showToast('Avatar removed')
+    toast.success('Avatar removed')
   }
   catch (error) {
-    showToast(error instanceof Error ? error.message : 'Could not remove avatar')
+    toast.error(error instanceof Error ? error.message : 'Could not remove avatar')
   }
   finally {
     avatarBusy.value = false
   }
 }
 
-async function saveName() {
-  const value = nameInput.value.trim()
-  if (!nameValid.value || !nameDirty.value || nameSaving.value)
-    return
-  nameSaving.value = true
-  try {
-    const updated = await api.saveSettings({ profile: { ...settings.value.profile, name: value } })
-    if (updated) {
-      settings.value = updated
-      nameInput.value = updated.profile.name
-      showToast('Name updated')
-    }
-  }
-  catch {
-    showToast('Could not save name')
-  }
-  finally {
-    nameSaving.value = false
-  }
-}
-
-function resetName() {
-  nameInput.value = settings.value.profile.name
-}
-
-function init() {
-  nameInput.value = settings.value.profile.name
-}
-
-onMounted(init)
+onMounted(initNameDraft)
 onBeforeUnmount(clearCropSrc)
 </script>
 
@@ -216,42 +167,42 @@ onBeforeUnmount(clearCropSrc)
       <form class="flex flex-col gap-3" novalidate @submit.prevent="saveName">
         <Field class="gap-1.5" :data-invalid="nameError">
           <FieldLabel for="settings-display-name" class="text-sm">Display name</FieldLabel>
-          <Input
-            id="settings-display-name"
-            v-model="nameInput"
-            type="text"
-            placeholder="Ari Rahman"
-            class="text-sm"
-            maxlength="120"
-            :disabled="nameSaving"
-            :aria-invalid="nameError || undefined"
-            :aria-describedby="nameError ? 'settings-display-name-error' : undefined"
-          />
+          <div class="flex items-center gap-2">
+            <Input
+              id="settings-display-name"
+              v-model="nameDraft"
+              type="text"
+              placeholder="Ari Rahman"
+              class="min-w-0 flex-1 text-sm"
+              maxlength="120"
+              :disabled="nameSaving"
+              :aria-invalid="nameError || undefined"
+              :aria-describedby="nameError ? 'settings-display-name-error' : undefined"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              class="shrink-0 text-xs"
+              :disabled="!nameDirty || !nameValid || nameSaving"
+            >
+              Save
+            </Button>
+            <Button
+              v-if="nameDirty"
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="shrink-0 text-xs"
+              :disabled="nameSaving"
+              @click="discardName"
+            >
+              Cancel
+            </Button>
+          </div>
           <FieldError v-if="nameError" id="settings-display-name-error" class="text-[11px]">
             Name cannot be empty.
           </FieldError>
         </Field>
-        <div class="flex items-center gap-2">
-          <Button
-            type="submit"
-            size="sm"
-            class="text-xs"
-            :disabled="!nameDirty || !nameValid || nameSaving"
-          >
-            Save
-          </Button>
-          <Button
-            v-if="nameDirty"
-            type="button"
-            variant="ghost"
-            size="sm"
-            class="text-xs"
-            :disabled="nameSaving"
-            @click="resetName"
-          >
-            Cancel
-          </Button>
-        </div>
       </form>
 
       <Field class="gap-1.5">
@@ -268,49 +219,6 @@ onBeforeUnmount(clearCropSrc)
         </FieldDescription>
       </Field>
     </FieldGroup>
-
-    <div class="rounded-lg border border-line p-4">
-      <h3 class="text-sm font-semibold text-headline">
-        Danger zone
-      </h3>
-      <p class="mt-1 text-xs leading-relaxed text-subline">
-        Deleting your account removes your workspaces, tasks, materials, notes, uploaded files, avatar, and activity history. This cannot be undone.
-      </p>
-      <Button
-        variant="destructive"
-        size="sm"
-        class="mt-3 text-xs"
-        @click="deleteOpen = true"
-      >
-        Delete account
-      </Button>
-    </div>
-
-    <Dialog v-model:open="deleteOpen">
-      <DialogContent :show-close-button="false" class="max-w-md">
-        <div class="flex flex-col gap-2">
-          <DialogTitle class="text-lg font-semibold text-headline">
-            Delete your account?
-          </DialogTitle>
-          <DialogDescription class="text-sm leading-relaxed text-subline">
-            This permanently deletes your account and everything in it. Residual copies in provider backups expire within 30 days. You will be signed out immediately.
-          </DialogDescription>
-        </div>
-
-        <p v-if="deleteError" class="text-xs text-destructive">
-          {{ deleteError }}
-        </p>
-
-        <DialogFooter class="gap-2">
-          <Button variant="outline" :disabled="deleting" @click="deleteOpen = false">
-            Cancel
-          </Button>
-          <Button variant="destructive" :disabled="deleting" @click="deleteAccount">
-            {{ deleting ? 'Deleting…' : 'Delete my account' }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
 
     <ClientOnly>
       <SettingsAvatarCropDialog
