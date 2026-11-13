@@ -7,7 +7,10 @@ const { settings, avatarUrl, setAvatarBlob, showToast } = useSettings()
 const nameInput = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const nameError = ref(false)
+const nameSaving = ref(false)
+const nameError = computed(() => nameInput.value.trim().length === 0)
+const nameDirty = computed(() => nameInput.value.trim() !== settings.value.profile.name)
+const nameValid = computed(() => !nameError.value && nameInput.value.trim().length <= 120)
 const avatarBusy = ref(false)
 
 const deleteOpen = ref(false)
@@ -128,14 +131,29 @@ async function handleRemoveAvatar() {
   }
 }
 
-function handleNameBlur() {
+async function saveName() {
   const value = nameInput.value.trim()
-  if (!value) {
-    nameError.value = true
+  if (!nameValid.value || !nameDirty.value || nameSaving.value)
     return
+  nameSaving.value = true
+  try {
+    const updated = await api.saveSettings({ profile: { ...settings.value.profile, name: value } })
+    if (updated) {
+      settings.value = updated
+      nameInput.value = updated.profile.name
+      showToast('Name updated')
+    }
   }
-  nameError.value = false
-  settings.value.profile.name = value
+  catch {
+    showToast('Could not save name')
+  }
+  finally {
+    nameSaving.value = false
+  }
+}
+
+function resetName() {
+  nameInput.value = settings.value.profile.name
 }
 
 function init() {
@@ -195,22 +213,46 @@ onBeforeUnmount(clearCropSrc)
     </div>
 
     <FieldGroup class="gap-4">
-      <Field class="gap-1.5" :data-invalid="!!nameError">
-        <FieldLabel for="settings-display-name" class="text-sm">Display name</FieldLabel>
-        <Input
-          id="settings-display-name"
-          v-model="nameInput"
-          type="text"
-          placeholder="Ari Rahman"
-          class="text-sm"
-          :aria-invalid="nameError || undefined"
-          :aria-describedby="nameError ? 'settings-display-name-error' : undefined"
-          @blur="handleNameBlur"
-        />
-        <FieldError v-if="nameError" id="settings-display-name-error" class="text-[11px]">
-          Name cannot be empty.
-        </FieldError>
-      </Field>
+      <form class="flex flex-col gap-3" novalidate @submit.prevent="saveName">
+        <Field class="gap-1.5" :data-invalid="nameError">
+          <FieldLabel for="settings-display-name" class="text-sm">Display name</FieldLabel>
+          <Input
+            id="settings-display-name"
+            v-model="nameInput"
+            type="text"
+            placeholder="Ari Rahman"
+            class="text-sm"
+            maxlength="120"
+            :disabled="nameSaving"
+            :aria-invalid="nameError || undefined"
+            :aria-describedby="nameError ? 'settings-display-name-error' : undefined"
+          />
+          <FieldError v-if="nameError" id="settings-display-name-error" class="text-[11px]">
+            Name cannot be empty.
+          </FieldError>
+        </Field>
+        <div class="flex items-center gap-2">
+          <Button
+            type="submit"
+            size="sm"
+            class="text-xs"
+            :disabled="!nameDirty || !nameValid || nameSaving"
+          >
+            Save
+          </Button>
+          <Button
+            v-if="nameDirty"
+            type="button"
+            variant="ghost"
+            size="sm"
+            class="text-xs"
+            :disabled="nameSaving"
+            @click="resetName"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
 
       <Field class="gap-1.5">
         <FieldLabel for="settings-email" class="text-sm">Email</FieldLabel>
@@ -218,7 +260,7 @@ onBeforeUnmount(clearCropSrc)
           id="settings-email"
           :model-value="settings.profile.email"
           type="email"
-          readonly
+          disabled
           class="text-sm"
         />
         <FieldDescription class="text-[11px]">

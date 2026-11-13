@@ -20,6 +20,14 @@ export default defineNuxtPlugin((nuxtApp) => {
     ? JSON.stringify(serverSettings.value)
     : null
 
+  // Any caller of `api.saveSettings` (for example the explicit name save) updates
+  // the shared cache; refresh the snapshot so the deep watcher does not save the
+  // same payload a second time.
+  watch(serverSettings, (value) => {
+    if (value)
+      serverSnapshot = JSON.stringify(value)
+  })
+
   function readStored(): Partial<AppSettings> | null {
     try {
       const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
