@@ -1,4 +1,4 @@
-import { requireFullAccessUser } from '../utils/auth'
+import { requireFullAccessUser, setUser } from '../utils/auth'
 import { useDb } from '../utils/db'
 import { parseOr400, settingsPatch } from '../../shared/schemas'
 import { toSettings } from '../../shared/serialize'
@@ -10,13 +10,19 @@ export default defineEventHandler(async (event) => {
 
   const updated = await db.$transaction(async (tx) => {
     if (body.profile) {
-      await tx.user.update({
+      // The client sends the whole settings object, so only a real change to the
+      // stored name marks it as user-owned. Email is the login identity: never
+      // overwritten from settings.
+      const current = await tx.user.findUnique({
         where: { id: user.id },
-        data: {
-          ...(body.profile.name !== undefined ? { name: body.profile.name } : {}),
-          // Email is the login identity: never overwritten from settings.
-        },
+        select: { name: true },
       })
+      if (current && body.profile.name !== undefined && body.profile.name !== current.name) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { name: body.profile.name, nameCustomized: true },
+        })
+      }
     }
 
     if (body.appearance || body.notifications || body.preferences) {
@@ -33,6 +39,11 @@ export default defineEventHandler(async (event) => {
 
     return tx.user.findUnique({ where: { id: user.id }, include: { settings: true } })
   })
+
+  // Keep the sealed session in step with the rename: otherwise /api/auth/me
+  // keeps reporting the old name until the next sign-in.
+  if (updated && updated.name !== user.name)
+    await setUser(event, { ...user, name: updated.name })
 
   return toSettings(updated, updated?.settings)
 })

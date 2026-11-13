@@ -64,9 +64,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDb(event)
+  // Google owns the name only until the user renames themselves. The row read
+  // is needed because `upsert` takes a static `update` payload.
+  const existing = await db.user.findUnique({
+    where: { email: info.email },
+    select: { nameCustomized: true },
+  })
   const user = await db.user.upsert({
     where: { email: info.email },
-    update: { name: info.name ?? info.email },
+    update: existing?.nameCustomized ? {} : { name: info.name ?? info.email },
     create: { email: info.email, name: info.name ?? info.email },
     include: { settings: true },
   })

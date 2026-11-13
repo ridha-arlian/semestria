@@ -42,23 +42,22 @@ export default defineNuxtPlugin((nuxtApp) => {
       return
     }
 
-    const stored = readStored()
-    if (!stored)
-      return
     const current = settings.settings.value
 
-    // Server settings own profile and preferences. localStorage is only a
-    // pre-paint cache for appearance.
+    // A signed-in account owns its appearance. A device cache can outlive the
+    // session (expiry, manual cookie clear, another account on a shared device)
+    // and the next settings save would persist that stale theme here.
     if (serverSettings.value) {
       settings.settings.value = {
         ...current,
-        appearance: {
-          preset: stored.appearance?.preset ?? current.appearance.preset,
-          customColor: stored.appearance?.customColor ?? current.appearance.customColor,
-        },
+        appearance: { ...serverSettings.value.appearance },
       }
       return
     }
+
+    const stored = readStored()
+    if (!stored)
+      return
 
     // No server session (public page): keep the old full local fallback so the
     // saved theme still applies before login.
@@ -88,6 +87,10 @@ export default defineNuxtPlugin((nuxtApp) => {
   // Apply the persisted theme before first paint, then persist and re-apply on change.
   hydrate()
   settings.applyTheme(!isDemo.value)
+  // Refresh the pre-paint cache from the account theme so a stale device theme
+  // cannot come back on the next load.
+  if (serverSettings.value && !isDemo.value)
+    settings.persist()
   // The sandbox hides the avatar and the route would only answer 403.
   if (!isDemo.value)
     void settings.loadAvatar()

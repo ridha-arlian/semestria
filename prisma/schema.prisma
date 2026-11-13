@@ -20,6 +20,9 @@ model User {
   name      String
   avatarKey String?
   avatarHidden Boolean @default(false)
+  // Google identity is imported only when the account is created. Once the
+  // user edits their own name, the next login must not overwrite it.
+  nameCustomized Boolean @default(false)
   // Demo visitors get a disposable account. `demoIpHash` backs the per-IP
   // rate limit and never stores the raw address.
   isDemo     Boolean @default(false)
